@@ -1,9 +1,11 @@
 Loupedeck: Node.js Interface
 ============================
 
-Unofficial Node.js API for Loupedeck Live devices.
+Unofficial Node.js API for Loupedeck Live controllers.
 
-**Alpha version: Partial Functionality**
+![Loupedeck Live Interface](https://github.com/foxxyz/loupedeck/blob/master/docs/device-front-small.png?raw=true)
+
+**⚠️ Alpha version: Partial Functionality**
 
 Supports:
 
