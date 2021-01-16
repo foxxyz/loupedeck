@@ -1,0 +1,81 @@
+{
+  "name": "loupedeck",
+  "version": "0.5.0",
+  "description": "Loupedeck Device Interface",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "ws": "^7.4.2"
+  },
+  "keywords": [
+    "loupedeck",
+    "device",
+    "hardware",
+    "interface",
+    "controller",
+    "websocket"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/foxxyz/loupedeck"
+  },
+  "author": "Ivo Janssen <hello@ivo.la>",
+  "license": "MIT",
+  "eslintConfig": {
+    "env": {
+      "es6": true,
+      "node": true
+    },
+    "extends": [
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2017,
+      "sourceType": "module"
+    },
+    "rules": {
+      "eqeqeq": [
+        "error",
+        "always"
+      ],
+      "indent": [
+        "error",
+        4
+      ],
+      "linebreak-style": [
+        "error",
+        "unix"
+      ],
+      "quotes": [
+        "error",
+        "single"
+      ],
+      "no-console": [
+        "error",
+        {
+          "allow": [
+            "warn",
+            "info",
+            "error"
+          ]
+        }
+      ],
+      "object-curly-spacing": [
+        "error",
+        "always"
+      ],
+      "prefer-const": [
+        "error"
+      ],
+      "semi": [
+        "error",
+        "never"
+      ]
+    }
+  },
+  "devDependencies": {
+    "eslint": "^7.18.0"
+  }
+}
