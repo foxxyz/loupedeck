@@ -1,6 +1,6 @@
 {
   "name": "loupedeck",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Loupedeck Device Interface",
   "main": "index.js",
   "scripts": {
@@ -8,8 +8,8 @@
     "test": "jest"
   },
   "files": [
-  	"index.js",
-  	"device.js"
+    "index.js",
+    "device.js"
   ],
   "dependencies": {
     "ws": "^7.4.2"
