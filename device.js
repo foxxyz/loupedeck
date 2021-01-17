@@ -28,16 +28,18 @@ const HEADERS = {
 }
 
 class LoupedeckDevice extends EventEmitter {
-    constructor({ ip }) {
+    constructor({ ip } = {}) {
         super()
         this.url = `ws://${ip}`
-        this.connection = new WebSocket(this.url)
-        this.connection.on('open', this.onConnect.bind(this))
-        this.connection.on('message', this.onReceive.bind(this))
         this.handlers = {
             [HEADERS.BUTTON]: this.onButton.bind(this),
             [HEADERS.TOUCH]: this.onTouch.bind(this)
         }
+    }
+    connect() {
+        this.connection = new WebSocket(this.url)
+        this.connection.on('open', this.onConnect.bind(this))
+        this.connection.on('message', this.onReceive.bind(this))
     }
     onButton(buff) {
         // Rotation dial
@@ -81,7 +83,9 @@ function openLoupedeck() {
     const iface = interfaces.find(i => i.address.startsWith('100.127'))
     if (!iface) throw new Error('No Loupedeck devices found!')
     const ip = iface.address.replace(/.2$/, '.1')
-    return new LoupedeckDevice({ ip })
+    const device = new LoupedeckDevice({ ip })
+    device.connect()
+    return device
 }
 
 module.exports = { openLoupedeck, LoupedeckDevice }
