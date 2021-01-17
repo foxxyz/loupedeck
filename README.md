@@ -57,6 +57,84 @@ device.on('rotate', ({ id, delta }) => {
 
 For a longer example, see [`example.js`](/example.js).
 
+📝 API Docs
+-----------
+
+#### `openLoupeDeck() : LoupedeckDevice`
+
+Helper method to automatically discover and connect to a Loupedeck.
+
+_Note: Ensure Loupedeck software is not running as it may conflict with this library_
+
+### Class `LoupedeckDevice`
+
+Main device class.
+
+All incoming messages are emitted as action events and can be subscribed to via `device.on()`.
+
+#### `new LoupedeckDevice({ ip : String })`
+
+Create a new Loupdeck device interface. You should not need to call this constructor manually unless you want to connect to multiple devices, or want to specify the IP manually. For all other use-cases, use [`openLoupedeck`](#openloupedeck--loupedeckdevice)
+
+ - `ip`: IP address to connect to (example: `127.100.1.1`)
+
+#### Event: `'connect'`
+
+Emitted when connection to the device succeeds.
+
+#### Event: `'down'`
+
+Emitted when a button or knob is pressed down.
+
+Arguments:
+ - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
+
+#### Event: `'rotate'`
+
+Emitted when a knob is rotated.
+
+Arguments:
+ - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
+ - `delta`: Rotation direction, `-1` for counter-clockwise, `1` for clockwise.
+
+#### Event: `'touch'`
+
+Emitted when any part of the center screen is touched.
+
+Arguments:
+ - `x`: Screen X-coordinate ([0, 472])
+ - `y`: Screen Y-coordinate ([0, 270])
+
+#### Event: `'touchend'`
+
+Emitted when a touch is no longer detected.
+
+Arguments:
+ - `x`: Screen X-coordinate ([0, 472])
+ - `y`: Screen Y-coordinate ([0, 270])
+
+#### Event: `'up'`
+
+Emitted when a button or knob is released.
+
+Arguments:
+ - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
+
+#### `device.setColor({ id : String, r : Number, g : Number, b : Number })`
+
+Set a button LED to a particular color.
+
+ - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
+ - `r`: Red color component (0-255)
+ - `g`: Green color component (0-255)
+ - `b`: Blue color component (0-255)
+
+Contributing & Tests
+--------------------
+
+1. Install development dependencies: `npm install`
+2. Run tests: `npm test`
+
 License
 -------
 
