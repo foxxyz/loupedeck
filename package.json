@@ -7,6 +7,10 @@
     "lint": "eslint .",
     "test": "jest"
   },
+  "files": [
+  	"index.js",
+  	"device.js"
+  ],
   "dependencies": {
     "ws": "^7.4.2"
   },
