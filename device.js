@@ -20,20 +20,25 @@ const BUTTONS = {
 }
 
 const HEADERS = {
-    CONFIRM: 0x03,
-    TICK: 0x04,
-    BUTTON: 0x05,
-    COLOR: 0x07,
-    TOUCH: 0x09
+    CONFIRM:         0x0302,
+    TICK:            0x0400,
+    BUTTON_PRESS:    0x0500,
+    KNOB_ROTATE:     0x0501,
+    SET_COLOR:       0x0702,
+    TOUCH:           0x094d,
+    TOUCH_END:       0x096d
 }
 
 class LoupedeckDevice extends EventEmitter {
     constructor({ ip } = {}) {
         super()
         this.url = `ws://${ip}`
+        this.transactionID = 0
         this.handlers = {
-            [HEADERS.BUTTON]: this.onButton.bind(this),
-            [HEADERS.TOUCH]: this.onTouch.bind(this)
+            [HEADERS.BUTTON_PRESS]: this.onButton.bind(this),
+            [HEADERS.KNOB_ROTATE]: this.onRotate.bind(this),
+            [HEADERS.TOUCH]: this.onTouch.bind(this, 'touch'),
+            [HEADERS.TOUCH_END]: this.onTouch.bind(this, 'touchend')
         }
     }
     connect() {
@@ -42,38 +47,41 @@ class LoupedeckDevice extends EventEmitter {
         this.connection.on('message', this.onReceive.bind(this))
     }
     onButton(buff) {
-        // Rotation dial
-        if (buff[1] === 0x01) {
-            const id = BUTTONS[buff[3]]
-            const delta = buff.readInt8(4)
-            this.emit('rotate', { id, delta })
-        }
-        // Button press
-        else {
-            const id = BUTTONS[buff[3]]
-            const event = buff[4] === 0x00 ? 'down' : 'up'
-            this.emit(event, { id })
-        }
+        const id = BUTTONS[buff[0]]
+        const event = buff[1] === 0x00 ? 'down' : 'up'
+        this.emit(event, { id })
     }
     onConnect() {
         this.emit('connect', this)
     }
     onReceive(buff) {
-        const handler = this.handlers[buff[0]]
+        const handler = this.handlers[buff.readUInt16BE()]
         if (!handler) return
-        handler(buff)
+        handler(buff.slice(3))
     }
-    onTouch(buff) {
-        const event = buff[1] === 0x6d ? 'touchend' : 'touch'
-        const x = buff.readUInt16BE(4)
-        const y = buff.readUInt16BE(6)
+    onRotate(buff) {
+        const id = BUTTONS[buff[0]]
+        const delta = buff.readInt8(1)
+        this.emit('rotate', { id, delta })
+    }
+    onTouch(event, buff) {
+        const x = buff.readUInt16BE(0)
+        const y = buff.readUInt16BE(2)
         this.emit(event, { x, y })
+    }
+    send(action, data) {
+        this.transactionID = (this.transactionID + 1) % 0xff
+        const header = Buffer.alloc(3)
+        header.writeUInt16BE(action)
+        header[2] = this.transactionID
+        const packet = Buffer.concat([header, data])
+        this.connection.send(packet)
     }
     setColor({ id, r, g, b }) {
         const key = Object.keys(BUTTONS).find(k => BUTTONS[k] === id)
         if (!key) throw new Error(`Invalid button ID: ${id}`)
-        const buff = Buffer.from([HEADERS.COLOR, 0x02, 0x01, key, r, g, b])
-        this.connection.send(buff)
+        const data = Buffer.from([key, r, g, b])
+        this.send(HEADERS.SET_COLOR, data)
     }
 }
 
