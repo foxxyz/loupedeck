@@ -136,6 +136,12 @@ Set a button LED to a particular color.
  - `g`: Green color component (0-255)
  - `b`: Blue color component (0-255)
 
+#### `device.vibrate(pattern? : byte)`
+
+Make device vibrate.
+
+ - `pattern`: A valid vibration pattern ([see `HAPTIC` for valid patterns](https://github.com/foxxyz/loupedeck/blob/master/device.js#L37)) (default: `HAPTIC.SHORT`)
+
 Contributing & Tests
 --------------------
 

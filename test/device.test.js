@@ -14,6 +14,11 @@ describe('Commands', () => {
         // 0x0b should be max brightness
         expect(sender).toHaveBeenCalledWith(Buffer.from('0409020b', 'hex'))
     })
+    it('vibrates', () => {
+        const sender = jest.spyOn(device.connection, 'send')
+        device.vibrate(0x56)
+        expect(sender).toHaveBeenCalledWith(Buffer.from('041b0156', 'hex'))
+    })
 })
 
 describe('Message Parsing', () => {
