@@ -13,6 +13,7 @@ Supports:
  * Reading knob turns
  * Reading touch events
  * Setting button colors
+ * Setting screen brightness
 
 Not supported yet:
 
@@ -119,6 +120,12 @@ Emitted when a button or knob is released.
 
 Arguments:
  - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
+
+#### `device.setBrightness(brightness : Number)`
+
+Set screen brightness.
+
+ - `brightness`: Number between (0, 1) (`0` would turn the screen off, `1` for full brightness)
 
 #### `device.setColor({ id : String, r : Number, g : Number, b : Number })`
 

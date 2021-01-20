@@ -2,6 +2,9 @@ const { networkInterfaces } = require('os')
 const EventEmitter = require('events')
 const WebSocket = require('ws')
 
+// ...it really does seem to go up to 11
+const BRIGHTNESS_LEVELS = 11
+
 const BUTTONS = {
     0x01: 'knobTL',
     0x02: 'knobCL',
@@ -22,6 +25,7 @@ const BUTTONS = {
 const HEADERS = {
     CONFIRM:         0x0302,
     TICK:            0x0400,
+    SET_BRIGHTNESS:  0x0409,
     BUTTON_PRESS:    0x0500,
     KNOB_ROTATE:     0x0501,
     SET_COLOR:       0x0702,
@@ -55,7 +59,8 @@ class LoupedeckDevice extends EventEmitter {
         this.emit('connect', this)
     }
     onReceive(buff) {
-        const handler = this.handlers[buff.readUInt16BE()]
+        const header = buff.readUInt16BE()
+        const handler = this.handlers[header]
         if (!handler) return
         handler(buff.slice(3))
     }
@@ -65,8 +70,8 @@ class LoupedeckDevice extends EventEmitter {
         this.emit('rotate', { id, delta })
     }
     onTouch(event, buff) {
-        const x = buff.readUInt16BE(0)
-        const y = buff.readUInt16BE(2)
+        const x = buff.readUInt16BE(1)
+        const y = buff.readUInt16BE(3)
         this.emit(event, { x, y })
     }
     send(action, data) {
@@ -76,6 +81,10 @@ class LoupedeckDevice extends EventEmitter {
         header[2] = this.transactionID
         const packet = Buffer.concat([header, data])
         this.connection.send(packet)
+    }
+    setBrightness(value) {
+        const byte = Math.max(0, Math.min(BRIGHTNESS_LEVELS, Math.round(value * BRIGHTNESS_LEVELS)))
+        this.send(HEADERS.SET_BRIGHTNESS, Buffer.from([byte]))
     }
     setColor({ id, r, g, b }) {
         const key = Object.keys(BUTTONS).find(k => BUTTONS[k] === id)
