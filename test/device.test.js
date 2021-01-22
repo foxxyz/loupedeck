@@ -1,5 +1,19 @@
 const { LoupedeckDevice } = require('..')
 
+expect.extend({
+    toBePixelBuffer(received, { displayID, x, y, width, height }) {
+        if (received.readUInt16BE(0) !== 0xff10) return { pass: false, message: () => `Header should be 0xff10, found 0x${received.readUInt16BE().toString(16)}` }
+        if (received.readUInt16BE(3) !== displayID) return { pass: false, message: () => `Display ID should be ${displayID}, but found 0x${received.readUInt16BE(3).toString(16)}` }
+        if (received.readUInt16BE(5) !== x) return { pass: false, message: () => `X coordinate should be ${x}, but found ${received.readUInt16BE(3)}` }
+        if (received.readUInt16BE(7) !== y) return { pass: false, message: () => `Y coordinate should be ${y}, but found ${received.readUInt16BE(5)}` }
+        if (received.readUInt16BE(9) !== width) return { pass: false, message: () => `Width should be ${width}, but found ${received.readUInt16BE(9)}` }
+        if (received.readUInt16BE(11) !== height) return { pass: false, message: () => `Height should be ${height}, but found ${received.readUInt16BE(11)}` }
+        const correctLength = 13 + width * height * 2
+        if (received.length !== correctLength) return { pass: false, message: () => `Buffer length should be ${correctLength}, but found ${received.length}` }
+        return { pass: true }
+    }
+})
+
 let device
 describe('Commands', () => {
     beforeEach(() => {
@@ -13,6 +27,56 @@ describe('Commands', () => {
         device.setBrightness(1)
         // 0x0b should be max brightness
         expect(sender).toHaveBeenCalledWith(Buffer.from('0409020b', 'hex'))
+    })
+    it('writes pixels to left display', () => {
+        const sender = jest.spyOn(device.connection, 'send')
+        device.drawScreen('left', (ctx, w, h) => {
+            ctx.fillStyle = '#f00' // red
+            ctx.fillRect(0, 0, w, h)
+        })
+        // Color format is 5-6-5 16-bit RGB
+        // so first 5 bits for full red is 0xf800, or 0x00f8 in LE
+        const pixels = '00f8'.repeat(60 * 270)
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004c, x: 0, y: 0, width: 60, height: 270 })
+        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004c', 'hex'))
+    })
+    it('writes pixels to right display', () => {
+        const sender = jest.spyOn(device.connection, 'send')
+        device.drawScreen('right', (ctx, w, h) => {
+            ctx.fillStyle = '#0f0' // green
+            ctx.fillRect(0, 0, w, h)
+        })
+        // Color format is 5-6-5 16-bit RGB
+        // so middle 6 bits for full green is 0x07e0, or 0xe007 in LE
+        const pixels = 'e007'.repeat(60 * 270)
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0052, x: 0, y: 0, width: 60, height: 270 })
+        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020052', 'hex'))
+    })
+    it('writes pixels to center display', () => {
+        const sender = jest.spyOn(device.connection, 'send')
+        device.drawScreen('center', (ctx, w, h) => {
+            ctx.fillStyle = '#00f' // blue
+            ctx.fillRect(0, 0, w, h)
+        })
+        // Color format is 5-6-5 16-bit RGB
+        // so last 5 bits for full blue is 0x001f, or 0x1f00 in LE
+        const pixels = '1f00'.repeat(360 * 270)
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 0, y: 0, width: 360, height: 270 })
+        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
+    })
+    it('writes pixels to a specific key area', () => {
+        const sender = jest.spyOn(device.connection, 'send')
+        device.drawKey(6, (ctx, w, h) => {
+            ctx.fillStyle = '#fff'
+            ctx.fillRect(0, 0, w, h)
+        })
+        const pixels = 'ffff'.repeat(90 * 90)
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 180, y: 90, width: 90, height: 90 })
+        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
     })
     it('vibrates', () => {
         const sender = jest.spyOn(device.connection, 'send')

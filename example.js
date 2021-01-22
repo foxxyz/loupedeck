@@ -24,7 +24,7 @@ loupedeck.on('touch', ({ x, y }) => {
 })
 
 // Cycle through random button colors
-loupedeck.on('connect', () => {
+function cycleColors(device) {
     const buttons = ['circle', '1', '2', '3', '4', '5', '6', '7']
     let idx = 0
     setInterval(() => {
@@ -32,7 +32,31 @@ loupedeck.on('connect', () => {
         const r = Math.round(Math.random() * 255)
         const g = Math.round(Math.random() * 255)
         const b = Math.round(Math.random() * 255)
-        loupedeck.setColor({ id, r, g, b })
+        device.setColor({ id, r, g, b })
         idx = (idx + 1) % buttons.length
     }, 100)
+}
+
+// Draw solid colors on each key screen
+function drawKeyColors(device) {
+    const colors = ['#f66', '#f95', '#fb4', '#fd6', '#ff9', '#be9', '#9e9', '#9db', '#9cc', '#88c', '#c9c', '#d89']
+    for(let i = 0; i < 12; i++) {
+        device.drawKey(i, (ctx, w, h) => {
+            ctx.fillStyle = colors[i]
+            ctx.fillRect(0, 0, w, h)
+        })
+    }
+    device.drawScreen('left', (ctx, w, h) => {
+        ctx.fillStyle = 'white'
+        ctx.fillRect(0, 0, w, h)
+    })
+    device.drawScreen('right', (ctx, w, h) => {
+        ctx.fillStyle = 'white'
+        ctx.fillRect(0, 0, w, h)
+    })
+}
+
+loupedeck.on('connect', async() => {
+    cycleColors(loupedeck)
+    drawKeyColors(loupedeck)
 })

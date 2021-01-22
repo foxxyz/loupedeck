@@ -1,5 +1,6 @@
 const { networkInterfaces } = require('os')
 const EventEmitter = require('events')
+const { createCanvas } = require('canvas')
 const WebSocket = require('ws')
 
 // ...it really does seem to go up to 11
@@ -22,6 +23,12 @@ const BUTTONS = {
     0x0e: '7'
 }
 
+const DISPLAYS = {
+    center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
+    left: { id: Buffer.from('\x00L'), width: 60, height: 270 }, // "L"
+    right: { id: Buffer.from('\x00R'), width: 60, height: 270 }, // "R"
+}
+
 const HEADERS = {
     CONFIRM:         0x0302,
     TICK:            0x0400,
@@ -29,9 +36,11 @@ const HEADERS = {
     SET_VIBRATION:   0x041b,
     BUTTON_PRESS:    0x0500,
     KNOB_ROTATE:     0x0501,
+    DRAW:            0x050f,
     SET_COLOR:       0x0702,
     TOUCH:           0x094d,
-    TOUCH_END:       0x096d
+    TOUCH_END:       0x096d,
+    WRITE_FRAMEBUFF: 0xff10
 }
 
 const HAPTIC = {
@@ -81,6 +90,42 @@ class LoupedeckDevice extends EventEmitter {
         this.connection = new WebSocket(this.url)
         this.connection.on('open', this.onConnect.bind(this))
         this.connection.on('message', this.onReceive.bind(this))
+    }
+    // Display the current framebuffer
+    draw(displayID) {
+        this.send(HEADERS.DRAW, displayID)
+    }
+    // Create a canvas with correct dimensions and pass back for drawing
+    drawCanvas({ id, width, height, x = 0, y = 0 }, cb) {
+        const canvas = createCanvas(width, height)
+        const ctx = canvas.getContext('2d', { pixelFormat: 'RGB16_565' }) // Loupedeck uses 16-bit (5-6-5) LE RGB colors
+        cb(ctx, width, height)
+
+        // Header with x/y/w/h and display ID
+        const header = Buffer.alloc(8)
+        header.writeUInt16BE(x, 0)
+        header.writeUInt16BE(y, 2)
+        header.writeUInt16BE(width, 4)
+        header.writeUInt16BE(height, 6)
+
+        // Write to frame buffer
+        this.send(HEADERS.WRITE_FRAMEBUFF, Buffer.concat([id, header, canvas.toBuffer('raw')]))
+
+        // Draw to display
+        this.draw(id)
+    }
+    // Draw to a specific key index (0-12)
+    drawKey(index, cb) {
+        // Get offset x/y for key index
+        const width = 90
+        const height = 90
+        const x = (index % 4) * width
+        const y = Math.floor(index / 4) * height
+        return this.drawCanvas({ id: DISPLAYS.center.id, x, y, width, height }, cb)
+    }
+    // Draw to a specific screen
+    drawScreen(id, cb) {
+        return this.drawCanvas(DISPLAYS[id], cb)
     }
     onButton(buff) {
         const id = BUTTONS[buff[0]]

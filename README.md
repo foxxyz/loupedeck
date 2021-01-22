@@ -14,10 +14,8 @@ Supports:
  * Reading touch events
  * Setting button colors
  * Setting screen brightness
-
-Not supported yet:
-
- * Writing touchscreen graphics
+ * Vibrating device
+ * Writing screen graphics
 
 Requirements
 ------------
@@ -120,6 +118,30 @@ Emitted when a button or knob is released.
 
 Arguments:
  - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
+
+#### `device.drawKey(key : Number, callback : Function)`
+
+Draw graphics to a specific key. Width and height of callback will be `90`, as keys are 90x90px.
+
+ - `key`: Key index to write to [0-11]
+ - `callback`: Function to handle draw calls. Receives the following arguments:
+     + `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
+     + `width`: Width of drawing area
+     + `height`: Height of drawing area
+
+#### `device.drawScreen(screenID : String, callback : Function)`
+
+Draw graphics to a specific screen. Screen sizes are as follows:
+
+ * `left`: 60x270px
+ * `center`: 360x270px
+ * `right`: 60x60px
+
+ - `key`: Screen to write to [`left`, `center`, `right`]
+ - `callback`: Function to handle draw calls. Receives the following arguments:
+     + `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
+     + `width`: Width of drawing area
+     + `height`: Height of drawing area
 
 #### `device.setBrightness(brightness : Number)`
 

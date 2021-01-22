@@ -12,7 +12,15 @@
     "device.js"
   ],
   "dependencies": {
+    "canvas": "^2.6.1",
     "ws": "^7.4.2"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageReporters": [
+      "text"
+    ],
+    "verbose": true
   },
   "keywords": [
     "loupedeck",
