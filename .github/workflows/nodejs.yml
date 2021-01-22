@@ -18,6 +18,8 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - name: Install system dependencies
+      run: sudo apt-get install libcairo2-dev libpango1.0-dev libgif-dev
     - run: npm ci
     - run: npm test
       env:
