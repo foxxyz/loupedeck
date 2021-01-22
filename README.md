@@ -170,6 +170,11 @@ Contributing & Tests
 1. Install development dependencies: `npm install`
 2. Run tests: `npm test`
 
+Thanks
+------
+
+Big thanks go out to [Max Maischein's earlier work in Perl](https://github.com/Corion/HID-LoupedeckCT) on this topic.
+
 License
 -------
 
