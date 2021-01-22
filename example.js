@@ -19,8 +19,16 @@ loupedeck.on('rotate', ({ id, delta }) => {
     console.log(`Knob ${id} rotated ${delta > 0 ? 'right' : 'left'}`)
 })
 
-loupedeck.on('touch', ({ x, y }) => {
-    console.log(`Touch detected: x: ${x}, y: ${y}`)
+loupedeck.on('touchstart', ({ changedTouches: [touch] }) => {
+    console.log(`Touch #${touch.id} started: x: ${touch.x}, y: ${touch.y}`)
+})
+
+loupedeck.on('touchmove', ({ changedTouches: [touch] }) => {
+    console.log(`Touch #${touch.id} moved: x: ${touch.x}, y: ${touch.y}`)
+})
+
+loupedeck.on('touchend', ({ changedTouches: [touch] }) => {
+    console.log(`Touch #${touch.id} ended: x: ${touch.x}, y: ${touch.y}`)
 })
 
 // Cycle through random button colors

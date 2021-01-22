@@ -79,10 +79,11 @@ class LoupedeckDevice extends EventEmitter {
         super()
         this.url = `ws://${ip}`
         this.transactionID = 0
+        this.touches = {}
         this.handlers = {
             [HEADERS.BUTTON_PRESS]: this.onButton.bind(this),
             [HEADERS.KNOB_ROTATE]: this.onRotate.bind(this),
-            [HEADERS.TOUCH]: this.onTouch.bind(this, 'touch'),
+            [HEADERS.TOUCH]: this.onTouch.bind(this, 'touchmove'),
             [HEADERS.TOUCH_END]: this.onTouch.bind(this, 'touchend')
         }
     }
@@ -149,7 +150,20 @@ class LoupedeckDevice extends EventEmitter {
     onTouch(event, buff) {
         const x = buff.readUInt16BE(1)
         const y = buff.readUInt16BE(3)
-        this.emit(event, { x, y })
+        const id = buff[5]
+        const touch = { x, y, id }
+
+        // End touch, remove from local cache
+        if (event === 'touchend') {
+            delete this.touches[touch.id]
+        }
+        else {
+            // First time seeing this touch, emit touchstart instead of touchmove
+            if (!this.touches[touch.id]) event = 'touchstart'
+            this.touches[touch.id] = touch
+        }
+
+        this.emit(event, { touches: Object.values(this.touches), changedTouches: [touch] })
     }
     send(action, data) {
         this.transactionID = (this.transactionID + 1) % 0xff

@@ -86,7 +86,7 @@ describe('Commands', () => {
 })
 
 describe('Message Parsing', () => {
-    beforeAll(() => {
+    beforeEach(() => {
         device = new LoupedeckDevice({ ip: '255.255.255.255' })
     })
     it('processes button presses', () => {
@@ -117,19 +117,81 @@ describe('Message Parsing', () => {
         device.onReceive(SAMPLE_MESSAGE)
         expect(fn).toHaveBeenCalledWith({ id: 'knobCR', delta: -1 })
     })
-    it('processes screen touches', () => {
+    it('processes initial screen touches', () => {
         const SAMPLE_MESSAGE = Buffer.from('094d0000007300e213', 'hex')
         const fn = jest.fn()
-        device.on('touch', fn)
+        device.on('touchstart', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({ x: 115, y: 226 })
+        expect(fn).toHaveBeenCalledWith({
+            touches: [{ x: 115, y: 226, id: 0x13 }],
+            changedTouches: [{ x: 115, y: 226, id: 0x13 }],
+        })
+    })
+    it('processes touch moves', () => {
+        const SAMPLE_MESSAGE = Buffer.from('094d0000007300e215', 'hex')
+        const FOLLOW_MESSAGE = Buffer.from('094d0000007000e515', 'hex')
+        const fn = jest.fn()
+        device.on('touchmove', fn)
+        device.onReceive(SAMPLE_MESSAGE)
+        device.onReceive(FOLLOW_MESSAGE)
+        expect(fn).toHaveBeenCalledWith({
+            touches: [{ x: 112, y: 229, id: 0x15 }],
+            changedTouches: [{ x: 112, y: 229, id: 0x15 }],
+        })
     })
     it('processes screen touchends', () => {
         const SAMPLE_MESSAGE = Buffer.from('096d000001bf004c12', 'hex')
         const fn = jest.fn()
         device.on('touchend', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({ x: 447, y: 76 })
+        expect(fn).toHaveBeenCalledWith({
+            touches: [],
+            changedTouches: [{ x: 447, y: 76, id: 0x12 }],
+        })
+    })
+    it('processes multiple simultaneous touches', () => {
+        const touchstart = jest.fn()
+        const touchmove = jest.fn()
+        const touchend = jest.fn()
+        device.on('touchstart', touchstart)
+        device.on('touchmove', touchmove)
+        device.on('touchend', touchend)
+
+        // Multiple starts
+        const TOUCH_1_START = Buffer.from('094d000001bf004c01', 'hex')
+        const TOUCH_2_START = Buffer.from('094d00000002000102', 'hex')
+        device.onReceive(TOUCH_1_START)
+        expect(touchstart).toHaveBeenCalledWith({
+            touches: [{ x: 447, y: 76, id: 1 }],
+            changedTouches: [{ x: 447, y: 76, id: 1 }],
+        })
+        device.onReceive(TOUCH_2_START)
+        expect(touchstart).toHaveBeenCalledWith({
+            touches: [{ x: 447, y: 76, id: 1 }, { x: 2, y: 1, id: 2 }],
+            changedTouches: [{ x: 2, y: 1, id: 2 }],
+        })
+
+        // Independent moves
+        const TOUCH_1_MOVE = Buffer.from('094d000001bf004f01', 'hex')
+        const TOUCH_2_MOVE = Buffer.from('094d00000004000802', 'hex')
+        device.onReceive(TOUCH_2_MOVE)
+        expect(touchmove).toHaveBeenCalledWith({
+            touches: [{ x: 447, y: 76, id: 1 }, { x: 4, y: 8, id: 2 }],
+            changedTouches: [{ x: 4, y: 8, id: 2 }],
+        })
+        device.onReceive(TOUCH_1_MOVE)
+        expect(touchmove).toHaveBeenCalledWith({
+            touches: [{ x: 447, y: 79, id: 1 }, { x: 4, y: 8, id: 2 }],
+            changedTouches: [{ x: 447, y: 79, id: 1 }],
+        })
+
+        // Remove one touch
+        const TOUCH_1_REMOVE = Buffer.from('096d000001bf004f01', 'hex')
+        device.onReceive(TOUCH_1_REMOVE)
+        expect(touchend).toHaveBeenCalledWith({
+            touches: [{ x: 4, y: 8, id: 2 }],
+            changedTouches: [{ x: 447, y: 79, id: 1 }],
+        })
     })
 })
 

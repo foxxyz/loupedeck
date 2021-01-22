@@ -96,21 +96,47 @@ Arguments:
  - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
  - `delta`: Rotation direction, `-1` for counter-clockwise, `1` for clockwise.
 
-#### Event: `'touch'`
+#### Event: `'touchstart'`
 
-Emitted when any part of the center screen is touched.
+Emitted when any part of the screen is touched for the first time.
 
 Arguments:
- - `x`: Screen X-coordinate ([0, 472])
- - `y`: Screen Y-coordinate ([0, 270])
+ - `changedTouches`: Array of new touches created during this event, with for each:
+     + `id`: Unique touch identifier
+     + `x`: Screen X-coordinate ([0, 480])
+     + `y`: Screen Y-coordinate ([0, 270])
+ - `touches`: Array of all currently held touches on screen, with for each:
+     + `id`: Unique touch identifier
+     + `x`: Screen X-coordinate ([0, 480])
+     + `y`: Screen Y-coordinate ([0, 270])
+
+#### Event: `'touchmove'`
+
+Emitted when a touch moves across the screen.
+
+Arguments:
+ - `changedTouches`: Array of touches changed during this event, with for each:
+     + `id`: Unique touch identifier
+     + `x`: Screen X-coordinate ([0, 480])
+     + `y`: Screen Y-coordinate ([0, 270])
+ - `touches`: Array of all currently held touches on screen, with for each:
+     + `id`: Unique touch identifier
+     + `x`: Screen X-coordinate ([0, 480])
+     + `y`: Screen Y-coordinate ([0, 270])
 
 #### Event: `'touchend'`
 
 Emitted when a touch is no longer detected.
 
 Arguments:
- - `x`: Screen X-coordinate ([0, 472])
- - `y`: Screen Y-coordinate ([0, 270])
+ - `changedTouches`: Array of touches removed during this event, with for each:
+     + `id`: Unique touch identifier
+     + `x`: Screen X-coordinate ([0, 480])
+     + `y`: Screen Y-coordinate ([0, 270])
+ - `touches`: Array of all currently held touches on screen (if any), with for each:
+     + `id`: Unique touch identifier
+     + `x`: Screen X-coordinate ([0, 480])
+     + `y`: Screen Y-coordinate ([0, 270])
 
 #### Event: `'up'`
 
