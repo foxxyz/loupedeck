@@ -101,42 +101,24 @@ Arguments:
 Emitted when any part of the screen is touched for the first time.
 
 Arguments:
- - `changedTouches`: Array of new touches created during this event, with for each:
-     + `id`: Unique touch identifier
-     + `x`: Screen X-coordinate ([0, 480])
-     + `y`: Screen Y-coordinate ([0, 270])
- - `touches`: Array of all currently held touches on screen, with for each:
-     + `id`: Unique touch identifier
-     + `x`: Screen X-coordinate ([0, 480])
-     + `y`: Screen Y-coordinate ([0, 270])
+ - `changedTouches`: Array of new [touches](#touch-objects) created during this event
+ - `touches`: Array of all currently held [touches](#touch-objects) on screen
 
 #### Event: `'touchmove'`
 
 Emitted when a touch moves across the screen.
 
 Arguments:
- - `changedTouches`: Array of touches changed during this event, with for each:
-     + `id`: Unique touch identifier
-     + `x`: Screen X-coordinate ([0, 480])
-     + `y`: Screen Y-coordinate ([0, 270])
- - `touches`: Array of all currently held touches on screen, with for each:
-     + `id`: Unique touch identifier
-     + `x`: Screen X-coordinate ([0, 480])
-     + `y`: Screen Y-coordinate ([0, 270])
+ - `changedTouches`: Array of [touches](#touch-objects) changed during this event
+ - `touches`: Array of all currently held [touches](#touch-objects) on screen
 
 #### Event: `'touchend'`
 
 Emitted when a touch is no longer detected.
 
 Arguments:
- - `changedTouches`: Array of touches removed during this event, with for each:
-     + `id`: Unique touch identifier
-     + `x`: Screen X-coordinate ([0, 480])
-     + `y`: Screen Y-coordinate ([0, 270])
- - `touches`: Array of all currently held touches on screen (if any), with for each:
-     + `id`: Unique touch identifier
-     + `x`: Screen X-coordinate ([0, 480])
-     + `y`: Screen Y-coordinate ([0, 270])
+ - `changedTouches`: Array of [touches](#touch-objects) removed during this event
+ - `touches`: Array of all currently held [touches](#touch-objects) on screen (if any)
 
 #### Event: `'up'`
 
@@ -189,6 +171,17 @@ Set a button LED to a particular color.
 Make device vibrate.
 
  - `pattern`: A valid vibration pattern ([see `HAPTIC` for valid patterns](https://github.com/foxxyz/loupedeck/blob/master/device.js#L37)) (default: `HAPTIC.SHORT`)
+
+### Touch Objects
+
+Touch objects are emitted in the [`touchstart`](#event-touchstart), [`touchmove`](#event-touchmove), and [`touchend`](#event-touchend) events and have the following properties:
+
+ + `id`: Unique touch identifier
+ + `x`: Screen X-coordinate ([0, 480])
+ + `y`: Screen Y-coordinate ([0, 270])
+ + `target`:
+     * `screen`: Identifier of screen this touch was detected on ([`left`, `center`, `right`])
+     * `key`: Index of key touched ([0-11], `undefined` if not on `center` screen)s
 
 Contributing & Tests
 --------------------

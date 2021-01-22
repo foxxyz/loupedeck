@@ -9,6 +9,7 @@ loupedeck.on('connect', ({ url }) => {
 
 loupedeck.on('down', ({ id }) => {
     console.log(`Button ${id} pressed`)
+    if (id === 'circle') drawKeyColors(loupedeck)
 })
 
 loupedeck.on('up', ({ id }) => {
@@ -21,6 +22,13 @@ loupedeck.on('rotate', ({ id, delta }) => {
 
 loupedeck.on('touchstart', ({ changedTouches: [touch] }) => {
     console.log(`Touch #${touch.id} started: x: ${touch.x}, y: ${touch.y}`)
+    // Clear key when touched
+    if (touch.target.key !== undefined) {
+        loupedeck.drawKey(touch.target.key, (ctx, w, h) => {
+            ctx.fillStyle = 'black'
+            ctx.fillRect(0, 0, w, h)
+        })
+    }
 })
 
 loupedeck.on('touchmove', ({ changedTouches: [touch] }) => {

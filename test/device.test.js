@@ -122,10 +122,9 @@ describe('Message Parsing', () => {
         const fn = jest.fn()
         device.on('touchstart', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({
-            touches: [expect.objectContaining({ x: 115, y: 226 })],
+        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
             changedTouches: [expect.objectContaining({ x: 115, y: 226 })],
-        })
+        }))
     })
     it('processes touch moves', () => {
         const SAMPLE_MESSAGE = Buffer.from('094d0000007300e215', 'hex')
@@ -134,10 +133,9 @@ describe('Message Parsing', () => {
         device.on('touchmove', fn)
         device.onReceive(SAMPLE_MESSAGE)
         device.onReceive(FOLLOW_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({
-            touches: [expect.objectContaining({ x: 112, y: 229 })],
+        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
             changedTouches: [expect.objectContaining({ x: 112, y: 229 })],
-        })
+        }))
     })
     it('processes screen touchends', () => {
         const SAMPLE_MESSAGE = Buffer.from('096d000001bf004c12', 'hex')
@@ -148,6 +146,30 @@ describe('Message Parsing', () => {
             touches: [],
             changedTouches: [expect.objectContaining({ x: 447, y: 76 })],
         })
+    })
+    it('includes screen and key targets in touch events', () => {
+        const fn = jest.fn()
+        device.on('touchstart', fn)
+        device.onReceive(Buffer.from('094d00000022008f13', 'hex'))
+        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
+            changedTouches: [expect.objectContaining({ target: { screen: 'left', key: undefined } })],
+        }))
+        device.onReceive(Buffer.from('094d00000067004816', 'hex'))
+        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
+            changedTouches: [expect.objectContaining({ target: { screen: 'center', key: 0 } })],
+        }))
+        device.onReceive(Buffer.from('094d000000c8008011', 'hex'))
+        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
+            changedTouches: [expect.objectContaining({ target: { screen: 'center', key: 5 } })],
+        }))
+        device.onReceive(Buffer.from('094d0000017500d21a', 'hex'))
+        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
+            changedTouches: [expect.objectContaining({ target: { screen: 'center', key: 11 } })],
+        }))
+        device.onReceive(Buffer.from('094d000001c200b8ff', 'hex'))
+        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
+            changedTouches: [expect.objectContaining({ target: { screen: 'right', key: undefined } })],
+        }))
     })
     it('processes multiple simultaneous touches', () => {
         const touchstart = jest.fn()

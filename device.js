@@ -151,7 +151,18 @@ class LoupedeckDevice extends EventEmitter {
         const x = buff.readUInt16BE(1)
         const y = buff.readUInt16BE(3)
         const id = buff[5]
-        const touch = { x, y, id }
+
+        // Determine target
+        const screen = x < 60 ? 'left' : x >= 420 ? 'right' : 'center'
+        let key
+        if (screen === 'center') {
+            const column = Math.floor((x - 60) / 90)
+            const row = Math.floor(y / 90)
+            key = row * 4 + column
+        }
+
+        // Create touch
+        const touch = { x, y, id, target: { screen, key } }
 
         // End touch, remove from local cache
         if (event === 'touchend') {
