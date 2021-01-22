@@ -5,7 +5,7 @@ Unofficial Node.js API for Loupedeck Live controllers.
 
 ![Loupedeck Live Interface](https://github.com/foxxyz/loupedeck/blob/master/docs/device-front-small.png?raw=true)
 
-**⚠️ Alpha version: Partial Functionality**
+**⚠️ Beta version: API is subject to change**
 
 Supports:
 
