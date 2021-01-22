@@ -181,7 +181,7 @@ Touch objects are emitted in the [`touchstart`](#event-touchstart), [`touchmove`
  + `y`: Screen Y-coordinate ([0, 270])
  + `target`:
      * `screen`: Identifier of screen this touch was detected on ([`left`, `center`, `right`])
-     * `key`: Index of key touched ([0-11], `undefined` if not on `center` screen)s
+     * `key`: Index of key touched ([0-11]) (`undefined` if not on `center` screen)
 
 Contributing & Tests
 --------------------
