@@ -123,8 +123,8 @@ describe('Message Parsing', () => {
         device.on('touchstart', fn)
         device.onReceive(SAMPLE_MESSAGE)
         expect(fn).toHaveBeenCalledWith({
-            touches: [{ x: 115, y: 226, id: 0x13 }],
-            changedTouches: [{ x: 115, y: 226, id: 0x13 }],
+            touches: [expect.objectContaining({ x: 115, y: 226 })],
+            changedTouches: [expect.objectContaining({ x: 115, y: 226 })],
         })
     })
     it('processes touch moves', () => {
@@ -135,8 +135,8 @@ describe('Message Parsing', () => {
         device.onReceive(SAMPLE_MESSAGE)
         device.onReceive(FOLLOW_MESSAGE)
         expect(fn).toHaveBeenCalledWith({
-            touches: [{ x: 112, y: 229, id: 0x15 }],
-            changedTouches: [{ x: 112, y: 229, id: 0x15 }],
+            touches: [expect.objectContaining({ x: 112, y: 229 })],
+            changedTouches: [expect.objectContaining({ x: 112, y: 229 })],
         })
     })
     it('processes screen touchends', () => {
@@ -146,7 +146,7 @@ describe('Message Parsing', () => {
         device.onReceive(SAMPLE_MESSAGE)
         expect(fn).toHaveBeenCalledWith({
             touches: [],
-            changedTouches: [{ x: 447, y: 76, id: 0x12 }],
+            changedTouches: [expect.objectContaining({ x: 447, y: 76 })],
         })
     })
     it('processes multiple simultaneous touches', () => {
@@ -162,13 +162,13 @@ describe('Message Parsing', () => {
         const TOUCH_2_START = Buffer.from('094d00000002000102', 'hex')
         device.onReceive(TOUCH_1_START)
         expect(touchstart).toHaveBeenCalledWith({
-            touches: [{ x: 447, y: 76, id: 1 }],
-            changedTouches: [{ x: 447, y: 76, id: 1 }],
+            touches: [expect.objectContaining({ id: 1 })],
+            changedTouches: [expect.objectContaining({ id: 1 })],
         })
         device.onReceive(TOUCH_2_START)
         expect(touchstart).toHaveBeenCalledWith({
-            touches: [{ x: 447, y: 76, id: 1 }, { x: 2, y: 1, id: 2 }],
-            changedTouches: [{ x: 2, y: 1, id: 2 }],
+            touches: [expect.objectContaining({ id: 1 }), expect.objectContaining({ id: 2 })],
+            changedTouches: [expect.objectContaining({ id: 2 })],
         })
 
         // Independent moves
@@ -176,21 +176,21 @@ describe('Message Parsing', () => {
         const TOUCH_2_MOVE = Buffer.from('094d00000004000802', 'hex')
         device.onReceive(TOUCH_2_MOVE)
         expect(touchmove).toHaveBeenCalledWith({
-            touches: [{ x: 447, y: 76, id: 1 }, { x: 4, y: 8, id: 2 }],
-            changedTouches: [{ x: 4, y: 8, id: 2 }],
+            touches: [expect.objectContaining({ id: 1 }), expect.objectContaining({ id: 2 })],
+            changedTouches: [expect.objectContaining({ id: 2 })],
         })
         device.onReceive(TOUCH_1_MOVE)
         expect(touchmove).toHaveBeenCalledWith({
-            touches: [{ x: 447, y: 79, id: 1 }, { x: 4, y: 8, id: 2 }],
-            changedTouches: [{ x: 447, y: 79, id: 1 }],
+            touches: [expect.objectContaining({ id: 1 }), expect.objectContaining({ id: 2 })],
+            changedTouches: [expect.objectContaining({ id: 1 })],
         })
 
         // Remove one touch
         const TOUCH_1_REMOVE = Buffer.from('096d000001bf004f01', 'hex')
         device.onReceive(TOUCH_1_REMOVE)
         expect(touchend).toHaveBeenCalledWith({
-            touches: [{ x: 4, y: 8, id: 2 }],
-            changedTouches: [{ x: 447, y: 79, id: 1 }],
+            touches: [expect.objectContaining({ id: 2 })],
+            changedTouches: [expect.objectContaining({ id: 1 })],
         })
     })
 })
