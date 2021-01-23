@@ -20,7 +20,7 @@ Supports:
 Requirements
 ------------
 
- * Node 10+
+ * Node 11+
 
 Installation
 ------------
