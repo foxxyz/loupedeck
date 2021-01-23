@@ -1,6 +1,7 @@
 const { networkInterfaces } = require('os')
 const EventEmitter = require('events')
 const { createCanvas } = require('canvas')
+const rgba = require('color-rgba')
 const WebSocket = require('ws')
 
 // ...it really does seem to go up to 11
@@ -75,7 +76,7 @@ const HAPTIC = {
 }
 
 class LoupedeckDevice extends EventEmitter {
-    constructor({ ip } = {}) {
+    constructor({ ip }) {
         super()
         this.url = `ws://${ip}`
         this.transactionID = 0
@@ -87,10 +88,13 @@ class LoupedeckDevice extends EventEmitter {
             [HEADERS.TOUCH_END]: this.onTouch.bind(this, 'touchend')
         }
     }
-    connect() {
+    async connect() {
         this.connection = new WebSocket(this.url)
         this.connection.on('open', this.onConnect.bind(this))
         this.connection.on('message', this.onReceive.bind(this))
+        return new Promise(res => {
+            this._connectionResolver = res
+        })
     }
     // Display the current framebuffer
     draw(displayID) {
@@ -135,6 +139,7 @@ class LoupedeckDevice extends EventEmitter {
     }
     onConnect() {
         this.emit('connect', this)
+        this._connectionResolver()
     }
     onReceive(buff) {
         const header = buff.readUInt16BE()
@@ -188,9 +193,10 @@ class LoupedeckDevice extends EventEmitter {
         const byte = Math.max(0, Math.min(BRIGHTNESS_LEVELS, Math.round(value * BRIGHTNESS_LEVELS)))
         this.send(HEADERS.SET_BRIGHTNESS, Buffer.from([byte]))
     }
-    setColor({ id, r, g, b }) {
+    setButtonColor({ id, color }) {
         const key = Object.keys(BUTTONS).find(k => BUTTONS[k] === id)
         if (!key) throw new Error(`Invalid button ID: ${id}`)
+        const [r, g, b] = rgba(color)
         const data = Buffer.from([key, r, g, b])
         this.send(HEADERS.SET_COLOR, data)
     }

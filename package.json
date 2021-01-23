@@ -13,6 +13,7 @@
   ],
   "dependencies": {
     "canvas": "^2.6.1",
+    "color-rgba": "^2.2.3",
     "ws": "^7.4.2"
   },
   "jest": {

@@ -48,7 +48,7 @@ function cycleColors(device) {
         const r = Math.round(Math.random() * 255)
         const g = Math.round(Math.random() * 255)
         const b = Math.round(Math.random() * 255)
-        device.setColor({ id, r, g, b })
+        device.setButtonColor({ id, color: `rgba(${r}, ${g}, ${b})` })
         idx = (idx + 1) % buttons.length
     }, 100)
 }

@@ -127,6 +127,10 @@ Emitted when a button or knob is released.
 Arguments:
  - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
 
+#### `device.connect() : Promise`
+
+Connect if instantiated manually. Resolves once a connection has been established. Not necessary when using [`openLoupedeck`](#openloupedeck--loupedeckdevice).
+
 #### `device.drawKey(key : Number, callback : Function)`
 
 Draw graphics to a specific key. Width and height of callback will be `90`, as keys are 90x90px.
@@ -157,14 +161,12 @@ Set screen brightness.
 
  - `brightness`: Number between (0, 1) (`0` would turn the screen off, `1` for full brightness)
 
-#### `device.setColor({ id : String, r : Number, g : Number, b : Number })`
+#### `device.setColor({ id : String, color : String })`
 
 Set a button LED to a particular color.
 
  - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
- - `r`: Red color component (0-255)
- - `g`: Green color component (0-255)
- - `b`: Blue color component (0-255)
+ - `color`: Any valid CSS color string
 
 #### `device.vibrate(pattern? : byte)`
 

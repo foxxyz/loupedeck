@@ -1,4 +1,6 @@
-const { LoupedeckDevice } = require('..')
+jest.mock('os', () => ({ networkInterfaces: jest.fn() }))
+const { LoupedeckDevice, openLoupedeck } = require('..')
+const os = require('os')
 
 expect.extend({
     toBePixelBuffer(received, { displayID, x, y, width, height }) {
@@ -14,7 +16,32 @@ expect.extend({
     }
 })
 
+const delay = ms => new Promise(res => setTimeout(res, ms))
+
 let device
+
+describe('Connection', () => {
+    it('connects via helper', async() => {
+        os.networkInterfaces.mockReturnValue([{ address: '100.127.80.1' }])
+        device = openLoupedeck()
+        const fn = jest.fn()
+        device.on('connect', fn)
+        await delay(60)
+        expect(fn).toHaveBeenCalledWith(device)
+    })
+    it('errors if device not found', async() => {
+        os.networkInterfaces.mockReturnValue([])
+        expect(openLoupedeck).toThrow(/no loupedeck devices found/i)
+    })
+    it('connects via direct instantiation', async() => {
+        device = new LoupedeckDevice({ ip: '127.0.0.1' })
+        const fn = jest.fn()
+        device.on('connect', fn)
+        await device.connect()
+        expect(fn).toHaveBeenCalledWith(device)
+    })
+})
+
 describe('Commands', () => {
     beforeEach(() => {
         device = new LoupedeckDevice({ ip: '255.255.255.255' })
@@ -27,6 +54,14 @@ describe('Commands', () => {
         device.setBrightness(1)
         // 0x0b should be max brightness
         expect(sender).toHaveBeenCalledWith(Buffer.from('0409020b', 'hex'))
+    })
+    it('sets button color', () => {
+        const sender = jest.spyOn(device.connection, 'send')
+        device.setButtonColor({ id: '4', color: 'red' })
+        expect(sender).toHaveBeenCalledWith(Buffer.from('0702010bff0000', 'hex'))
+    })
+    it('errors on unknown button passed', () => {
+        expect(() => device.setButtonColor({ id: 'triangle', color: 'blue' })).toThrow(/Invalid button/)
     })
     it('writes pixels to left display', () => {
         const sender = jest.spyOn(device.connection, 'send')
@@ -78,7 +113,12 @@ describe('Commands', () => {
         expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
         expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
     })
-    it('vibrates', () => {
+    it('vibrates short by default', () => {
+        const sender = jest.spyOn(device.connection, 'send')
+        device.vibrate()
+        expect(sender).toHaveBeenCalledWith(Buffer.from('041b0101', 'hex'))
+    })
+    it('vibrates a specific pattern', () => {
         const sender = jest.spyOn(device.connection, 'send')
         device.vibrate(0x56)
         expect(sender).toHaveBeenCalledWith(Buffer.from('041b0156', 'hex'))
@@ -147,7 +187,7 @@ describe('Message Parsing', () => {
             changedTouches: [expect.objectContaining({ x: 447, y: 76 })],
         })
     })
-    it('includes screen and key targets in touch events', () => {
+    it('processes screen and key targets from touch events', () => {
         const fn = jest.fn()
         device.on('touchstart', fn)
         device.onReceive(Buffer.from('094d00000022008f13', 'hex'))
@@ -214,6 +254,10 @@ describe('Message Parsing', () => {
             touches: [expect.objectContaining({ id: 2 })],
             changedTouches: [expect.objectContaining({ id: 1 })],
         })
+    })
+    it('ignores unknown messages', () => {
+        const SAMPLE_MESSAGE = Buffer.from('ffffffffffffff', 'hex')
+        expect(() => device.onReceive(SAMPLE_MESSAGE)).not.toThrow()
     })
 })
 
