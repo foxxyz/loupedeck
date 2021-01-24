@@ -1,6 +1,8 @@
 Loupedeck: Node.js Interface
 ============================
 
+![tests](https://github.com/foxxyz/loupedeck/workflows/tests/badge.svg?branch=master)
+
 Unofficial Node.js API for Loupedeck Live controllers.
 
 ![Loupedeck Live Interface](https://github.com/foxxyz/loupedeck/blob/master/docs/device-front-small.png?raw=true)
