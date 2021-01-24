@@ -3,7 +3,15 @@ const EventEmitter = require('events')
 const { createCanvas } = require('canvas')
 const rgba = require('color-rgba')
 const WebSocket = require('ws')
-const { HEADERS, BRIGHTNESS_LEVELS, BUTTONS, DISPLAYS, HAPTIC } = require('./constants')
+const {
+    HEADERS,
+    CONNECTION_TIMEOUT,
+    BRIGHTNESS_LEVELS,
+    BUTTONS,
+    DISPLAYS,
+    HAPTIC,
+    RECONNECT_INTERVAL
+} = require('./constants')
 
 class LoupedeckDevice extends EventEmitter {
     constructor({ host, autoConnect = true } = {}) {
@@ -14,17 +22,36 @@ class LoupedeckDevice extends EventEmitter {
         this.handlers = {
             [HEADERS.BUTTON_PRESS]: this.onButton.bind(this),
             [HEADERS.KNOB_ROTATE]: this.onRotate.bind(this),
+            [HEADERS.TICK]: this.onTick.bind(this),
             [HEADERS.TOUCH]: this.onTouch.bind(this, 'touchmove'),
             [HEADERS.TOUCH_END]: this.onTouch.bind(this, 'touchend')
         }
+        // Track last interaction time
+        this.lastTick = Date.now()
+        // How long until declaring a timed out connetion
+        this.connectionTimeout = CONNECTION_TIMEOUT
+        // How long between reconnect attempts
+        this.reconnectInterval = RECONNECT_INTERVAL
+        // Connect automatically if desired
         if (autoConnect) this.connect().catch(console.error)
     }
+    checkConnected() {
+        this._keepAliveTimer = setTimeout(this.checkConnected.bind(this), this.connectionTimeout * 2)
+        if (Date.now() - this.lastTick > this.connectionTimeout) this.connection.terminate()
+    }
     async connect() {
-        const host = this.host || autoDiscover()
-        this.address = `ws://${host}`
+        try {
+            const host = this.host || autoDiscover()
+            this.address = `ws://${host}`
+        }
+        catch(e) {
+            return this.onDisconnect(e)
+        }
         this.connection = new WebSocket(this.address)
         this.connection.on('open', this.onConnect.bind(this))
         this.connection.on('message', this.onReceive.bind(this))
+        this.connection.on('close', this.onDisconnect.bind(this))
+
         return new Promise(res => {
             this._connectionResolver = res
         })
@@ -72,7 +99,14 @@ class LoupedeckDevice extends EventEmitter {
     }
     onConnect() {
         this.emit('connect', this)
+        this._keepAliveTimer = setTimeout(this.checkConnected.bind(this), this.connectionTimeout * 2)
         this._connectionResolver()
+    }
+    onDisconnect(error) {
+        if (error === 1006) error = new Error('Connection timeout - was the device disconnected?')
+        this.emit('disconnect', error)
+        clearTimeout(this._keepAliveTimer)
+        this._reconnectTimer = setTimeout(this.connect.bind(this), this.reconnectInterval)
     }
     onReceive(buff) {
         const header = buff.readUInt16BE()
@@ -84,6 +118,9 @@ class LoupedeckDevice extends EventEmitter {
         const id = BUTTONS[buff[0]]
         const delta = buff.readInt8(1)
         this.emit('rotate', { id, delta })
+    }
+    onTick() {
+        this.lastTick = Date.now()
     }
     onTouch(event, buff) {
         const x = buff.readUInt16BE(1)
@@ -115,6 +152,7 @@ class LoupedeckDevice extends EventEmitter {
         this.emit(event, { touches: Object.values(this.touches), changedTouches: [touch] })
     }
     send(action, data) {
+        if (this.connection.readyState !== this.connection.OPEN) return
         this.transactionID = (this.transactionID + 1) % 0xff
         const header = Buffer.alloc(3)
         header.writeUInt16BE(action)

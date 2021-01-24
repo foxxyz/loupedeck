@@ -7,6 +7,10 @@ loupedeck.on('connect', ({ address }) => {
     console.info(`✅ Connected to Loupedeck at ${address}`)
 })
 
+loupedeck.on('disconnect', err => {
+    console.info(`Connection to Loupedeck lost (${err.message}). Reconnecting in ${loupedeck.reconnectInterval / 1000}s...`)
+})
+
 loupedeck.on('down', ({ id }) => {
     console.log(`Button ${id} pressed`)
     if (id === 'circle') drawKeyColors(loupedeck)

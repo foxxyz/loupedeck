@@ -18,6 +18,9 @@ const BUTTONS = {
     0x0e: '7'
 }
 
+// How long without ticks until a connection is considered "timed out"
+const CONNECTION_TIMEOUT = 3000
+
 const DISPLAYS = {
     center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
     left: { id: Buffer.from('\x00L'), width: 60, height: 270 }, // "L"
@@ -69,10 +72,15 @@ const HAPTIC = {
     VERY_LONG:   0x76, // 10 sec high freq (!)
 }
 
+// How long until trying to reconnect after a disconnect
+const RECONNECT_INTERVAL = 3000
+
 module.exports = {
     BRIGHTNESS_LEVELS,
     BUTTONS,
+    CONNECTION_TIMEOUT,
     DISPLAYS,
     HEADERS,
-    HAPTIC
+    HAPTIC,
+    RECONNECT_INTERVAL
 }

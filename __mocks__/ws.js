@@ -14,12 +14,15 @@ class MockSocket extends EventEmitter {
             } else {
                 this.emit('open')
             }
-        }).bind(this), 50)
+        }).bind(this), 10)
     }
     close(code) {
-        this.emit('close', { code })
+        this.emit('close', code)
     }
     send() {}
+    terminate() {
+        this.emit('close', 1006)
+    }
 }
 
 module.exports = MockSocket

@@ -26,7 +26,7 @@ describe('Connection', () => {
         device = new LoupedeckDevice()
         const fn = jest.fn()
         device.on('connect', fn)
-        await delay(60)
+        await delay(20)
         expect(fn).toHaveBeenCalledWith(device)
     })
     it('connects via direct instantiation', async() => {
@@ -36,10 +36,53 @@ describe('Connection', () => {
         await device.connect()
         expect(fn).toHaveBeenCalledWith(device)
     })
-    it('errors if device not found', async() => {
-        os.networkInterfaces.mockReturnValue([])
+    it('keeps connection alive when ticks received', async() => {
+        os.networkInterfaces.mockReturnValue([{ address: '100.127.80.1' }])
         device = new LoupedeckDevice({ autoConnect: false })
-        await expect(device.connect.bind(device)).rejects.toThrow(/no loupedeck devices found/i)
+        const fn = jest.fn()
+        device.on('disconnect', fn)
+        device.connectionTimeout = 20
+        device.reconnectInterval = 20
+        const connect = jest.spyOn(device, 'connect')
+        device.connect()
+        for(let i = 0; i < 8; i++) {
+            await delay(10)
+            device.onTick()
+        }
+        expect(fn).not.toHaveBeenCalled()
+        expect(connect).toHaveBeenCalledTimes(1)
+    })
+    it('attempts reconnect if device not found', async() => {
+        os.networkInterfaces.mockReturnValue([])
+        const fn = jest.fn()
+        device = new LoupedeckDevice({ autoConnect: false })
+        device.on('disconnect', fn)
+        device.reconnectInterval = 20
+        const connect = jest.spyOn(device, 'connect')
+        device.connect()
+        await delay(40)
+        expect(fn.mock.calls[0][0].message).toMatch(/no loupedeck devices found/i)
+        expect(connect).toHaveBeenCalledTimes(2)
+    })
+    it('attempts reconnect on timeout', async() => {
+        os.networkInterfaces.mockReturnValue([{ address: '100.127.80.1' }])
+        device = new LoupedeckDevice({ autoConnect: false })
+        const fn = jest.fn()
+        device.on('disconnect', fn)
+        device.connectionTimeout = 20
+        device.reconnectInterval = 20
+        const connect = jest.spyOn(device, 'connect')
+        device.connect()
+        await delay(80)
+        expect(fn.mock.calls[0][0].message).toMatch(/connection timeout/i)
+        expect(connect).toHaveBeenCalledTimes(2)
+    })
+    it('ignores commands if connection not open', () => {
+        device = new LoupedeckDevice({ ip: '255.255.255.255', autoConnect: false })
+        device.connection = { send: () => {}, readyState: 0 }
+        const sender = jest.spyOn(device.connection, 'send')
+        device.send('test', 'test')
+        expect(sender).not.toHaveBeenCalled()
     })
 })
 
@@ -166,6 +209,13 @@ describe('Message Parsing', () => {
         expect(fn).toHaveBeenCalledWith(expect.objectContaining({
             changedTouches: [expect.objectContaining({ x: 115, y: 226 })],
         }))
+    })
+    it('processes ticks', async() => {
+        const SAMPLE_MESSAGE = Buffer.from('040000f9', 'hex')
+        const lastTick = device.lastTick
+        await delay(5)
+        device.onReceive(SAMPLE_MESSAGE)
+        expect(lastTick).not.toEqual(device.lastTick)
     })
     it('processes touch moves', () => {
         const SAMPLE_MESSAGE = Buffer.from('094d0000007300e215', 'hex')
