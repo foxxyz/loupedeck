@@ -91,6 +91,19 @@ describe('Commands', () => {
         device = new LoupedeckDevice({ ip: '255.255.255.255', autoConnect: false })
         device.connection = { send: () => {} }
     })
+    it('retrieves device information', async() => {
+        const sender = jest.spyOn(device.connection, 'send')
+        const promise = device.getInfo()
+        expect(sender).toHaveBeenCalledWith(Buffer.from('030301', 'hex'))
+        device.onReceive(Buffer.from('1f03014c444c31313031303133303030333936373030313338413030303120', 'hex'))
+        await delay(20)
+        expect(sender).toHaveBeenCalledWith(Buffer.from('030702', 'hex'))
+        device.onReceive(Buffer.from('0c070201052000ff00000000', 'hex'))
+        expect(promise).resolves.toEqual({
+            version: '1.5.32',
+            serial: 'LDL1101013000396700138A0001'
+        })
+    })
     it('sets brightness', () => {
         const sender = jest.spyOn(device.connection, 'send')
         device.setBrightness(0)
@@ -305,6 +318,14 @@ describe('Message Parsing', () => {
             touches: [expect.objectContaining({ id: 2 })],
             changedTouches: [expect.objectContaining({ id: 1 })],
         })
+    })
+    it('processes version information', () => {
+        const VERSION_PACKET = Buffer.from('0c070201052000ff00000000', 'hex')
+        expect(device.onReceive(VERSION_PACKET)).toEqual('1.5.32')
+    })
+    it('processes serial information', () => {
+        const SERIAL_PACKET = Buffer.from('1f03014c444c31313031303133303030333936373030313338413030303120', 'hex')
+        expect(device.onReceive(SERIAL_PACKET)).toEqual('LDL1101013000396700138A0001')
     })
     it('ignores unknown messages', () => {
         const SAMPLE_MESSAGE = Buffer.from('ffffffffffffff', 'hex')

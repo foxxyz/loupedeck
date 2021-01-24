@@ -3,8 +3,10 @@ const { LoupedeckDevice } = require('.')
 
 const loupedeck = new LoupedeckDevice()
 
-loupedeck.on('connect', ({ address }) => {
+loupedeck.on('connect', async({ address }) => {
     console.info(`✅ Connected to Loupedeck at ${address}`)
+    const { serial, version } = await loupedeck.getInfo()
+    console.info(`Device serial number ${serial}, software version ${version}`)
 })
 
 loupedeck.on('disconnect', err => {

@@ -156,6 +156,13 @@ Draw graphics to a specific screen. Screen sizes are as follows:
      + `width`: Width of drawing area
      + `height`: Height of drawing area
 
+#### `device.getInfo() : Object`
+
+Request device information. Returns:
+
+ - `serial`: Device serial number
+ - `version`: Firmware version
+
 #### `device.setBrightness(brightness : Number)`
 
 Set screen brightness.

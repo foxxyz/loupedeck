@@ -22,9 +22,11 @@ class LoupedeckDevice extends EventEmitter {
         this.handlers = {
             [HEADERS.BUTTON_PRESS]: this.onButton.bind(this),
             [HEADERS.KNOB_ROTATE]: this.onRotate.bind(this),
+            [HEADERS.SERIAL]: this.onSerial.bind(this),
             [HEADERS.TICK]: this.onTick.bind(this),
             [HEADERS.TOUCH]: this.onTouch.bind(this, 'touchmove'),
-            [HEADERS.TOUCH_END]: this.onTouch.bind(this, 'touchend')
+            [HEADERS.TOUCH_END]: this.onTouch.bind(this, 'touchend'),
+            [HEADERS.VERSION]: this.onVersion.bind(this),
         }
         // Track last interaction time
         this.lastTick = Date.now()
@@ -32,6 +34,8 @@ class LoupedeckDevice extends EventEmitter {
         this.connectionTimeout = CONNECTION_TIMEOUT
         // How long between reconnect attempts
         this.reconnectInterval = RECONNECT_INTERVAL
+        // Track pending transactions
+        this.pendingTransactions = {}
         // Connect automatically if desired
         if (autoConnect) this.connect().catch(console.error)
     }
@@ -92,6 +96,12 @@ class LoupedeckDevice extends EventEmitter {
     drawScreen(id, cb) {
         return this.drawCanvas(DISPLAYS[id], cb)
     }
+    async getInfo() {
+        return {
+            serial: await this.send(HEADERS.GET_SERIAL, undefined, { track: true }),
+            version: await this.send(HEADERS.GET_VERSION, undefined, { track: true })
+        }
+    }
     onButton(buff) {
         const id = BUTTONS[buff[0]]
         const event = buff[1] === 0x00 ? 'down' : 'up'
@@ -112,12 +122,19 @@ class LoupedeckDevice extends EventEmitter {
         const header = buff.readUInt16BE()
         const handler = this.handlers[header]
         if (!handler) return
-        handler(buff.slice(3))
+        const transactionID = buff[2]
+        const response = handler(buff.slice(3))
+        const resolver = this.pendingTransactions[transactionID]
+        if (resolver) resolver(response)
+        return response
     }
     onRotate(buff) {
         const id = BUTTONS[buff[0]]
         const delta = buff.readInt8(1)
         this.emit('rotate', { id, delta })
+    }
+    onSerial(buff) {
+        return buff.toString().trim()
     }
     onTick() {
         this.lastTick = Date.now()
@@ -151,7 +168,10 @@ class LoupedeckDevice extends EventEmitter {
 
         this.emit(event, { touches: Object.values(this.touches), changedTouches: [touch] })
     }
-    send(action, data) {
+    onVersion(buff) {
+        return `${buff[0]}.${buff[1]}.${buff[2]}`
+    }
+    send(action, data = Buffer.alloc(0), { track = false } = {}) {
         if (this.connection.readyState !== this.connection.OPEN) return
         this.transactionID = (this.transactionID + 1) % 0xff
         const header = Buffer.alloc(3)
@@ -159,6 +179,9 @@ class LoupedeckDevice extends EventEmitter {
         header[2] = this.transactionID
         const packet = Buffer.concat([header, data])
         this.connection.send(packet)
+        if (track) return new Promise(res => {
+            this.pendingTransactions[this.transactionID] = res
+        })
     }
     setBrightness(value) {
         const byte = Math.max(0, Math.min(BRIGHTNESS_LEVELS, Math.round(value * BRIGHTNESS_LEVELS)))
