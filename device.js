@@ -76,9 +76,9 @@ const HAPTIC = {
 }
 
 class LoupedeckDevice extends EventEmitter {
-    constructor({ ip }) {
+    constructor({ host, autoConnect = true } = {}) {
         super()
-        this.url = `ws://${ip}`
+        this.host = host
         this.transactionID = 0
         this.touches = {}
         this.handlers = {
@@ -87,9 +87,12 @@ class LoupedeckDevice extends EventEmitter {
             [HEADERS.TOUCH]: this.onTouch.bind(this, 'touchmove'),
             [HEADERS.TOUCH_END]: this.onTouch.bind(this, 'touchend')
         }
+        if (autoConnect) this.connect().catch(console.error)
     }
     async connect() {
-        this.connection = new WebSocket(this.url)
+        const host = this.host || autoDiscover()
+        this.address = `ws://${host}`
+        this.connection = new WebSocket(this.address)
         this.connection.on('open', this.onConnect.bind(this))
         this.connection.on('message', this.onReceive.bind(this))
         return new Promise(res => {
@@ -206,14 +209,11 @@ class LoupedeckDevice extends EventEmitter {
 }
 
 // Automatically find Loupedeck IP by scanning network interfaces
-function openLoupedeck() {
+function autoDiscover() {
     const interfaces = Object.values(networkInterfaces()).flat()
     const iface = interfaces.find(i => i.address.startsWith('100.127'))
     if (!iface) throw new Error('No Loupedeck devices found!')
-    const ip = iface.address.replace(/.2$/, '.1')
-    const device = new LoupedeckDevice({ ip })
-    device.connect()
-    return device
+    return iface.address.replace(/.2$/, '.1')
 }
 
-module.exports = { openLoupedeck, LoupedeckDevice, HAPTIC }
+module.exports = { LoupedeckDevice, HAPTIC }

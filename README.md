@@ -32,11 +32,13 @@ npm install loupedeck
 Usage Examples
 --------------
 
+_Note: Ensure Loupedeck software is not running as it may conflict with this library_
+
 ```javascript
-const { openLoupedeck } = require('loupedeck')
+const { LoupedeckDevice } = require('loupedeck')
 
 // Detects and opens first connected device
-const device = openLoupedeck()
+const device = new LoupedeckDevice()
 
 // Observe connect events
 device.on('connect', () => {
@@ -59,23 +61,20 @@ For a longer example, see [`example.js`](/example.js).
 📝 API Docs
 -----------
 
-#### `openLoupeDeck() : LoupedeckDevice`
-
-Helper method to automatically discover and connect to a Loupedeck.
-
-_Note: Ensure Loupedeck software is not running as it may conflict with this library_
-
 ### Class `LoupedeckDevice`
 
 Main device class.
 
 All incoming messages are emitted as action events and can be subscribed to via `device.on()`.
 
-#### `new LoupedeckDevice({ ip : String })`
+#### `new LoupedeckDevice({ host : String?, autoConnect : Boolean? })`
 
-Create a new Loupdeck device interface. You should not need to call this constructor manually unless you want to connect to multiple devices, or want to specify the IP manually. For all other use-cases, use [`openLoupedeck`](#openloupedeck--loupedeckdevice)
+Create a new Loupdeck device interface.
 
- - `ip`: IP address to connect to (example: `127.100.1.1`)
+Most use-cases should omit the `host` parameter, unless you're using multiple devices or know specifically which IP you want to connect to.
+
+ - `host`: Host or IP address to connect to (example: `127.100.1.1`) (default: autodiscover)
+ - `autoConnect`: Automatically connect during construction. (default: `true`) _Set to `false` if you'd prefer to call [`connect()`](#deviceconnect--promise). yourself._
 
 #### Event: `'connect'`
 
@@ -129,7 +128,7 @@ Arguments:
 
 #### `device.connect() : Promise`
 
-Connect if instantiated manually. Resolves once a connection has been established. Not necessary when using [`openLoupedeck`](#openloupedeck--loupedeckdevice).
+Manually connect if `autoConnect` set to `false` during [construction](#new-loupedeckdevice-host--string-autoconnect--boolean-). Resolves once a connection has been established.
 
 #### `device.drawKey(key : Number, callback : Function)`
 

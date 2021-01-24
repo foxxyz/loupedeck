@@ -1,5 +1,5 @@
 jest.mock('os', () => ({ networkInterfaces: jest.fn() }))
-const { LoupedeckDevice, openLoupedeck } = require('..')
+const { LoupedeckDevice } = require('..')
 const os = require('os')
 
 expect.extend({
@@ -21,17 +21,13 @@ const delay = ms => new Promise(res => setTimeout(res, ms))
 let device
 
 describe('Connection', () => {
-    it('connects via helper', async() => {
+    it('connects via autodiscovery', async() => {
         os.networkInterfaces.mockReturnValue([{ address: '100.127.80.1' }])
-        device = openLoupedeck()
+        device = new LoupedeckDevice()
         const fn = jest.fn()
         device.on('connect', fn)
         await delay(60)
         expect(fn).toHaveBeenCalledWith(device)
-    })
-    it('errors if device not found', async() => {
-        os.networkInterfaces.mockReturnValue([])
-        expect(openLoupedeck).toThrow(/no loupedeck devices found/i)
     })
     it('connects via direct instantiation', async() => {
         device = new LoupedeckDevice({ ip: '127.0.0.1' })
@@ -40,11 +36,16 @@ describe('Connection', () => {
         await device.connect()
         expect(fn).toHaveBeenCalledWith(device)
     })
+    it('errors if device not found', async() => {
+        os.networkInterfaces.mockReturnValue([])
+        device = new LoupedeckDevice({ autoConnect: false })
+        await expect(device.connect.bind(device)).rejects.toThrow(/no loupedeck devices found/i)
+    })
 })
 
 describe('Commands', () => {
     beforeEach(() => {
-        device = new LoupedeckDevice({ ip: '255.255.255.255' })
+        device = new LoupedeckDevice({ ip: '255.255.255.255', autoConnect: false })
         device.connection = { send: () => {} }
     })
     it('sets brightness', () => {
@@ -127,7 +128,7 @@ describe('Commands', () => {
 
 describe('Message Parsing', () => {
     beforeEach(() => {
-        device = new LoupedeckDevice({ ip: '255.255.255.255' })
+        device = new LoupedeckDevice({ ip: '255.255.255.255', autoConnect: false })
     })
     it('processes button presses', () => {
         const SAMPLE_MESSAGE = Buffer.from('0500000900', 'hex')

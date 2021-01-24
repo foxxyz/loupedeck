@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-const { openLoupedeck } = require('.')
+const { LoupedeckDevice } = require('.')
 
-const loupedeck = openLoupedeck()
+const loupedeck = new LoupedeckDevice()
 
-loupedeck.on('connect', ({ url }) => {
-    console.info(`✅ Connected to Loupedeck at ${url}`)
+loupedeck.on('connect', ({ address }) => {
+    console.info(`✅ Connected to Loupedeck at ${address}`)
 })
 
 loupedeck.on('down', ({ id }) => {
