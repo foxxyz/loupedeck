@@ -58,7 +58,7 @@ device.on('rotate', ({ id, delta }) => {
 })
 ```
 
-For a longer example, see [`example.js`](/example.js).
+For all examples, see the [`examples` folder](/examples/).
 
 📝 API Docs
 -----------
