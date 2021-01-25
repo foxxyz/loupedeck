@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const { LoupedeckDevice } = require('.')
+const { LoupedeckDevice } = require('../..')
 
 const loupedeck = new LoupedeckDevice()
 
