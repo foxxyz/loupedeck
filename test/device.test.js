@@ -120,7 +120,7 @@ describe('Commands', () => {
     it('errors on unknown button passed', () => {
         expect(() => device.setButtonColor({ id: 'triangle', color: 'blue' })).toThrow(/Invalid button/)
     })
-    it('writes pixels to left display', () => {
+    it('writes pixels to left display', async() => {
         const sender = jest.spyOn(device.connection, 'send')
         device.drawScreen('left', (ctx, w, h) => {
             ctx.fillStyle = '#f00' // red
@@ -131,9 +131,12 @@ describe('Commands', () => {
         const pixels = '00f8'.repeat(60 * 270)
         expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004c, x: 0, y: 0, width: 60, height: 270 })
         expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
+        // Confirm write
+        device.onReceive(Buffer.from('041001', 'hex'))
+        await delay(10)
         expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004c', 'hex'))
     })
-    it('writes pixels to right display', () => {
+    it('writes pixels to right display', async() => {
         const sender = jest.spyOn(device.connection, 'send')
         device.drawScreen('right', (ctx, w, h) => {
             ctx.fillStyle = '#0f0' // green
@@ -144,9 +147,12 @@ describe('Commands', () => {
         const pixels = 'e007'.repeat(60 * 270)
         expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0052, x: 0, y: 0, width: 60, height: 270 })
         expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
+        // Confirm write
+        device.onReceive(Buffer.from('041001', 'hex'))
+        await delay(10)
         expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020052', 'hex'))
     })
-    it('writes pixels to center display', () => {
+    it('writes pixels to center display', async() => {
         const sender = jest.spyOn(device.connection, 'send')
         device.drawScreen('center', (ctx, w, h) => {
             ctx.fillStyle = '#00f' // blue
@@ -157,9 +163,12 @@ describe('Commands', () => {
         const pixels = '1f00'.repeat(360 * 270)
         expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 0, y: 0, width: 360, height: 270 })
         expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
+        // Confirm write
+        device.onReceive(Buffer.from('041001', 'hex'))
+        await delay(10)
         expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
     })
-    it('writes pixels to a specific key area', () => {
+    it('writes pixels to a specific key area', async() => {
         const sender = jest.spyOn(device.connection, 'send')
         device.drawKey(6, (ctx, w, h) => {
             ctx.fillStyle = '#fff'
@@ -168,7 +177,18 @@ describe('Commands', () => {
         const pixels = 'ffff'.repeat(90 * 90)
         expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 180, y: 90, width: 90, height: 90 })
         expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
+        // Confirm write
+        device.onReceive(Buffer.from('041001', 'hex'))
+        await delay(10)
         expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
+    })
+    it('writes pixels without refreshing the screen', async() => {
+        const sender = jest.spyOn(device.connection, 'send')
+        device.drawCanvas({ id: 'center', width: 10, height: 10, autoRefresh: false }, (ctx, w, h) => {})
+        // Confirm write
+        device.onReceive(Buffer.from('041001', 'hex'))
+        await delay(10)
+        expect(sender).toHaveBeenCalledTimes(1)
     })
     it('vibrates short by default', () => {
         const sender = jest.spyOn(device.connection, 'send')

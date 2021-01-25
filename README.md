@@ -132,6 +132,21 @@ Arguments:
 
 Manually connect if `autoConnect` set to `false` during [construction](#new-loupedeckdevice-host--string-autoconnect--boolean-). Resolves once a connection has been established.
 
+#### `device.drawCanvas({ id : String, width : Number, height : Number, x? : Number, y? : Number, autoRefresh? : Boolean }, callback : Function)`
+
+Draw graphics to a particular area. Lower-level method if [`drawKey()`](#devicedrawkeykey--number-callback--function) or [`drawScreen()`](#devicedrawscreenscreenid--string-callback--function) don't meet your needs.
+
+ - `id`: Screen to write to [`left`, `center`, `right`]
+ - `width`: Width of area to draw
+ - `height`: Height of area to draw
+ - `x`: Starting X offset (default: `0`)
+ - `y`: Starting Y offset (default: `0`)
+ - `autoRefresh`: Whether to refresh the screen after drawing (default: `true`)
+ - `callback`: Function to handle draw calls. Receives the following arguments:
+     + `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
+     + `width`: Width of drawing area
+     + `height`: Height of drawing area
+
 #### `device.drawKey(key : Number, callback : Function)`
 
 Draw graphics to a specific key. Width and height of callback will be `90`, as keys are 90x90px.
@@ -150,7 +165,7 @@ Draw graphics to a specific screen. Screen sizes are as follows:
  * `center`: 360x270px
  * `right`: 60x60px
 
- - `key`: Screen to write to [`left`, `center`, `right`]
+ - `screenID`: Screen to write to [`left`, `center`, `right`]
  - `callback`: Function to handle draw calls. Receives the following arguments:
      + `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
      + `width`: Width of drawing area

@@ -28,23 +28,24 @@ const DISPLAYS = {
 }
 
 const HEADERS = {
-    CONFIRM:         0x0302,
-    GET_SERIAL:      0x0303,
-    GET_VERSION:     0x0307,
-    GET_MCU_ID:      0x030d,
-    TICK:            0x0400,
-    SET_BRIGHTNESS:  0x0409,
-    SET_VIBRATION:   0x041b,
-    BUTTON_PRESS:    0x0500,
-    KNOB_ROTATE:     0x0501,
-    DRAW:            0x050f,
-    SET_COLOR:       0x0702,
-    TOUCH:           0x094d,
-    TOUCH_END:       0x096d,
-    VERSION:         0x0c07,
-    MCU:             0x180d,
-    SERIAL:          0x1f03,
-    WRITE_FRAMEBUFF: 0xff10
+    CONFIRM:          0x0302,
+    GET_SERIAL:       0x0303,
+    GET_VERSION:      0x0307,
+    GET_MCU_ID:       0x030d,
+    TICK:             0x0400,
+    SET_BRIGHTNESS:   0x0409,
+    CONFIRM_FRAMEBUFF:0x0410,
+    SET_VIBRATION:    0x041b,
+    BUTTON_PRESS:     0x0500,
+    KNOB_ROTATE:      0x0501,
+    DRAW:             0x050f,
+    SET_COLOR:        0x0702,
+    TOUCH:            0x094d,
+    TOUCH_END:        0x096d,
+    VERSION:          0x0c07,
+    MCU:              0x180d,
+    SERIAL:           0x1f03,
+    WRITE_FRAMEBUFF:  0xff10
 }
 
 const HAPTIC = {

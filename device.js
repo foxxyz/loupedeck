@@ -60,12 +60,12 @@ class LoupedeckDevice extends EventEmitter {
             this._connectionResolver = res
         })
     }
-    // Display the current framebuffer
-    draw(displayID) {
-        this.send(HEADERS.DRAW, displayID)
-    }
     // Create a canvas with correct dimensions and pass back for drawing
-    drawCanvas({ id, width, height, x = 0, y = 0 }, cb) {
+    async drawCanvas({ id, width, height, x = 0, y = 0, autoRefresh = true }, cb) {
+        const displayInfo = DISPLAYS[id]
+        if (!width) width = displayInfo.width
+        if (!height) height = displayInfo.height
+
         const canvas = createCanvas(width, height)
         const ctx = canvas.getContext('2d', { pixelFormat: 'RGB16_565' }) // Loupedeck uses 16-bit (5-6-5) LE RGB colors
         cb(ctx, width, height)
@@ -78,10 +78,10 @@ class LoupedeckDevice extends EventEmitter {
         header.writeUInt16BE(height, 6)
 
         // Write to frame buffer
-        this.send(HEADERS.WRITE_FRAMEBUFF, Buffer.concat([id, header, canvas.toBuffer('raw')]))
+        await this.send(HEADERS.WRITE_FRAMEBUFF, Buffer.concat([displayInfo.id, header, canvas.toBuffer('raw')]), { track: true })
 
         // Draw to display
-        this.draw(id)
+        if (autoRefresh) await this.refresh(id)
     }
     // Draw to a specific key index (0-12)
     drawKey(index, cb) {
@@ -90,11 +90,11 @@ class LoupedeckDevice extends EventEmitter {
         const height = 90
         const x = (index % 4) * width
         const y = Math.floor(index / 4) * height
-        return this.drawCanvas({ id: DISPLAYS.center.id, x, y, width, height }, cb)
+        return this.drawCanvas({ id: 'center', x, y, width, height }, cb)
     }
     // Draw to a specific screen
     drawScreen(id, cb) {
-        return this.drawCanvas(DISPLAYS[id], cb)
+        return this.drawCanvas({ id }, cb)
     }
     async getInfo() {
         return {
@@ -121,9 +121,8 @@ class LoupedeckDevice extends EventEmitter {
     onReceive(buff) {
         const header = buff.readUInt16BE()
         const handler = this.handlers[header]
-        if (!handler) return
         const transactionID = buff[2]
-        const response = handler(buff.slice(3))
+        const response = handler ? handler(buff.slice(3)) : true
         const resolver = this.pendingTransactions[transactionID]
         if (resolver) resolver(response)
         return response
@@ -170,6 +169,11 @@ class LoupedeckDevice extends EventEmitter {
     }
     onVersion(buff) {
         return `${buff[0]}.${buff[1]}.${buff[2]}`
+    }
+    // Display the current framebuffer
+    refresh(id) {
+        const displayInfo = DISPLAYS[id]
+        this.send(HEADERS.DRAW, displayInfo.id)
     }
     send(action, data = Buffer.alloc(0), { track = false } = {}) {
         if (this.connection.readyState !== this.connection.OPEN) return
