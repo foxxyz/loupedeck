@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const { LoupedeckDevice } = require('../..')
 const { createCanvas, loadImage } = require('canvas')
+const path = require('path')
 
 const loupedeck = new LoupedeckDevice()
 
@@ -142,11 +143,10 @@ const connect = new Promise(res => loupedeck.once('connect', res))
 let winAnimation
 
 async function run() {
-    const game = new SlidePuzzle({ image: './yumi.jpg' })
+    const game = new SlidePuzzle({ image: path.join(__dirname, 'yumi.jpg') })
     await game.init()
 
     const device = await connect
-    console.log('connecto')
 
     // Draw tiles on game start
     game.onStart = () => {
