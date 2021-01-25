@@ -29,15 +29,13 @@ const DISPLAYS = {
 
 const HEADERS = {
     CONFIRM:          0x0302,
-    GET_SERIAL:       0x0303,
-    GET_VERSION:      0x0307,
-    GET_MCU_ID:       0x030d,
     TICK:             0x0400,
     SET_BRIGHTNESS:   0x0409,
     CONFIRM_FRAMEBUFF:0x0410,
     SET_VIBRATION:    0x041b,
     BUTTON_PRESS:     0x0500,
     KNOB_ROTATE:      0x0501,
+    RESET:            0x0506,
     DRAW:             0x050f,
     SET_COLOR:        0x0702,
     TOUCH:            0x094d,

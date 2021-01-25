@@ -98,8 +98,8 @@ class LoupedeckDevice extends EventEmitter {
     }
     async getInfo() {
         return {
-            serial: await this.send(HEADERS.GET_SERIAL, undefined, { track: true }),
-            version: await this.send(HEADERS.GET_VERSION, undefined, { track: true })
+            serial: await this.send(HEADERS.SERIAL, undefined, { track: true }),
+            version: await this.send(HEADERS.VERSION, undefined, { track: true })
         }
     }
     onButton(buff) {
@@ -122,7 +122,7 @@ class LoupedeckDevice extends EventEmitter {
         const header = buff.readUInt16BE()
         const handler = this.handlers[header]
         const transactionID = buff[2]
-        const response = handler ? handler(buff.slice(3)) : true
+        const response = handler ? handler(buff.slice(3)) : buff
         const resolver = this.pendingTransactions[transactionID]
         if (resolver) resolver(response)
         return response

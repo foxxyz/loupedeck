@@ -94,10 +94,10 @@ describe('Commands', () => {
     it('retrieves device information', async() => {
         const sender = jest.spyOn(device.connection, 'send')
         const promise = device.getInfo()
-        expect(sender).toHaveBeenCalledWith(Buffer.from('030301', 'hex'))
+        expect(sender).toHaveBeenCalledWith(Buffer.from('1f0301', 'hex'))
         device.onReceive(Buffer.from('1f03014c444c31313031303133303030333936373030313338413030303120', 'hex'))
         await delay(20)
-        expect(sender).toHaveBeenCalledWith(Buffer.from('030702', 'hex'))
+        expect(sender).toHaveBeenCalledWith(Buffer.from('0c0702', 'hex'))
         device.onReceive(Buffer.from('0c070201052000ff00000000', 'hex'))
         expect(promise).resolves.toEqual({
             version: '1.5.32',
