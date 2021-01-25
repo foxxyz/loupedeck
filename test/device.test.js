@@ -62,7 +62,7 @@ describe('Connection', () => {
         device.connect()
         await delay(40)
         expect(fn.mock.calls[0][0].message).toMatch(/no loupedeck devices found/i)
-        expect(connect).toHaveBeenCalledTimes(2)
+        expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
     })
     it('attempts reconnect on timeout', async() => {
         os.networkInterfaces.mockReturnValue([{ address: '100.127.80.1' }])
