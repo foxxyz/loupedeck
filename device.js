@@ -177,7 +177,9 @@ class LoupedeckDevice extends EventEmitter {
     }
     send(action, data = Buffer.alloc(0), { track = false } = {}) {
         if (this.connection.readyState !== this.connection.OPEN) return
-        this.transactionID = (this.transactionID + 1) % 0xff
+        this.transactionID = (this.transactionID + 1) % 256
+        // Skip transaction ID's of zero since the device seems to ignore them
+        if (this.transactionID === 0) this.transactionID++
         const header = Buffer.alloc(3)
         header.writeUInt16BE(action)
         header[2] = this.transactionID

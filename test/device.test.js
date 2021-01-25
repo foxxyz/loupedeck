@@ -184,7 +184,7 @@ describe('Commands', () => {
     })
     it('writes pixels without refreshing the screen', async() => {
         const sender = jest.spyOn(device.connection, 'send')
-        device.drawCanvas({ id: 'center', width: 10, height: 10, autoRefresh: false }, (ctx, w, h) => {})
+        device.drawCanvas({ id: 'center', width: 10, height: 10, autoRefresh: false }, () => {})
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
@@ -353,3 +353,14 @@ describe('Message Parsing', () => {
     })
 })
 
+describe('Edge Cases', () => {
+    beforeEach(() => {
+        device = new LoupedeckDevice({ ip: '255.255.255.255', autoConnect: false })
+        device.connection = { send: () => {} }
+    })
+    it('prevents transaction IDs of zero', () => {
+        device.transactionID = 0xff
+        device.send(0xffff, Buffer.alloc(0))
+        expect(device.transactionID).not.toBe(0)
+    })
+})
