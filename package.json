@@ -45,56 +45,14 @@
       "jest/globals": true
     },
     "extends": [
-      "eslint:recommended"
+      "@appliedminds"
     ],
     "plugins": [
       "jest"
-    ],
-    "parserOptions": {
-      "ecmaVersion": 2017,
-      "sourceType": "module"
-    },
-    "rules": {
-      "eqeqeq": [
-        "error",
-        "always"
-      ],
-      "indent": [
-        "error",
-        4
-      ],
-      "linebreak-style": [
-        "error",
-        "unix"
-      ],
-      "quotes": [
-        "error",
-        "single"
-      ],
-      "no-console": [
-        "error",
-        {
-          "allow": [
-            "warn",
-            "info",
-            "error"
-          ]
-        }
-      ],
-      "object-curly-spacing": [
-        "error",
-        "always"
-      ],
-      "prefer-const": [
-        "error"
-      ],
-      "semi": [
-        "error",
-        "never"
-      ]
-    }
+    ]
   },
   "devDependencies": {
+    "@appliedminds/eslint-config": "^1.1.1",
     "eslint": "^8.7.0",
     "eslint-plugin-jest": "^26.0.0",
     "jest": "^27.4.7"
