@@ -127,6 +127,10 @@ Emitted when a button or knob is released.
 
 Arguments:
  - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
+ 
+#### `device.close()`
+
+Close device connection.
 
 #### `device.connect() : Promise`
 

@@ -43,6 +43,11 @@ class LoupedeckDevice extends EventEmitter {
         this._keepAliveTimer = setTimeout(this.checkConnected.bind(this), this.connectionTimeout * 2)
         if (Date.now() - this.lastTick > this.connectionTimeout) this.connection.terminate()
     }
+    close() {
+        clearTimeout(this._reconnectTimer)
+        if (!this.connection) return
+        this.connection.close()
+    }
     connect() {
         try {
             const host = this.host || autoDiscover()
@@ -116,6 +121,8 @@ class LoupedeckDevice extends EventEmitter {
         if (error === 1006) error = new Error('Connection timeout - was the device disconnected?')
         this.emit('disconnect', error)
         clearTimeout(this._keepAliveTimer)
+        // Normal disconnect, do not reconnect
+        if (error === 1000) return
         this._reconnectTimer = setTimeout(this.connect.bind(this), this.reconnectInterval)
     }
     onReceive(buff) {
