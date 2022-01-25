@@ -183,7 +183,6 @@ async function run() {
             ctx.textAlign = 'center'
             ctx.textBaseline = 'middle'
             ctx.fillText('♥', 16, 16)
-
         })
         winAnimation = setTimeout(winRender, 100)
     }

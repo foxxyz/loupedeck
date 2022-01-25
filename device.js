@@ -43,7 +43,7 @@ class LoupedeckDevice extends EventEmitter {
         this._keepAliveTimer = setTimeout(this.checkConnected.bind(this), this.connectionTimeout * 2)
         if (Date.now() - this.lastTick > this.connectionTimeout) this.connection.terminate()
     }
-    async connect() {
+    connect() {
         try {
             const host = this.host || autoDiscover()
             this.address = `ws://${host}`
@@ -88,7 +88,7 @@ class LoupedeckDevice extends EventEmitter {
         // Get offset x/y for key index
         const width = 90
         const height = 90
-        const x = (index % 4) * width
+        const x = index % 4 * width
         const y = Math.floor(index / 4) * height
         return this.drawCanvas({ id: 'center', x, y, width, height }, cb)
     }
@@ -185,9 +185,11 @@ class LoupedeckDevice extends EventEmitter {
         header[2] = this.transactionID
         const packet = Buffer.concat([header, data])
         this.connection.send(packet)
-        if (track) return new Promise(res => {
-            this.pendingTransactions[this.transactionID] = res
-        })
+        if (track) {
+            return new Promise(res => {
+                this.pendingTransactions[this.transactionID] = res
+            })
+        }
     }
     setBrightness(value) {
         const byte = Math.max(0, Math.min(BRIGHTNESS_LEVELS, Math.round(value * BRIGHTNESS_LEVELS)))
