@@ -22,7 +22,7 @@ Supports:
 Requirements
 ------------
 
- * Node 11+
+ * Node 12+
 
 Installation
 ------------
