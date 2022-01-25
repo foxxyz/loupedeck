@@ -21,6 +21,9 @@ const delay = ms => new Promise(res => setTimeout(res, ms))
 let device
 
 describe('Connection', () => {
+    afterEach(() => {
+        device.close()
+    })
     it('connects via autodiscovery', async() => {
         os.networkInterfaces.mockReturnValue([{ address: '100.127.80.1' }])
         device = new LoupedeckDevice()
@@ -30,7 +33,7 @@ describe('Connection', () => {
         expect(fn).toHaveBeenCalledWith(device)
     })
     it('connects via direct instantiation', async() => {
-        device = new LoupedeckDevice({ ip: '127.0.0.1' })
+        device = new LoupedeckDevice({ host: '127.0.0.1' })
         const fn = jest.fn()
         device.on('connect', fn)
         await device.connect()
@@ -79,7 +82,7 @@ describe('Connection', () => {
     })
     it('ignores commands if connection not open', () => {
         device = new LoupedeckDevice({ ip: '255.255.255.255', autoConnect: false })
-        device.connection = { send: () => {}, readyState: 0 }
+        device.connection = { send: () => {}, readyState: 0, close: () => {} }
         const sender = jest.spyOn(device.connection, 'send')
         device.send('test', 'test')
         expect(sender).not.toHaveBeenCalled()

@@ -6,7 +6,7 @@ class MockSocket extends EventEmitter {
         super()
         this.url = url
         // Simulate connection attempt
-        setTimeout(() => {
+        this.timeout = setTimeout(() => {
             if (!this.url.startsWith('ws://') ) {
                 const err = new Error(`connect ECONNREFUSED ${url}`)
                 this.emit('error', err)
@@ -17,11 +17,13 @@ class MockSocket extends EventEmitter {
             }
         }, 10)
     }
-    close(code) {
+    close(code = 1000) {
+        clearTimeout(this.timeout)
         this.emit('close', code)
     }
     send() {}
     terminate() {
+        clearTimeout(this.timeout)
         this.emit('close', 1006)
     }
 }
