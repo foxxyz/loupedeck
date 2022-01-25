@@ -54,7 +54,7 @@ class LoupedeckDevice extends EventEmitter {
             this.address = `ws://${host}`
         }
         catch(e) {
-            return this.onDisconnect(e)
+            return Promise.resolve(this.onDisconnect(e))
         }
         this.connection = new WebSocket(this.address)
         this.connection.on('open', this.onConnect.bind(this))
