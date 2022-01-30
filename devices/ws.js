@@ -1,28 +1,28 @@
 const { networkInterfaces } = require('os')
 const WebSocket = require('ws')
 
-const { LoupedeckDevice } = require('./base')
+const LoupedeckBase = require('./base')
 
-class LoupedeckWSDevice extends LoupedeckDevice {
+class LoupedeckWSDevice extends LoupedeckBase {
     constructor({ host, autoConnect = true } = {}) {
         super()
         this.host = host
         // Connect automatically if desired
         if (autoConnect) this.connect().catch(console.error)
     }
+    // Automatically find Loupedeck IP by scanning network interfaces
+    static autoDiscover() {
+        const interfaces = Object.values(networkInterfaces()).flat()
+        const iface = interfaces.find(i => i.address.startsWith('100.127'))
+        if (!iface) throw new Error('No Loupedeck devices found!')
+        return iface.address.replace(/.2$/, '.1')
+    }
     connect() {
-        try {
-            const host = this.host || autoDiscover()
-            this.address = `ws://${host}`
-        }
-        catch(e) {
-            return Promise.resolve(this.onDisconnect(e))
-        }
+        this.address = `ws://${this.host}`
         this.connection = new WebSocket(this.address)
         this.connection.on('open', this.onConnect.bind(this))
         this.connection.on('message', this.onReceive.bind(this))
         this.connection.on('close', this.onDisconnect.bind(this))
-
         return new Promise(res => {
             this._connectionResolver = res
         })
@@ -32,12 +32,4 @@ class LoupedeckWSDevice extends LoupedeckDevice {
     }
 }
 
-// Automatically find Loupedeck IP by scanning network interfaces
-function autoDiscover() {
-    const interfaces = Object.values(networkInterfaces()).flat()
-    const iface = interfaces.find(i => i.address.startsWith('100.127'))
-    if (!iface) throw new Error('No Loupedeck devices found!')
-    return iface.address.replace(/.2$/, '.1')
-}
-
-module.exports = { LoupedeckWSDevice }
+module.exports = LoupedeckWSDevice

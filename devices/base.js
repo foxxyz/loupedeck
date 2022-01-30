@@ -11,7 +11,7 @@ const {
     RECONNECT_INTERVAL
 } = require('../constants')
 
-class LoupedeckDevice extends EventEmitter {
+class LoupedeckBase extends EventEmitter {
     constructor() {
         super()
         this.transactionID = 0
@@ -198,4 +198,4 @@ class LoupedeckDevice extends EventEmitter {
     }
 }
 
-module.exports = { LoupedeckDevice }
+module.exports = LoupedeckBase

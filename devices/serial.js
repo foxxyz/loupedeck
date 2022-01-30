@@ -1,6 +1,6 @@
 const SerialPort = require('serialport')
 
-const { LoupedeckDevice } = require('./base')
+const LoupedeckBase = require('./base')
 const MagicByteLengthParser = require('../parser')
 const {
     HEADERS_V2,
@@ -15,17 +15,23 @@ Sec-WebSocket-Key: 123abc
 `
 const WS_UPGRADE_RESPONSE = 'HTTP/1.1'
 
-class LoupedeckSerialDevice extends LoupedeckDevice {
+class LoupedeckSerialDevice extends LoupedeckBase {
     constructor({ path, autoConnect = true } = {}) {
         super()
         this.path = path
         // Connect automatically if desired
         if (autoConnect) this.connect().catch(console.error)
     }
+    // Automatically find Loupedeck Serial device by scanning ports
+    static async autoDiscover() {
+        for(const { manufacturer, path } of await SerialPort.list()) {
+            if (manufacturer === 'Loupedeck') return path
+        }
+        throw new Error('No Loupedeck devices found!')
+    }
     async connect() {
-        const path = this.path || (await autoDiscover()).path
-        this.address = path
-        this.connection = new SerialPort(path, { baudRate: 256000 })
+        this.address = this.path || await LoupedeckSerialDevice.autoDiscover()
+        this.connection = new SerialPort(this.address, { baudRate: 256000 })
         this.connection.on('open', this.onConnect.bind(this))
         this.connection.on('close', this.onDisconnect.bind(this))
         this.connection.on('error', err => {
@@ -82,12 +88,4 @@ class LoupedeckSerialDevice extends LoupedeckDevice {
     }
 }
 
-// Automatically find Loupedeck Serial device by scanning ports
-async function autoDiscover() {
-    for(const device of await SerialPort.list()) {
-        if (device.manufacturer === 'Loupedeck') return device
-    }
-    throw new Error('No Loupedeck devices found!')
-}
-
-module.exports = { LoupedeckSerialDevice }
+module.exports = LoupedeckSerialDevice
