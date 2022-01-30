@@ -7,6 +7,8 @@ Unofficial Node.js API for [Loupedeck Live](https://loupedeck.com/products/loupe
 
 ![Loupedeck Live Interface](https://github.com/foxxyz/loupedeck/blob/master/docs/device-front-small.png?raw=true)
 
+**⚠️ Note: Only tested with firmware version 0.1.79. Does not work with 0.2.5 yet.**
+
 **⚠️ Beta version: API is subject to change**
 
 Supports:
@@ -23,6 +25,7 @@ Requirements
 ------------
 
  * Node 12+
+ * Loupedeck with firmware 0.1.XX
 
 Installation
 ------------
