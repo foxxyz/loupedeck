@@ -1,8 +1,6 @@
-const { networkInterfaces } = require('os')
 const EventEmitter = require('events')
 const { createCanvas } = require('canvas')
 const rgba = require('color-rgba')
-const WebSocket = require('ws')
 const {
     HEADERS,
     CONNECTION_TIMEOUT,
@@ -11,12 +9,11 @@ const {
     DISPLAYS,
     HAPTIC,
     RECONNECT_INTERVAL
-} = require('./constants')
+} = require('../constants')
 
 class LoupedeckDevice extends EventEmitter {
-    constructor({ host, autoConnect = true } = {}) {
+    constructor() {
         super()
-        this.host = host
         this.transactionID = 0
         this.touches = {}
         this.handlers = {
@@ -36,8 +33,6 @@ class LoupedeckDevice extends EventEmitter {
         this.reconnectInterval = RECONNECT_INTERVAL
         // Track pending transactions
         this.pendingTransactions = {}
-        // Connect automatically if desired
-        if (autoConnect) this.connect().catch(console.error)
     }
     checkConnected() {
         this._keepAliveTimer = setTimeout(this.checkConnected.bind(this), this.connectionTimeout * 2)
@@ -49,21 +44,7 @@ class LoupedeckDevice extends EventEmitter {
         this.connection.close()
     }
     connect() {
-        try {
-            const host = this.host || autoDiscover()
-            this.address = `ws://${host}`
-        }
-        catch(e) {
-            return Promise.resolve(this.onDisconnect(e))
-        }
-        this.connection = new WebSocket(this.address)
-        this.connection.on('open', this.onConnect.bind(this))
-        this.connection.on('message', this.onReceive.bind(this))
-        this.connection.on('close', this.onDisconnect.bind(this))
-
-        return new Promise(res => {
-            this._connectionResolver = res
-        })
+        throw new Error('Implement connect in child class')
     }
     // Create a canvas with correct dimensions and pass back for drawing
     async drawCanvas({ id, width, height, x = 0, y = 0, autoRefresh = true }, cb) {
@@ -191,12 +172,15 @@ class LoupedeckDevice extends EventEmitter {
         header.writeUInt16BE(action)
         header[2] = this.transactionID
         const packet = Buffer.concat([header, data])
-        this.connection.send(packet)
+        this._send(packet)
         if (track) {
             return new Promise(res => {
                 this.pendingTransactions[this.transactionID] = res
             })
         }
+    }
+    _send(buff) {
+        throw new Error('Implement _send in child class')
     }
     setBrightness(value) {
         const byte = Math.max(0, Math.min(BRIGHTNESS_LEVELS, Math.round(value * BRIGHTNESS_LEVELS)))
@@ -212,14 +196,6 @@ class LoupedeckDevice extends EventEmitter {
     vibrate(pattern = HAPTIC.SHORT) {
         this.send(HEADERS.SET_VIBRATION, Buffer.from([pattern]))
     }
-}
-
-// Automatically find Loupedeck IP by scanning network interfaces
-function autoDiscover() {
-    const interfaces = Object.values(networkInterfaces()).flat()
-    const iface = interfaces.find(i => i.address.startsWith('100.127'))
-    if (!iface) throw new Error('No Loupedeck devices found!')
-    return iface.address.replace(/.2$/, '.1')
 }
 
 module.exports = { LoupedeckDevice }

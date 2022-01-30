@@ -46,6 +46,11 @@ const HEADERS = {
     WRITE_FRAMEBUFF: 0xff10
 }
 
+const HEADERS_V2 = {
+    SERIAL: 0x0303,
+    VERSION: 0x0307
+}
+
 const HAPTIC = {
     SHORT: 0x01,
     MEDIUM: 0x0a,
@@ -86,6 +91,7 @@ module.exports = {
     CONNECTION_TIMEOUT,
     DISPLAYS,
     HEADERS,
+    HEADERS_V2,
     HAPTIC,
     RECONNECT_INTERVAL
 }

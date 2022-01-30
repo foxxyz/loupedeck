@@ -15,6 +15,7 @@
   "dependencies": {
     "canvas": "^2.9.0",
     "color-rgba": "^2.4.0",
+    "serialport": "^9.2.8",
     "ws": "^8.4.2"
   },
   "jest": {

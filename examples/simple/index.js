@@ -7,6 +7,8 @@ loupedeck.on('connect', async({ address }) => {
     console.info(`✅ Connected to Loupedeck at ${address}`)
     const { serial, version } = await loupedeck.getInfo()
     console.info(`Device serial number ${serial}, software version ${version}`)
+    cycleColors(loupedeck)
+    drawKeyColors(loupedeck)
 })
 
 loupedeck.on('disconnect', err => {
@@ -77,8 +79,3 @@ function drawKeyColors(device) {
         ctx.fillRect(0, 0, w, h)
     })
 }
-
-loupedeck.on('connect', async() => {
-    cycleColors(loupedeck)
-    drawKeyColors(loupedeck)
-})
