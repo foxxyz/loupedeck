@@ -20,7 +20,7 @@ class MagicByteLengthParser extends Transform {
             // Make sure we have enough bytes to meet this length
             const expectedEnd = position + nextLength + 2
             if (data.length < expectedEnd) break
-            this.push(data.slice(position, expectedEnd))
+            this.push(data.slice(position + 2, expectedEnd))
             data = data.slice(expectedEnd)
         }
         this.buffer = data

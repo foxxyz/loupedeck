@@ -161,10 +161,10 @@ class LoupedeckDevice extends EventEmitter {
     // Display the current framebuffer
     refresh(id) {
         const displayInfo = DISPLAYS[id]
-        this.send(HEADERS.DRAW, displayInfo.id)
+        return this.send(HEADERS.DRAW, displayInfo.id, { track: true })
     }
     send(action, data = Buffer.alloc(0), { track = false } = {}) {
-        if (this.connection.readyState !== this.connection.OPEN) return
+        //if (this.connection.readyState !== this.connection.OPEN) return
         this.transactionID = (this.transactionID + 1) % 256
         // Skip transaction ID's of zero since the device seems to ignore them
         if (this.transactionID === 0) this.transactionID++
