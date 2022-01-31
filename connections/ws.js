@@ -33,6 +33,7 @@ class LoupedeckWSConnection extends EventEmitter {
     }
     close() {
         clearTimeout(this._reconnectTimer)
+        if (!this.connection) return
         this.connection.close()
     }
     connect() {
@@ -46,7 +47,7 @@ class LoupedeckWSConnection extends EventEmitter {
         })
     }
     isReady() {
-        return this.connection.readyState === this.connection.OPEN
+        return this.connection !== undefined && this.connection.readyState === this.connection.OPEN
     }
     onConnect() {
         this.emit('connect', { address: this.address })

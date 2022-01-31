@@ -2,9 +2,6 @@ const EventEmitter = require('events')
 const SerialPort = require('serialport')
 
 const MagicByteLengthParser = require('../parser')
-const {
-    HEADERS_V2,
-} = require('../constants')
 
 const WS_UPGRADE_HEADER = `GET /index.html
 HTTP/1.1
@@ -26,20 +23,16 @@ class LoupedeckSerialConnection extends EventEmitter {
             if (manufacturer === 'Loupedeck') return { path }
         }
     }
-    connect() {
-        this.address = this.path
-        this.connection = new SerialPort(this.address, { baudRate: 256000 })
+    close() {
+        if (!this.connection) return
+        this.connection.close()
+    }
+    async connect() {
+        this.connection = new SerialPort(this.path, { baudRate: 256000 })
         this.connection.on('error', this.onError.bind(this))
-        this.connection.on('open', this.onConnect.bind(this))
         this.connection.on('close', this.onDisconnect.bind(this))
-        return new Promise(res => {
-            this._connectionResolver = res
-        })
-    }
-    isReady() {
-        return true
-    }
-    async onConnect() {
+        await new Promise(res => this.connection.once('open', res))
+
         // Wait for the "websocket" handshake over serial (...)
         await new Promise((res, rej) => {
             this.connection.once('data', buff => {
@@ -54,8 +47,10 @@ class LoupedeckSerialConnection extends EventEmitter {
         this.connection.pipe(parser)
         parser.on('data', this.emit.bind(this, 'message'))
 
-        this.emit('connect', this)
-        this._connectionResolver()
+        this.emit('connect', { address: this.path })
+    }
+    isReady() {
+        return this.connection !== undefined && this.connection.isOpen
     }
     onDisconnect(err) {
         this.emit('disconnect', err)

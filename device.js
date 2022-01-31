@@ -53,6 +53,7 @@ class LoupedeckDevice extends EventEmitter {
                 const args = await type.discover()
                 if (!args) continue
                 this.connection = new type(args)
+                break
             }
             if (!this.connection) return Promise.resolve(this.onDisconnect(new Error('No devices found')))
         }
@@ -60,11 +61,12 @@ class LoupedeckDevice extends EventEmitter {
         this.connection.on('connect', this.onConnect.bind(this))
         this.connection.on('message', this.onReceive.bind(this))
         this.connection.on('disconnect', this.onDisconnect.bind(this))
-        this.connection.connect()
 
-        return new Promise(res => {
+        const connectionPromise = new Promise(res => {
             this._connectionResolver = res
         })
+        this.connection.connect()
+        return connectionPromise
     }
     // Create a canvas with correct dimensions and pass back for drawing
     async drawCanvas({ id, width, height, x = 0, y = 0, autoRefresh = true }, cb) {
