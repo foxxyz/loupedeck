@@ -1,6 +1,6 @@
+const EventEmitter = require('events')
 const SerialPort = require('serialport')
 
-const LoupedeckBase = require('./base')
 const MagicByteLengthParser = require('../parser')
 const {
     HEADERS_V2,
@@ -15,37 +15,29 @@ Sec-WebSocket-Key: 123abc
 `
 const WS_UPGRADE_RESPONSE = 'HTTP/1.1'
 
-class LoupedeckSerialDevice extends LoupedeckBase {
-    constructor({ path, autoConnect = true } = {}) {
+class LoupedeckSerialConnection extends EventEmitter {
+    constructor({ path } = {}) {
         super()
         this.path = path
-        // Connect automatically if desired
-        if (autoConnect) this.connect().catch(console.error)
     }
     // Automatically find Loupedeck Serial device by scanning ports
-    static async autoDiscover() {
+    static async discover() {
         for(const { manufacturer, path } of await SerialPort.list()) {
-            if (manufacturer === 'Loupedeck') return path
+            if (manufacturer === 'Loupedeck') return { path }
         }
-        throw new Error('No Loupedeck devices found!')
     }
-    async connect() {
-        this.address = this.path || await LoupedeckSerialDevice.autoDiscover()
+    connect() {
+        this.address = this.path
         this.connection = new SerialPort(this.address, { baudRate: 256000 })
+        this.connection.on('error', this.onError.bind(this))
         this.connection.on('open', this.onConnect.bind(this))
         this.connection.on('close', this.onDisconnect.bind(this))
-        this.connection.on('error', err => {
-            console.error('Error', err)
-        })
         return new Promise(res => {
             this._connectionResolver = res
         })
     }
-    async getInfo() {
-        return {
-            serial: await this.send(HEADERS_V2.SERIAL, undefined, { track: true }),
-            version: await this.send(HEADERS_V2.VERSION, undefined, { track: true })
-        }
+    isReady() {
+        return true
     }
     async onConnect() {
         // Wait for the "websocket" handshake over serial (...)
@@ -54,18 +46,24 @@ class LoupedeckSerialDevice extends LoupedeckBase {
                 if (buff.toString().startsWith(WS_UPGRADE_RESPONSE)) res()
                 else rej('Invalid handshake response: ', buff)
             })
-            this._send(Buffer.from(WS_UPGRADE_HEADER), true)
+            this.send(Buffer.from(WS_UPGRADE_HEADER), true)
         })
 
         // Set up data pipeline
         const parser = new MagicByteLengthParser({ magicByte: 0x82 })
         this.connection.pipe(parser)
-        parser.on('data', this.onReceive.bind(this))
+        parser.on('data', this.emit.bind(this, 'message'))
 
         this.emit('connect', this)
         this._connectionResolver()
     }
-    _send(buff, raw = false) {
+    onDisconnect(err) {
+        this.emit('disconnect', err)
+    }
+    onError(err) {
+        console.error(`Loupedeck Serial Error: ${err.message}`)
+    }
+    send(buff, raw = false) {
         if (!raw) {
             let prep
             // Large messages
@@ -88,4 +86,4 @@ class LoupedeckSerialDevice extends LoupedeckBase {
     }
 }
 
-module.exports = LoupedeckSerialDevice
+module.exports = LoupedeckSerialConnection

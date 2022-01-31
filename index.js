@@ -1,4 +1,4 @@
-const { LoupedeckDevice } = require('./devices')
+const LoupedeckDevice = require('./device')
 const { HAPTIC } = require('./constants')
 
 module.exports = {
