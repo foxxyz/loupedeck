@@ -146,7 +146,8 @@ async function run() {
     const game = new SlidePuzzle({ image: path.join(__dirname, 'yumi.jpg') })
     await game.init()
 
-    const device = await connect
+    await connect
+    const device = loupedeck
 
     // Draw tiles on game start
     game.onStart = () => {

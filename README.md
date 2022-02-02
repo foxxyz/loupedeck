@@ -7,8 +7,6 @@ Unofficial Node.js API for [Loupedeck Live](https://loupedeck.com/products/loupe
 
 ![Loupedeck Live Interface](https://github.com/foxxyz/loupedeck/blob/master/docs/device-front-small.png?raw=true)
 
-**⚠️ Note: Only tested with firmware version 0.1.79. Does not work with 0.2.5 yet.**
-
 **⚠️ Beta version: API is subject to change**
 
 Supports:
@@ -25,7 +23,9 @@ Requirements
 ------------
 
  * Node 12+
- * Loupedeck with firmware 0.1.XX
+ * Loupedeck
+
+This library has been tested with firmware versions 0.1.79 and 0.2.5. Other versions may work.
 
 Installation
 ------------
@@ -72,13 +72,14 @@ Main device class.
 
 All incoming messages are emitted as action events and can be subscribed to via `device.on()`.
 
-#### `new LoupedeckDevice({ host : String?, autoConnect : Boolean? })`
+#### `new LoupedeckDevice({ path : String?, host : String?, autoConnect : Boolean? })`
 
 Create a new Loupdeck device interface.
 
-Most use-cases should omit the `host` parameter, unless you're using multiple devices or know specifically which IP you want to connect to.
+Most use-cases should omit the `host`/`path` parameter, unless you're using multiple devices or know specifically which IP or device path you want to connect to. Either use `path` OR `host`, never both.
 
- - `host`: Host or IP address to connect to (example: `127.100.1.1`) (default: autodiscover)
+ - `path`: **(Firmware 0.2.X only)** Serial device path (example: `/dev/cu.ttymodem-1332` or `COM2`) (default: autodiscover)
+ - `host`: **(Firmware 0.1.X only)** Host or IP address to connect to (example: `127.100.1.1`) (default: autodiscover)
  - `autoConnect`: Automatically connect during construction. (default: `true`) _Set to `false` if you'd prefer to call [`connect()`](#deviceconnect--promise). yourself._
 
 #### Event: `'connect'`

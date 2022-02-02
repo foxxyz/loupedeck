@@ -1,69 +1,72 @@
-const { networkInterfaces } = require('os')
 const EventEmitter = require('events')
 const { createCanvas } = require('canvas')
 const rgba = require('color-rgba')
-const WebSocket = require('ws')
+
 const {
     HEADERS,
-    CONNECTION_TIMEOUT,
     BRIGHTNESS_LEVELS,
     BUTTONS,
     DISPLAYS,
     HAPTIC,
-    RECONNECT_INTERVAL
+    RECONNECT_INTERVAL,
 } = require('./constants')
+const WSConnection = require('./connections/ws')
+const SerialConnection = require('./connections/serial')
 
 class LoupedeckDevice extends EventEmitter {
-    constructor({ host, autoConnect = true } = {}) {
+    constructor({ host, path, autoConnect = true } = {}) {
         super()
-        this.host = host
         this.transactionID = 0
         this.touches = {}
         this.handlers = {
             [HEADERS.BUTTON_PRESS]: this.onButton.bind(this),
             [HEADERS.KNOB_ROTATE]: this.onRotate.bind(this),
-            [HEADERS.SERIAL]: this.onSerial.bind(this),
-            [HEADERS.TICK]: this.onTick.bind(this),
+            [HEADERS.SERIAL_IN]: this.onSerial.bind(this),
+            [HEADERS.TICK]: () => {},
             [HEADERS.TOUCH]: this.onTouch.bind(this, 'touchmove'),
             [HEADERS.TOUCH_END]: this.onTouch.bind(this, 'touchend'),
-            [HEADERS.VERSION]: this.onVersion.bind(this),
+            [HEADERS.VERSION_IN]: this.onVersion.bind(this),
         }
-        // Track last interaction time
-        this.lastTick = Date.now()
-        // How long until declaring a timed out connetion
-        this.connectionTimeout = CONNECTION_TIMEOUT
-        // How long between reconnect attempts
-        this.reconnectInterval = RECONNECT_INTERVAL
         // Track pending transactions
         this.pendingTransactions = {}
-        // Connect automatically if desired
-        if (autoConnect) this.connect().catch(console.error)
-    }
-    checkConnected() {
-        this._keepAliveTimer = setTimeout(this.checkConnected.bind(this), this.connectionTimeout * 2)
-        if (Date.now() - this.lastTick > this.connectionTimeout) this.connection.terminate()
+        // How long between reconnect attempts
+        this.reconnectInterval = RECONNECT_INTERVAL
+        // Host for websocket connections
+        this.host = host
+        // Path for serial connections
+        this.path = path
+        // Automatically connect?
+        if (autoConnect) this.connect()
     }
     close() {
-        clearTimeout(this._reconnectTimer)
         if (!this.connection) return
         this.connection.close()
     }
-    connect() {
-        try {
-            const host = this.host || autoDiscover()
-            this.address = `ws://${host}`
+    async connect() {
+        // Explicitly asked for a serial connection (V0.2.X)
+        if (this.path) this.connection = new SerialConnection({ path: this.path })
+        // Explicitly asked for a websocket connection (V0.1.X)
+        else if (this.host) this.connection = new WSConnection({ host: this.host })
+        // Autodiscover
+        else {
+            for(const type of [SerialConnection, WSConnection]) {
+                const args = await type.discover()
+                if (!args) continue
+                this.connection = new type(args)
+                break
+            }
+            if (!this.connection) return Promise.resolve(this.onDisconnect(new Error('No devices found')))
         }
-        catch(e) {
-            return Promise.resolve(this.onDisconnect(e))
-        }
-        this.connection = new WebSocket(this.address)
-        this.connection.on('open', this.onConnect.bind(this))
-        this.connection.on('message', this.onReceive.bind(this))
-        this.connection.on('close', this.onDisconnect.bind(this))
 
-        return new Promise(res => {
+        this.connection.on('connect', this.onConnect.bind(this))
+        this.connection.on('message', this.onReceive.bind(this))
+        this.connection.on('disconnect', this.onDisconnect.bind(this))
+
+        const connectionPromise = new Promise(res => {
             this._connectionResolver = res
         })
+        this.connection.connect()
+        return connectionPromise
     }
     // Create a canvas with correct dimensions and pass back for drawing
     async drawCanvas({ id, width, height, x = 0, y = 0, autoRefresh = true }, cb) {
@@ -103,8 +106,8 @@ class LoupedeckDevice extends EventEmitter {
     }
     async getInfo() {
         return {
-            serial: await this.send(HEADERS.SERIAL, undefined, { track: true }),
-            version: await this.send(HEADERS.VERSION, undefined, { track: true })
+            serial: await this.send(HEADERS.SERIAL_OUT, undefined, { track: true }),
+            version: await this.send(HEADERS.VERSION_OUT, undefined, { track: true })
         }
     }
     onButton(buff) {
@@ -112,17 +115,16 @@ class LoupedeckDevice extends EventEmitter {
         const event = buff[1] === 0x00 ? 'down' : 'up'
         this.emit(event, { id })
     }
-    onConnect() {
-        this.emit('connect', this)
-        this._keepAliveTimer = setTimeout(this.checkConnected.bind(this), this.connectionTimeout * 2)
+    onConnect(info) {
+        this.emit('connect', info)
         this._connectionResolver()
     }
     onDisconnect(error) {
-        if (error === 1006) error = new Error('Connection timeout - was the device disconnected?')
         this.emit('disconnect', error)
         clearTimeout(this._keepAliveTimer)
+        this.connection = null
         // Normal disconnect, do not reconnect
-        if (error === 1000) return
+        if (!error) return
         this._reconnectTimer = setTimeout(this.connect.bind(this), this.reconnectInterval)
     }
     onReceive(buff) {
@@ -141,9 +143,6 @@ class LoupedeckDevice extends EventEmitter {
     }
     onSerial(buff) {
         return buff.toString().trim()
-    }
-    onTick() {
-        this.lastTick = Date.now()
     }
     onTouch(event, buff) {
         const x = buff.readUInt16BE(1)
@@ -180,10 +179,10 @@ class LoupedeckDevice extends EventEmitter {
     // Display the current framebuffer
     refresh(id) {
         const displayInfo = DISPLAYS[id]
-        this.send(HEADERS.DRAW, displayInfo.id)
+        return this.send(HEADERS.DRAW, displayInfo.id, { track: true })
     }
     send(action, data = Buffer.alloc(0), { track = false } = {}) {
-        if (this.connection.readyState !== this.connection.OPEN) return
+        if (!this.connection || !this.connection.isReady()) return
         this.transactionID = (this.transactionID + 1) % 256
         // Skip transaction ID's of zero since the device seems to ignore them
         if (this.transactionID === 0) this.transactionID++
@@ -214,12 +213,4 @@ class LoupedeckDevice extends EventEmitter {
     }
 }
 
-// Automatically find Loupedeck IP by scanning network interfaces
-function autoDiscover() {
-    const interfaces = Object.values(networkInterfaces()).flat()
-    const iface = interfaces.find(i => i.address.startsWith('100.127'))
-    if (!iface) throw new Error('No Loupedeck devices found!')
-    return iface.address.replace(/.2$/, '.1')
-}
-
-module.exports = { LoupedeckDevice }
+module.exports = LoupedeckDevice

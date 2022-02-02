@@ -29,6 +29,8 @@ const DISPLAYS = {
 
 const HEADERS = {
     CONFIRM: 0x0302,
+    SERIAL_OUT: 0x0303,
+    VERSION_OUT: 0x0307,
     TICK: 0x0400,
     SET_BRIGHTNESS: 0x0409,
     CONFIRM_FRAMEBUFF: 0x0410,
@@ -40,9 +42,9 @@ const HEADERS = {
     SET_COLOR: 0x0702,
     TOUCH: 0x094d,
     TOUCH_END: 0x096d,
-    VERSION: 0x0c07,
+    VERSION_IN: 0x0c07,
     MCU: 0x180d,
-    SERIAL: 0x1f03,
+    SERIAL_IN: 0x1f03,
     WRITE_FRAMEBUFF: 0xff10
 }
 

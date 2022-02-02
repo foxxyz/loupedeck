@@ -7,6 +7,8 @@ loupedeck.on('connect', async({ address }) => {
     console.info(`✅ Connected to Loupedeck at ${address}`)
     const { serial, version } = await loupedeck.getInfo()
     console.info(`Device serial number ${serial}, software version ${version}`)
+    await drawKeyColors(loupedeck)
+    cycleColors(loupedeck)
 })
 
 loupedeck.on('disconnect', err => {
@@ -60,25 +62,20 @@ function cycleColors(device) {
 }
 
 // Draw solid colors on each key screen
-function drawKeyColors(device) {
+async function drawKeyColors(device) {
     const colors = ['#f66', '#f95', '#fb4', '#fd6', '#ff9', '#be9', '#9e9', '#9db', '#9cc', '#88c', '#c9c', '#d89']
     for(let i = 0; i < 12; i++) {
-        device.drawKey(i, (ctx, w, h) => {
+        await device.drawKey(i, (ctx, w, h) => {
             ctx.fillStyle = colors[i]
             ctx.fillRect(0, 0, w, h)
         })
     }
-    device.drawScreen('left', (ctx, w, h) => {
+    await device.drawScreen('left', (ctx, w, h) => {
         ctx.fillStyle = 'white'
         ctx.fillRect(0, 0, w, h)
     })
-    device.drawScreen('right', (ctx, w, h) => {
+    await device.drawScreen('right', (ctx, w, h) => {
         ctx.fillStyle = 'white'
         ctx.fillRect(0, 0, w, h)
     })
 }
-
-loupedeck.on('connect', async() => {
-    cycleColors(loupedeck)
-    drawKeyColors(loupedeck)
-})
