@@ -10,7 +10,9 @@
   "files": [
     "index.js",
     "device.js",
-    "constants.js"
+    "constants.js",
+    "parser.js",
+    "connections"
   ],
   "dependencies": {
     "canvas": "^2.9.0",
