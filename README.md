@@ -91,14 +91,14 @@ Emitted when connection to the device succeeds.
 Emitted when a button or knob is pressed down.
 
 Arguments:
- - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
+ - `id`: Button ID ([see `constants.js` for possible IDs](https://github.com/foxxyz/loupedeck/blob/master/constants.js#L3))
 
 #### Event: `'rotate'`
 
 Emitted when a knob is rotated.
 
 Arguments:
- - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
+ - `id`: Button ID ([see `constants.js` for possible IDs](https://github.com/foxxyz/loupedeck/blob/master/constants.js#L3))
  - `delta`: Rotation direction, `-1` for counter-clockwise, `1` for clockwise.
 
 #### Event: `'touchstart'`
@@ -151,9 +151,9 @@ Draw graphics to a particular area. Lower-level method if [`drawKey()`](#deviced
  - `y`: Starting Y offset (default: `0`)
  - `autoRefresh`: Whether to refresh the screen after drawing (default: `true`)
  - `callback`: Function to handle draw calls. Receives the following arguments:
-     + `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
-     + `width`: Width of drawing area
-     + `height`: Height of drawing area
+     1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
+     2. `width`: Width of drawing area
+     3. `height`: Height of drawing area
 
 #### `device.drawKey(key : Number, callback : Function)`
 
@@ -161,9 +161,9 @@ Draw graphics to a specific key. Width and height of callback will be `90`, as k
 
  - `key`: Key index to write to [0-11]
  - `callback`: Function to handle draw calls. Receives the following arguments:
-     + `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
-     + `width`: Width of drawing area
-     + `height`: Height of drawing area
+     1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
+     2. `width`: Width of drawing area
+     3. `height`: Height of drawing area
 
 #### `device.drawScreen(screenID : String, callback : Function)`
 
@@ -175,9 +175,9 @@ Draw graphics to a specific screen. Screen sizes are as follows:
 
  - `screenID`: Screen to write to [`left`, `center`, `right`]
  - `callback`: Function to handle draw calls. Receives the following arguments:
-     + `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
-     + `width`: Width of drawing area
-     + `height`: Height of drawing area
+     1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
+     2. `width`: Width of drawing area
+     3. `height`: Height of drawing area
 
 #### `device.getInfo() : Object`
 
@@ -196,14 +196,14 @@ Set screen brightness.
 
 Set a button LED to a particular color.
 
- - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
- - `color`: Any valid CSS color string
+ - `id`: Button ID (possible choices: [`circle`, `1`, `2`, `3`, `4`, `5`, `6`, `7`])
+ - `color`: Any [valid CSS color string](https://github.com/colorjs/color-parse#parsed-strings)
 
 #### `device.vibrate(pattern? : byte)`
 
 Make device vibrate.
 
- - `pattern`: A valid vibration pattern ([see `HAPTIC` for valid patterns](https://github.com/foxxyz/loupedeck/blob/master/device.js#L37)) (default: `HAPTIC.SHORT`)
+ - `pattern`: A valid vibration pattern ([see `HAPTIC` for valid patterns](https://github.com/foxxyz/loupedeck/blob/master/constants.js#L50)) (default: `HAPTIC.SHORT`)
 
 ### Touch Objects
 
