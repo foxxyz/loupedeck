@@ -44,7 +44,7 @@ describe('Commands', () => {
         expect(sender).toHaveBeenCalledWith(Buffer.from('04090100', 'hex'))
         device.setBrightness(1)
         // 0x0b should be max brightness
-        expect(sender).toHaveBeenCalledWith(Buffer.from('0409020b', 'hex'))
+        expect(sender).toHaveBeenCalledWith(Buffer.from('0409020a', 'hex'))
     })
     it('sets button color', () => {
         const sender = jest.spyOn(device.connection, 'send')

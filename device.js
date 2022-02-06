@@ -3,11 +3,11 @@ const { createCanvas } = require('canvas')
 const rgba = require('color-rgba')
 
 const {
-    HEADERS,
-    BRIGHTNESS_LEVELS,
     BUTTONS,
     DISPLAYS,
     HAPTIC,
+    HEADERS,
+    MAX_BRIGHTNESS,
     RECONNECT_INTERVAL,
 } = require('./constants')
 const WSConnection = require('./connections/ws')
@@ -198,7 +198,7 @@ class LoupedeckDevice extends EventEmitter {
         }
     }
     setBrightness(value) {
-        const byte = Math.max(0, Math.min(BRIGHTNESS_LEVELS, Math.round(value * BRIGHTNESS_LEVELS)))
+        const byte = Math.max(0, Math.min(MAX_BRIGHTNESS, Math.round(value * MAX_BRIGHTNESS)))
         this.send(HEADERS.SET_BRIGHTNESS, Buffer.from([byte]))
     }
     setButtonColor({ id, color }) {

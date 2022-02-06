@@ -7,6 +7,7 @@ loupedeck.on('connect', async({ address }) => {
     console.info(`✅ Connected to Loupedeck at ${address}`)
     const { serial, version } = await loupedeck.getInfo()
     console.info(`Device serial number ${serial}, software version ${version}`)
+    loupedeck.setBrightness(1)
     await drawKeyColors(loupedeck)
     cycleColors(loupedeck)
 })

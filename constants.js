@@ -1,5 +1,4 @@
-// ...it really does seem to go up to 11
-const BRIGHTNESS_LEVELS = 11
+// Various constants used by the Loupedeck firmware
 
 const BUTTONS = {
     0x01: 'knobTL',
@@ -79,11 +78,14 @@ const HAPTIC = {
     VERY_LONG: 0x76, // 10 sec high freq (!)
 }
 
+// Maximum brightness value
+const MAX_BRIGHTNESS = 10
+
 // How long until trying to reconnect after a disconnect
 const RECONNECT_INTERVAL = 3000
 
 module.exports = {
-    BRIGHTNESS_LEVELS,
+    MAX_BRIGHTNESS,
     BUTTONS,
     CONNECTION_TIMEOUT,
     DISPLAYS,
