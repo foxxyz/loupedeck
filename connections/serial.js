@@ -1,5 +1,5 @@
 const EventEmitter = require('events')
-const SerialPort = require('serialport')
+const { SerialPort } = require('serialport')
 
 const MagicByteLengthParser = require('../parser')
 
@@ -28,7 +28,7 @@ class LoupedeckSerialConnection extends EventEmitter {
         this.connection.close()
     }
     async connect() {
-        this.connection = new SerialPort(this.path, { baudRate: 256000 })
+        this.connection = new SerialPort({ path: this.path, baudRate: 256000 })
         this.connection.on('error', this.onError.bind(this))
         this.connection.on('close', this.onDisconnect.bind(this))
         await new Promise(res => this.connection.once('open', res))

@@ -15,10 +15,10 @@
     "connections"
   ],
   "dependencies": {
-    "canvas": "^2.9.0",
+    "canvas": "^2.9.1",
     "color-rgba": "^2.4.0",
-    "serialport": "^9.2.8",
-    "ws": "^8.4.2"
+    "serialport": "^10.4.0",
+    "ws": "^8.6.0"
   },
   "jest": {
     "collectCoverage": true,
@@ -55,9 +55,9 @@
     ]
   },
   "devDependencies": {
-    "@appliedminds/eslint-config": "^1.1.1",
-    "eslint": "^8.7.0",
-    "eslint-plugin-jest": "^26.0.0",
-    "jest": "^27.4.7"
+    "@appliedminds/eslint-config": "^1.2.1",
+    "eslint": "^8.14.0",
+    "eslint-plugin-jest": "^26.1.5",
+    "jest": "^28.0.3"
   }
 }

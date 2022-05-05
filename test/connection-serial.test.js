@@ -1,4 +1,4 @@
-const SerialPort = require('serialport')
+const { SerialPort } = require('serialport')
 const SerialConnection = require('../connections/serial')
 
 let connection

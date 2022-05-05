@@ -16,7 +16,7 @@ Sec-WebSocket-Accept: PLOTDYCXHOTMeouth==
 
 // Stand-in for a Loupedeck serial device
 class MockLoupedeckSerialPort extends EventEmitter {
-    static async list() {
+    static list() {
         return [
             {
                 path: '/dev/cu.usbmodem-222',
@@ -36,7 +36,7 @@ class MockLoupedeckSerialPort extends EventEmitter {
             }
         ]
     }
-    constructor(path) {
+    constructor({ path, baudRate }) {
         super()
         this.path = path
         this.isOpen = false
@@ -58,4 +58,6 @@ class MockLoupedeckSerialPort extends EventEmitter {
     }
 }
 
-module.exports = MockLoupedeckSerialPort
+module.exports = {
+    SerialPort: MockLoupedeckSerialPort
+}
