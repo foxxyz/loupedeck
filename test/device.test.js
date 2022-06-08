@@ -287,13 +287,13 @@ describe('Message Parsing', () => {
 describe('Connection Management', () => {
     it('connects to serial first if both connection types are available', async() => {
         const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => (
-            { path: '/dev/test1' }
+            [{ type: 'serial', path: '/dev/test1' }]
         ))
         const serialConnect = jest.spyOn(SerialConnection.prototype, 'connect').mockImplementation(function() {
             this.emit('connect', { address: this.path })
         })
         const wsDiscovery = jest.spyOn(WSConnection, 'discover').mockImplementation(() => (
-            { host: '128.0.0.1' }
+            [{ type: 'ws', host: '128.0.0.1' }]
         ))
         device = new LoupedeckDevice()
         const fn = jest.fn()
@@ -316,8 +316,8 @@ describe('Connection Management', () => {
         device.close()
     })
     it('attempts reconnect if device not found', async() => {
-        const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => null)
-        const wsDiscovery = jest.spyOn(WSConnection, 'discover').mockImplementation(() => null)
+        const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [])
+        const wsDiscovery = jest.spyOn(WSConnection, 'discover').mockImplementation(() => [])
         const fn = jest.fn()
         device = new LoupedeckDevice({ autoConnect: false })
         device.on('disconnect', fn)

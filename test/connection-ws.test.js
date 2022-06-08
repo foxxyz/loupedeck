@@ -9,9 +9,9 @@ let connection
 describe('v0.1.X Connection', () => {
     it('auto-discovers valid connections', async() => {
         os.networkInterfaces.mockReturnValue([{ address: '255.255.255.255' }])
-        expect(await WSConnection.discover()).toEqual(undefined)
+        expect(await WSConnection.discover()).toEqual([])
         os.networkInterfaces.mockReturnValue([{ address: '100.127.80.1' }])
-        expect(await WSConnection.discover()).toEqual({ host: '100.127.80.1' })
+        expect(await WSConnection.discover()).toEqual([{ type: 'ws', host: '100.127.80.1' }])
     })
     it('connects via direct instantiation', async() => {
         connection = new WSConnection({ host: '127.0.0.1' })

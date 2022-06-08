@@ -5,7 +5,7 @@ let connection
 
 describe('v0.2.X Connection', () => {
     it('auto-discovers valid connections', async() => {
-        expect(await SerialConnection.discover()).toEqual({ path: '/dev/cu.usbmodem-333' })
+        expect(await SerialConnection.discover()).toEqual([{ type: 'serial', path: '/dev/cu.usbmodem-333', productId: '0004', serialNumber: 'LDD12345678', vendorId: '2ec2'}])
     })
     it('connects via direct instantiation', async() => {
         connection = new SerialConnection({ path: '/dev/fake-path' })

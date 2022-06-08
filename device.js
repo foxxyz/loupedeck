@@ -12,6 +12,7 @@ const {
 } = require('./constants')
 const WSConnection = require('./connections/ws')
 const SerialConnection = require('./connections/serial')
+const listDevices = require('./discover')
 
 class LoupedeckDevice extends EventEmitter {
     constructor({ host, path, autoConnect = true } = {}) {
@@ -49,11 +50,20 @@ class LoupedeckDevice extends EventEmitter {
         else if (this.host) this.connection = new WSConnection({ host: this.host })
         // Autodiscover
         else {
-            for(const type of [SerialConnection, WSConnection]) {
-                const args = await type.discover()
-                if (!args) continue
-                this.connection = new type(args)
-                break
+            const devices = await listDevices()
+            if (devices.length > 0) {
+                const devInfo = devices[0]
+                switch (devInfo.type) {
+                    case 'ws':
+                        this.connection = new WSConnection({ host: devInfo.host })
+                        break
+                    case 'serial':
+                        this.connection = new SerialConnection({ path: devInfo.path })
+                        break
+                    default:
+                        // Unknown
+                        break
+                }
             }
             if (!this.connection) return Promise.resolve(this.onDisconnect(new Error('No devices found')))
         }

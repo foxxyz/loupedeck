@@ -66,6 +66,15 @@ For all examples, see the [`examples` folder](/examples/).
 📝 API Docs
 -----------
 
+### Method `listDevices({ ignoreSerial : Boolean?, ignoreWebsocket : Boolean?} = {}) : Promise`
+
+Scan for and return a list of all detected devices. This includes ones which are already opened.
+
+ - `ignoreSerial`: Ignore devices which operate over serial (Firmware 0.2.X) (default: false)
+ - `ignoreWebsocket`: Ignore devices which operate over websocket (Firmware 0.1.X) (default: false)
+
+Useful information about the devices is returned, to identify them in a hopefully meaningful way
+
 ### Class `LoupedeckDevice`
 
 Main device class.
