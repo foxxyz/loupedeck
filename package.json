@@ -3,6 +3,7 @@
   "version": "1.3.2",
   "description": "Loupedeck Device Interface",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "lint": "eslint .",
     "test": "jest"
