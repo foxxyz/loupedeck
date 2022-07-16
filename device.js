@@ -62,18 +62,8 @@ class LoupedeckDevice extends EventEmitter {
         else {
             const devices = await this.constructor.list()
             if (devices.length > 0) {
-                const devInfo = devices[0]
-                switch (devInfo.type) {
-                    case 'ws':
-                        this.connection = new WSConnection({ host: devInfo.host })
-                        break
-                    case 'serial':
-                        this.connection = new SerialConnection({ path: devInfo.path })
-                        break
-                    default:
-                        // Unknown
-                        break
-                }
+                const { type, ...args } = devices[0]
+                this.connection = new type(args)
             }
             if (!this.connection) return Promise.resolve(this.onDisconnect(new Error('No devices found')))
         }

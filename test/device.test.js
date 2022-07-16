@@ -286,15 +286,15 @@ describe('Message Parsing', () => {
 
 describe('Connection Management', () => {
     it('connects to serial first if both connection types are available', async() => {
-        const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => (
-            [{ type: 'serial', path: '/dev/test1' }]
-        ))
+        const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [
+            { type: SerialConnection, path: '/dev/test1' }
+        ])
         const serialConnect = jest.spyOn(SerialConnection.prototype, 'connect').mockImplementation(function() {
             this.emit('connect', { address: this.path })
         })
-        const wsDiscovery = jest.spyOn(WSConnection, 'discover').mockImplementation(() => (
-            [{ type: 'ws', host: '128.0.0.1' }]
-        ))
+        const wsDiscovery = jest.spyOn(WSConnection, 'discover').mockImplementation(() => [
+            { type: WSConnection, host: '128.0.0.1' }
+        ])
         device = new LoupedeckDevice()
         const fn = jest.fn()
         device.on('connect', fn)
@@ -338,6 +338,30 @@ describe('Connection Management', () => {
         device.send('test', Buffer.from([0xff]))
         expect(sender).not.toHaveBeenCalled()
         device.close()
+    })
+    it('can list connection options', async() => {
+        jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [
+            { type: SerialConnection, path: '/dev/test1' },
+            { type: SerialConnection, path: '/dev/test2' },
+        ])
+        jest.spyOn(WSConnection, 'discover').mockImplementation(() => [
+            { type: WSConnection, host: '128.0.0.1' }
+        ])
+        const options = await LoupedeckDevice.list()
+        expect(options.length).toBe(3)
+    })
+    it('can filter connection options', async() => {
+        jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [
+            { type: SerialConnection, path: '/dev/test1' },
+            { type: SerialConnection, path: '/dev/test2' },
+        ])
+        jest.spyOn(WSConnection, 'discover').mockImplementation(() => [
+            { type: WSConnection, host: '128.0.0.1' }
+        ])
+        const options = await LoupedeckDevice.list({ ignoreWebsocket: true })
+        expect(options.length).toBe(2)
+        const options2 = await LoupedeckDevice.list({ ignoreSerial: true })
+        expect(options2.length).toBe(1)
     })
 })
 

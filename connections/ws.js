@@ -22,18 +22,17 @@ class LoupedeckWSConnection extends EventEmitter {
     }
     // Automatically find Loupedeck IP by scanning network interfaces
     static discover() {
-        const result = []
+        const results = []
         const interfaces = Object.values(networkInterfaces()).flat()
         for (const iface of interfaces) {
             if (iface.address.startsWith('100.127')) {
-                // Future: can we determine more information without connecting?
-                result.push({
-                    type: 'ws',
+                results.push({
+                    type: this,
                     host: iface.address.replace(/.2$/, '.1')
                 })
             }
         }
-        return result
+        return results
     }
     checkConnected() {
         this._keepAliveTimer = setTimeout(this.checkConnected.bind(this), this.connectionTimeout * 2)

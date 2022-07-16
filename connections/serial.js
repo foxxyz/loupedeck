@@ -19,19 +19,18 @@ class LoupedeckSerialConnection extends EventEmitter {
     }
     // Automatically find Loupedeck Serial device by scanning ports
     static async discover() {
-        const result = []
+        const results = []
         for (const { manufacturer, path, vendorId, productId, serialNumber } of await SerialPort.list()) {
-            if (vendorId === '2ec2' || manufacturer === 'Loupedeck') {
-                result.push({
-                    type: 'serial',
-                    path,
-                    vendorId,
-                    productId,
-                    serialNumber
-                })
-            }
+            if (vendorId !== '2ec2' && manufacturer !== 'Loupedeck') continue
+            results.push({
+                type: this,
+                path,
+                vendorId,
+                productId,
+                serialNumber
+            })
         }
-        return result
+        return results
     }
     close() {
         if (!this.connection) return
