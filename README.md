@@ -83,7 +83,7 @@ Device info can be directly passed on to the constructor below.
 
 #### `new LoupedeckDevice({ path : String?, host : String?, autoConnect : Boolean? })`
 
-Create a new Loupdeck device interface.
+Create a new Loupedeck device interface.
 
 Most use-cases should omit the `host`/`path` parameter, unless you're using multiple devices or know specifically which IP or device path you want to connect to. Either use `path` OR `host`, never both.
 
