@@ -15,10 +15,17 @@
     "connections"
   ],
   "dependencies": {
-    "canvas": "^2.9.3",
     "color-rgba": "^2.4.0",
     "serialport": "^10.4.0",
     "ws": "^8.8.1"
+  },
+  "peerDependencies": {
+    "canvas": "^2.9.3"
+  },
+  "peerDependenciesMeta": {
+    "canvas": {
+      "optional": true
+    }
   },
   "jest": {
     "collectCoverage": true,

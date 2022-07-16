@@ -1,5 +1,4 @@
 const EventEmitter = require('events')
-const { createCanvas } = require('canvas')
 const rgba = require('color-rgba')
 
 const {
@@ -78,15 +77,17 @@ class LoupedeckDevice extends EventEmitter {
         this.connection.connect()
         return connectionPromise
     }
-    // Create a canvas with correct dimensions and pass back for drawing
-    async drawCanvas({ id, width, height, x = 0, y = 0, autoRefresh = true }, cb) {
+    // Draw an arbitrary buffer to the device
+    // Buffer format must be 16bit 5-6-5
+    async drawBuffer({ id, width, height, x = 0, y = 0, buffer, autoRefresh = true }) {
         const displayInfo = DISPLAYS[id]
         if (!width) width = displayInfo.width
         if (!height) height = displayInfo.height
 
-        const canvas = createCanvas(width, height)
-        const ctx = canvas.getContext('2d', { pixelFormat: 'RGB16_565' }) // Loupedeck uses 16-bit (5-6-5) LE RGB colors
-        cb(ctx, width, height)
+        const pixelCount = width * height * 2
+        if (buffer.length !== pixelCount) {
+            throw new Error(`Expected buffer length of ${pixelCount}, got ${buffer.length}!`)
+        }
 
         // Header with x/y/w/h and display ID
         const header = Buffer.alloc(8)
@@ -96,10 +97,28 @@ class LoupedeckDevice extends EventEmitter {
         header.writeUInt16BE(height, 6)
 
         // Write to frame buffer
-        await this.send(HEADERS.WRITE_FRAMEBUFF, Buffer.concat([displayInfo.id, header, canvas.toBuffer('raw')]), { track: true })
+        await this.send(HEADERS.WRITE_FRAMEBUFF, Buffer.concat([displayInfo.id, header, buffer]), { track: true })
 
         // Draw to display
         if (autoRefresh) await this.refresh(id)
+    }
+    // Create a canvas with correct dimensions and pass back for drawing
+    drawCanvas({ id, width, height, ...args }, cb) {
+        const displayInfo = DISPLAYS[id]
+        if (!width) width = displayInfo.width
+        if (!height) height = displayInfo.height
+        let createCanvas
+        try {
+            createCanvas = require('canvas').createCanvas
+        } catch(e) {
+            throw new Error('Using callbacks requires the `canvas` library to be installed. Install it using `npm install canvas`.')
+        }
+
+        const canvas = createCanvas(width, height)
+        const ctx = canvas.getContext('2d', { pixelFormat: 'RGB16_565' }) // Loupedeck uses 16-bit (5-6-5) LE RGB colors
+        cb(ctx, width, height)
+        const buffer = canvas.toBuffer('raw')
+        return this.drawBuffer({ id, width, height, buffer, ...args })
     }
     // Draw to a specific key index (0-12)
     drawKey(index, cb) {

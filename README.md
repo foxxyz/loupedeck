@@ -34,6 +34,12 @@ Installation
 npm install loupedeck
 ```
 
+By default, `loupedeck` handles RGB565 (16-bit) buffers for drawing. To enable a more pleasant API that allows for drawing using [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) callbacks, also install `canvas`:
+
+```shell
+npm install canvas
+```
+
 Usage Examples
 --------------
 
@@ -151,7 +157,9 @@ Manually connect if `autoConnect` set to `false` during [construction](#new-loup
 
 #### `device.drawCanvas({ id : String, width : Number, height : Number, x? : Number, y? : Number, autoRefresh? : Boolean }, callback : Function)`
 
-Draw graphics to a particular area. Lower-level method if [`drawKey()`](#devicedrawkeykey--number-callback--function) or [`drawScreen()`](#devicedrawscreenscreenid--string-callback--function) don't meet your needs.
+Draw graphics to a particular area using the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D). Requires [`canvas`](https://www.npmjs.com/package/canvas) to be installed.
+
+Lower-level method if [`drawKey()`](#devicedrawkeykey--number-callback--function) or [`drawScreen()`](#devicedrawscreenscreenid--string-callback--function) don't meet your needs.
 
  - `id`: Screen to write to [`left`, `center`, `right`]
  - `width`: Width of area to draw
@@ -164,25 +172,31 @@ Draw graphics to a particular area. Lower-level method if [`drawKey()`](#deviced
      2. `width`: Width of drawing area
      3. `height`: Height of drawing area
 
-#### `device.drawKey(key : Number, callback : Function)`
+#### `device.drawKey(key : Number, buffer/callback : Buffer/Function)`
 
-Draw graphics to a specific key. Width and height of callback will be `90`, as keys are 90x90px.
+Draw graphics to a specific key.
+
+Second argument can be either a RGB16-565 buffer or a callback. Width and height of callback will be `90`, as keys are 90x90px.
 
  - `key`: Key index to write to [0-11]
+ - `buffer`: RGB16-565 Buffer
  - `callback`: Function to handle draw calls. Receives the following arguments:
      1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
      2. `width`: Width of drawing area
      3. `height`: Height of drawing area
 
-#### `device.drawScreen(screenID : String, callback : Function)`
+#### `device.drawScreen(screenID : String, buffer/callback : Buffer/Function)`
 
 Draw graphics to a specific screen. Screen sizes are as follows:
 
  * `left`: 60x270px
  * `center`: 360x270px
  * `right`: 60x60px
+ 
+ Second argument can be either a RGB16-565 buffer or a callback. 
 
  - `screenID`: Screen to write to [`left`, `center`, `right`]
+ - `buffer`: RGB16-565 Buffer
  - `callback`: Function to handle draw calls. Receives the following arguments:
      1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
      2. `width`: Width of drawing area
