@@ -224,7 +224,7 @@ async function run() {
     })
 
     // Reset the game when circle pressed
-    loupedeck.on('down', async({ id }) => {
+    loupedeck.on('down', ({ id }) => {
         if (id === 'circle' && game.outcome === 'win') game.start()
     })
 

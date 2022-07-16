@@ -177,7 +177,7 @@ describe('Message Parsing', () => {
             changedTouches: [expect.objectContaining({ x: 115, y: 226 })],
         }))
     })
-    it('processes ticks', async() => {
+    it('processes ticks', () => {
         const SAMPLE_MESSAGE = Buffer.from('040000f9', 'hex')
         expect(() => device.onReceive(SAMPLE_MESSAGE)).not.toThrow()
     })
@@ -316,8 +316,8 @@ describe('Connection Management', () => {
         device.close()
     })
     it('attempts reconnect if device not found', async() => {
-        const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => { return null })
-        const wsDiscovery = jest.spyOn(WSConnection, 'discover').mockImplementation(() => { return null })
+        const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => null)
+        const wsDiscovery = jest.spyOn(WSConnection, 'discover').mockImplementation(() => null)
         const fn = jest.fn()
         device = new LoupedeckDevice({ autoConnect: false })
         device.on('disconnect', fn)

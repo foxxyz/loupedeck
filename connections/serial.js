@@ -67,9 +67,8 @@ class LoupedeckSerialConnection extends EventEmitter {
                 prep[0] = 0x82
                 prep[1] = 0xff
                 prep.writeUInt32BE(buff.length, 6)
-            }
             // Small messages
-            else {
+            } else {
                 // Prepend each message with a send indicating the length to come
                 prep = Buffer.alloc(6)
                 prep[0] = 0x82

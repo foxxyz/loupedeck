@@ -164,8 +164,7 @@ class LoupedeckDevice extends EventEmitter {
         // End touch, remove from local cache
         if (event === 'touchend') {
             delete this.touches[touch.id]
-        }
-        else {
+        } else {
             // First time seeing this touch, emit touchstart instead of touchmove
             if (!this.touches[touch.id]) event = 'touchstart'
             this.touches[touch.id] = touch
