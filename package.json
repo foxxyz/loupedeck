@@ -10,7 +10,6 @@
   "files": [
     "index.js",
     "device.js",
-    "discover.js",
     "constants.js",
     "parser.js",
     "connections"
