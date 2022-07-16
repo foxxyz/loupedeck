@@ -14,6 +14,17 @@ const WSConnection = require('./connections/ws')
 const SerialConnection = require('./connections/serial')
 
 class LoupedeckDevice extends EventEmitter {
+    static async list({ ignoreSerial = false, ignoreWebsocket = false } = {}) {
+        const ps = []
+
+        if (!ignoreSerial) ps.push(SerialConnection.discover())
+        if (!ignoreWebsocket) ps.push(WSConnection.discover())
+
+        // Run them in parallel
+        const rawDevices = await Promise.all(ps)
+
+        return rawDevices.flat()
+    }
     constructor({ host, path, autoConnect = true } = {}) {
         super()
         this.transactionID = 0
@@ -49,11 +60,10 @@ class LoupedeckDevice extends EventEmitter {
         else if (this.host) this.connection = new WSConnection({ host: this.host })
         // Autodiscover
         else {
-            for(const type of [SerialConnection, WSConnection]) {
-                const args = await type.discover()
-                if (!args) continue
+            const devices = await this.constructor.list()
+            if (devices.length > 0) {
+                const { type, ...args } = devices[0]
                 this.connection = new type(args)
-                break
             }
             if (!this.connection) return Promise.resolve(this.onDisconnect(new Error('No devices found')))
         }

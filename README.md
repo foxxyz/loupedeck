@@ -72,6 +72,15 @@ Main device class.
 
 All incoming messages are emitted as action events and can be subscribed to via `device.on()`.
 
+### `LoupedeckDevice.list({ ignoreSerial : Boolean?, ignoreWebsocket : Boolean?} = {}) : Promise`
+
+Static method to scan for and return a list of all detected devices. This includes ones which are already opened.
+
+ - `ignoreSerial`: Ignore devices which operate over serial (Firmware 0.2.X) (default: false)
+ - `ignoreWebsocket`: Ignore devices which operate over websocket (Firmware 0.1.X) (default: false)
+ 
+Device info can be directly passed on to the constructor below.
+
 #### `new LoupedeckDevice({ path : String?, host : String?, autoConnect : Boolean? })`
 
 Create a new Loupdeck device interface.
