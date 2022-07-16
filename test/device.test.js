@@ -54,6 +54,22 @@ describe('Commands', () => {
     it('errors on unknown button passed', () => {
         expect(() => device.setButtonColor({ id: 'triangle', color: 'blue' })).toThrow(/Invalid button/)
     })
+    it('vibrates short by default', () => {
+        const sender = jest.spyOn(device.connection, 'send')
+        device.vibrate()
+        expect(sender).toHaveBeenCalledWith(Buffer.from('041b0101', 'hex'))
+    })
+    it('vibrates a specific pattern', () => {
+        const sender = jest.spyOn(device.connection, 'send')
+        device.vibrate(0x56)
+        expect(sender).toHaveBeenCalledWith(Buffer.from('041b0156', 'hex'))
+    })
+})
+describe('Drawing (Callback API)', () => {
+    beforeEach(() => {
+        device = new LoupedeckDevice({ autoConnect: false })
+        device.connection = { send: () => {}, isReady: () => true }
+    })
     it('writes pixels to left display', async() => {
         const sender = jest.spyOn(device.connection, 'send')
         device.drawScreen('left', (ctx, w, h) => {
@@ -124,15 +140,76 @@ describe('Commands', () => {
         await delay(10)
         expect(sender).toHaveBeenCalledTimes(1)
     })
-    it('vibrates short by default', () => {
-        const sender = jest.spyOn(device.connection, 'send')
-        device.vibrate()
-        expect(sender).toHaveBeenCalledWith(Buffer.from('041b0101', 'hex'))
+    it('informs the user if the canvas library is not installed', async() => {
+        jest.mock('canvas', () => {})
+        expect(() => device.drawKey(6, () => {})).toThrow(/using callbacks requires the `canvas` library/i)
     })
-    it('vibrates a specific pattern', () => {
+})
+describe('Drawing (Buffer API)', () => {
+    beforeEach(() => {
+        device = new LoupedeckDevice({ autoConnect: false })
+        device.connection = { send: () => {}, isReady: () => true }
+    })
+    it('writes pixels to left display', async() => {
         const sender = jest.spyOn(device.connection, 'send')
-        device.vibrate(0x56)
-        expect(sender).toHaveBeenCalledWith(Buffer.from('041b0156', 'hex'))
+        const pixels = Array(60 * 270).fill([0x00, 0xf8])
+        const buffer = Buffer.from(pixels.flat())
+        device.drawScreen('left', buffer)
+        const hex = '00f8'.repeat(60 * 270)
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004c, x: 0, y: 0, width: 60, height: 270 })
+        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(hex)
+        // Confirm write
+        device.onReceive(Buffer.from('041001', 'hex'))
+        await delay(10)
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004c', 'hex'))
+    })
+    it('writes pixels to right display', async() => {
+        const sender = jest.spyOn(device.connection, 'send')
+        const pixels = Array(60 * 270).fill([0xe0, 0x07])
+        const buffer = Buffer.from(pixels.flat())
+        device.drawScreen('right', buffer)
+        // Color format is 5-6-5 16-bit RGB
+        // so middle 6 bits for full green is 0x07e0, or 0xe007 in LE
+        const hex = 'e007'.repeat(60 * 270)
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0052, x: 0, y: 0, width: 60, height: 270 })
+        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(hex)
+        // Confirm write
+        device.onReceive(Buffer.from('041001', 'hex'))
+        await delay(10)
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020052', 'hex'))
+    })
+    it('writes pixels to center display', async() => {
+        const sender = jest.spyOn(device.connection, 'send')
+        const pixels = Array(360 * 270).fill([0x1f, 0x00])
+        const buffer = Buffer.from(pixels.flat())
+        device.drawScreen('center', buffer)
+        // Color format is 5-6-5 16-bit RGB
+        // so last 5 bits for full blue is 0x001f, or 0x1f00 in LE
+        const hex = '1f00'.repeat(360 * 270)
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 0, y: 0, width: 360, height: 270 })
+        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(hex)
+        // Confirm write
+        device.onReceive(Buffer.from('041001', 'hex'))
+        await delay(10)
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
+    })
+    it('writes pixels to a specific key area', async() => {
+        const sender = jest.spyOn(device.connection, 'send')
+        const pixels = Array(90 * 90 * 2).fill(0xff)
+        const buffer = Buffer.from(pixels)
+        device.drawKey(6, buffer)
+        const hex = 'ffff'.repeat(90 * 90)
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 180, y: 90, width: 90, height: 90 })
+        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(hex)
+        // Confirm write
+        device.onReceive(Buffer.from('041001', 'hex'))
+        await delay(10)
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
+    })
+    it('reports an error if the buffer is the wrong size', async() => {
+        const pixels = Array(30).fill(0xff)
+        const buffer = Buffer.from(pixels)
+        await expect(device.drawScreen('left', buffer)).rejects.toThrow(/expected buffer length of 32400, got 30/i)
     })
 })
 

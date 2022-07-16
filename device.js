@@ -79,7 +79,7 @@ class LoupedeckDevice extends EventEmitter {
     }
     // Draw an arbitrary buffer to the device
     // Buffer format must be 16bit 5-6-5
-    async drawBuffer({ id, width, height, x = 0, y = 0, buffer, autoRefresh = true }) {
+    async drawBuffer({ id, width, height, x = 0, y = 0, autoRefresh = true }, buffer) {
         const displayInfo = DISPLAYS[id]
         if (!width) width = displayInfo.width
         if (!height) height = displayInfo.height
@@ -118,7 +118,7 @@ class LoupedeckDevice extends EventEmitter {
         const ctx = canvas.getContext('2d', { pixelFormat: 'RGB16_565' }) // Loupedeck uses 16-bit (5-6-5) LE RGB colors
         cb(ctx, width, height)
         const buffer = canvas.toBuffer('raw')
-        return this.drawBuffer({ id, width, height, buffer, ...args })
+        return this.drawBuffer({ id, width, height, ...args }, buffer)
     }
     // Draw to a specific key index (0-12)
     drawKey(index, cb) {
@@ -127,11 +127,11 @@ class LoupedeckDevice extends EventEmitter {
         const height = 90
         const x = index % 4 * width
         const y = Math.floor(index / 4) * height
-        return this.drawCanvas({ id: 'center', x, y, width, height }, cb)
+        return this[cb instanceof Buffer ? 'drawBuffer' : 'drawCanvas']({ id: 'center', x, y, width, height }, cb)
     }
     // Draw to a specific screen
     drawScreen(id, cb) {
-        return this.drawCanvas({ id }, cb)
+        return this[cb instanceof Buffer ? 'drawBuffer' : 'drawCanvas']({ id }, cb)
     }
     async getInfo() {
         return {
