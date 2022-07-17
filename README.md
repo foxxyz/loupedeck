@@ -155,6 +155,20 @@ Close device connection.
 
 Manually connect if `autoConnect` set to `false` during [construction](#new-loupedeckdevice-host--string-autoconnect--boolean-). Resolves once a connection has been established.
 
+#### `device.drawBuffer({ id : String, width : Number, height : Number, x? : Number, y? : Number, autoRefresh? : Boolean }, buffer : Buffer)`
+
+Draw graphics to a particular area using a RGB16-565 pixel buffer.
+
+Lower-level method if [`drawKey()`](#devicedrawkeykey--number-callback--function) or [`drawScreen()`](#devicedrawscreenscreenid--string-callback--function) don't meet your needs.
+
+ - `id`: Screen to write to [`left`, `center`, `right`]
+ - `width`: Width of area to draw
+ - `height`: Height of area to draw
+ - `x`: Starting X offset (default: `0`)
+ - `y`: Starting Y offset (default: `0`)
+ - `autoRefresh`: Whether to refresh the screen after drawing (default: `true`)
+ - `buffer`: RGB16-565 Buffer. Should be `width * height * 2` bytes long, with each pixel represented by 2 bytes (5 bits red, 6 bits green, 5 bits blue) in little-endian (LE)
+
 #### `device.drawCanvas({ id : String, width : Number, height : Number, x? : Number, y? : Number, autoRefresh? : Boolean }, callback : Function)`
 
 Draw graphics to a particular area using the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D). Requires [`canvas`](https://www.npmjs.com/package/canvas) to be installed.
