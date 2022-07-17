@@ -67,7 +67,7 @@ device.on('rotate', ({ id, delta }) => {
 })
 ```
 
-For all examples, see the [`examples` folder](/examples/).
+For all examples, see the [`examples` folder](/examples/). Running examples requires `canvas` to be installed (see above).
 
 📝 API Docs
 -----------
