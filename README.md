@@ -7,8 +7,6 @@ Unofficial Node.js API for [Loupedeck Live](https://loupedeck.com/products/loupe
 
 ![Loupedeck Live Interface](https://github.com/foxxyz/loupedeck/blob/master/docs/device-front-small.png?raw=true)
 
-**⚠️ Beta version: API is subject to change**
-
 Supports:
 
  * Reading button presses
