@@ -159,7 +159,7 @@ Manually connect if `autoConnect` set to `false` during [construction](#new-loup
 
 Draw graphics to a particular area using a RGB16-565 pixel buffer.
 
-Lower-level method if [`drawKey()`](#devicedrawkeykey--number-callback--function) or [`drawScreen()`](#devicedrawscreenscreenid--string-callback--function) don't meet your needs.
+Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction) don't meet your needs.
 
  - `id`: Screen to write to [`left`, `center`, `right`]
  - `width`: Width of area to draw
@@ -173,7 +173,7 @@ Lower-level method if [`drawKey()`](#devicedrawkeykey--number-callback--function
 
 Draw graphics to a particular area using the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D). Requires [`canvas`](https://www.npmjs.com/package/canvas) to be installed.
 
-Lower-level method if [`drawKey()`](#devicedrawkeykey--number-callback--function) or [`drawScreen()`](#devicedrawscreenscreenid--string-callback--function) don't meet your needs.
+Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction) don't meet your needs.
 
  - `id`: Screen to write to [`left`, `center`, `right`]
  - `width`: Width of area to draw
