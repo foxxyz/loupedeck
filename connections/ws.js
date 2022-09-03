@@ -39,7 +39,6 @@ class LoupedeckWSConnection extends EventEmitter {
         if (Date.now() - this.lastTick > this.connectionTimeout) this.connection.terminate()
     }
     close() {
-        clearTimeout(this._reconnectTimer)
         if (!this.connection) return
         this.connection.close()
     }

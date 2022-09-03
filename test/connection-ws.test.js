@@ -37,12 +37,14 @@ describe('v0.1.X Connection', () => {
     })
     it('disconnects on timeout', async() => {
         connection = new WSConnection()
+        const keepAliveCheck = jest.spyOn(connection, 'checkConnected')
         const fn = jest.fn()
         connection.on('disconnect', fn)
         connection.connectionTimeout = 20
         await connection.connect()
         await delay(80)
         expect(fn.mock.calls[0][0].message).toMatch(/connection timeout/i)
+        expect(keepAliveCheck.mock.calls.length).toEqual(1)
     })
     it('delegates messages', async() => {
         connection = new WSConnection()
