@@ -408,6 +408,24 @@ describe('Connection Management', () => {
         wsDiscovery.mockRestore()
         device.close()
     })
+    it('attempts reconnect on error', async() => {
+        device = new LoupedeckDevice({ autoConnect: false })
+        device.reconnectInterval = 20
+        const connect = jest.spyOn(device, 'connect').mockImplementation(() => {})
+        device.onDisconnect('some error')
+        await delay(40)
+        expect(connect).toHaveBeenCalled()
+        device.close()
+    })
+    it('does not attempt reconnect if closed before reconnect time', async() => {
+        device = new LoupedeckDevice({ autoConnect: false })
+        device.reconnectInterval = 20
+        const connect = jest.spyOn(device, 'connect').mockImplementation(() => {})
+        device.onDisconnect('some error')
+        device.onDisconnect()
+        await delay(40)
+        expect(connect).not.toHaveBeenCalled()
+    })
     it('ignores commands if connection not open', () => {
         device = new LoupedeckDevice({ path: '/dev/test3', autoConnect: false })
         device.connection = { send: () => {}, isReady: () => false, close: () => {} }

@@ -150,7 +150,7 @@ class LoupedeckDevice extends EventEmitter {
     }
     onDisconnect(error) {
         this.emit('disconnect', error)
-        clearTimeout(this._keepAliveTimer)
+        clearTimeout(this._reconnectTimer)
         this.connection = null
         // Normal disconnect, do not reconnect
         if (!error) return
