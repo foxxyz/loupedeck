@@ -20,7 +20,7 @@ Supports:
 Requirements
 ------------
 
- * Node 12+
+ * Node 14+
  * Loupedeck
 
 This library has been tested with firmware versions 0.1.79 and 0.2.5. Other versions may work.

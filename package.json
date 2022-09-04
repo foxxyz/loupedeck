@@ -61,6 +61,9 @@
       "jest"
     ]
   },
+  "engines": {
+    "node": ">=14"
+  },
   "devDependencies": {
     "@appliedminds/eslint-config": "^1.3.0",
     "eslint": "^8.23.0",
