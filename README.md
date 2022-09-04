@@ -214,12 +214,14 @@ Draw graphics to a specific screen. Screen sizes are as follows:
      2. `width`: Width of drawing area
      3. `height`: Height of drawing area
 
-#### `device.getInfo() : Object`
+#### `device.getInfo() : Promise`
 
-Request device information. Returns:
+Request device information. Returns a promise resolving to object containing:
 
  - `serial`: Device serial number
  - `version`: Firmware version
+ 
+If the device is not connected, the promise will reject.
 
 #### `device.setBrightness(brightness : Number)`
 

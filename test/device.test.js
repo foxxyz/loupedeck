@@ -38,6 +38,11 @@ describe('Commands', () => {
             serial: 'LDL1101013000396700138A0001'
         })
     })
+    it('rejects retrieving device information if not connected', async() => {
+        device.connection = { send: () => {}, isReady: () => false }
+        const promise = device.getInfo()
+        await expect(promise).rejects.toThrow(/not connected/i)
+    })
     it('sets brightness', () => {
         const sender = jest.spyOn(device.connection, 'send')
         device.setBrightness(0)

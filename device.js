@@ -134,6 +134,7 @@ class LoupedeckDevice extends EventEmitter {
         return this[cb instanceof Buffer ? 'drawBuffer' : 'drawCanvas']({ id }, cb)
     }
     async getInfo() {
+        if (!this.connection || !this.connection.isReady()) throw new Error('Not connected!')
         return {
             serial: await this.send(HEADERS.SERIAL_OUT, undefined, { track: true }),
             version: await this.send(HEADERS.VERSION_OUT, undefined, { track: true })
