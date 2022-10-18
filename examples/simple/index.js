@@ -2,6 +2,8 @@
 const { LoupedeckDevice } = require('../..')
 
 const loupedeck = new LoupedeckDevice()
+let brightness = 1
+let vibration = 0
 
 loupedeck.on('connect', async({ address }) => {
     console.info(`✅ Connected to Loupedeck at ${address}`)
@@ -27,6 +29,18 @@ loupedeck.on('up', ({ id }) => {
 
 loupedeck.on('rotate', ({ id, delta }) => {
     console.log(`Knob ${id} rotated ${delta > 0 ? 'right' : 'left'}`)
+    // Control brightness with top right knob
+    if (id === 'knobTR') {
+        brightness = Math.min(1, Math.max(0, brightness + delta * 0.1))
+        console.log(`Setting brightness level ${Math.round(brightness * 100)}%`)
+        loupedeck.setBrightness(brightness)
+    }
+    // Test vibrations with top left knob
+    if (id === 'knobTL') {
+        vibration = Math.min(0xff, Math.max(0, vibration + delta))
+        console.log(`Testing vibration #${vibration}`)
+        loupedeck.vibrate(vibration)
+    }
 })
 
 loupedeck.on('touchstart', ({ changedTouches: [touch] }) => {
