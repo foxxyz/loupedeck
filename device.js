@@ -50,7 +50,7 @@ class LoupedeckDevice extends EventEmitter {
     }
     close() {
         if (!this.connection) return
-        this.connection.close()
+        return this.connection.close()
     }
     async connect() {
         // Explicitly asked for a serial connection (V0.2.X)
@@ -97,7 +97,7 @@ class LoupedeckDevice extends EventEmitter {
         header.writeUInt16BE(height, 6)
 
         // Write to frame buffer
-        await this.send(HEADERS.WRITE_FRAMEBUFF, Buffer.concat([displayInfo.id, header, buffer]), { track: true })
+        await this.send(HEADERS.WRITE_FRAMEBUFF, Buffer.concat([displayInfo.id, header, buffer]))
 
         // Draw to display
         if (autoRefresh) await this.refresh(id)
@@ -136,8 +136,8 @@ class LoupedeckDevice extends EventEmitter {
     async getInfo() {
         if (!this.connection || !this.connection.isReady()) throw new Error('Not connected!')
         return {
-            serial: await this.send(HEADERS.SERIAL_OUT, undefined, { track: true }),
-            version: await this.send(HEADERS.VERSION_OUT, undefined, { track: true })
+            serial: await this.send(HEADERS.SERIAL_OUT),
+            version: await this.send(HEADERS.VERSION_OUT)
         }
     }
     onButton(buff) {
@@ -208,9 +208,9 @@ class LoupedeckDevice extends EventEmitter {
     // Display the current framebuffer
     refresh(id) {
         const displayInfo = DISPLAYS[id]
-        return this.send(HEADERS.DRAW, displayInfo.id, { track: true })
+        return this.send(HEADERS.DRAW, displayInfo.id)
     }
-    send(action, data = Buffer.alloc(0), { track = false } = {}) {
+    send(action, data = Buffer.alloc(0)) {
         if (!this.connection || !this.connection.isReady()) return
         this.transactionID = (this.transactionID + 1) % 256
         // Skip transaction ID's of zero since the device seems to ignore them
@@ -220,25 +220,23 @@ class LoupedeckDevice extends EventEmitter {
         header[2] = this.transactionID
         const packet = Buffer.concat([header, data])
         this.connection.send(packet)
-        if (track) {
-            return new Promise(res => {
-                this.pendingTransactions[this.transactionID] = res
-            })
-        }
+        return new Promise(res => {
+            this.pendingTransactions[this.transactionID] = res
+        })
     }
     setBrightness(value) {
         const byte = Math.max(0, Math.min(MAX_BRIGHTNESS, Math.round(value * MAX_BRIGHTNESS)))
-        this.send(HEADERS.SET_BRIGHTNESS, Buffer.from([byte]))
+        return this.send(HEADERS.SET_BRIGHTNESS, Buffer.from([byte]))
     }
     setButtonColor({ id, color }) {
         const key = Object.keys(BUTTONS).find(k => BUTTONS[k] === id)
         if (!key) throw new Error(`Invalid button ID: ${id}`)
         const [r, g, b] = rgba(color)
         const data = Buffer.from([key, r, g, b])
-        this.send(HEADERS.SET_COLOR, data)
+        return this.send(HEADERS.SET_COLOR, data)
     }
     vibrate(pattern = HAPTIC.SHORT) {
-        this.send(HEADERS.SET_VIBRATION, Buffer.from([pattern]))
+        return this.send(HEADERS.SET_VIBRATION, Buffer.from([pattern]))
     }
 }
 

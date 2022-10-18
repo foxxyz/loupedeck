@@ -145,15 +145,17 @@ Emitted when a button or knob is released.
 Arguments:
  - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
  
-#### `device.close()`
+#### `device.close() : Promise`
 
 Close device connection.
+
+Returns Promise which resolves once the device has been closed.
 
 #### `device.connect() : Promise`
 
 Manually connect if `autoConnect` set to `false` during [construction](#new-loupedeckdevice-host--string-autoconnect--boolean-). Resolves once a connection has been established.
 
-#### `device.drawBuffer({ id : String, width : Number, height : Number, x? : Number, y? : Number, autoRefresh? : Boolean }, buffer : Buffer)`
+#### `device.drawBuffer({ id : String, width : Number, height : Number, x? : Number, y? : Number, autoRefresh? : Boolean }, buffer : Buffer) : Promise`
 
 Draw graphics to a particular area using a RGB16-565 pixel buffer.
 
@@ -166,8 +168,10 @@ Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bu
  - `y`: Starting Y offset (default: `0`)
  - `autoRefresh`: Whether to refresh the screen after drawing (default: `true`)
  - `buffer`: RGB16-565 Buffer. Should be `width * height * 2` bytes long, with each pixel represented by 2 bytes (5 bits red, 6 bits green, 5 bits blue) in little-endian (LE)
+ 
+Returns a Promise which resolves once the command has been acknowledged by the device.
 
-#### `device.drawCanvas({ id : String, width : Number, height : Number, x? : Number, y? : Number, autoRefresh? : Boolean }, callback : Function)`
+#### `device.drawCanvas({ id : String, width : Number, height : Number, x? : Number, y? : Number, autoRefresh? : Boolean }, callback : Function) : Promise`
 
 Draw graphics to a particular area using the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D). Requires [`canvas`](https://www.npmjs.com/package/canvas) to be installed.
 
@@ -183,8 +187,10 @@ Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bu
      1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
      2. `width`: Width of drawing area
      3. `height`: Height of drawing area
+     
+Returns a Promise which resolves once the command has been acknowledged by the device.
 
-#### `device.drawKey(key : Number, buffer/callback : Buffer/Function)`
+#### `device.drawKey(key : Number, buffer/callback : Buffer/Function) : Promise`
 
 Draw graphics to a specific key.
 
@@ -197,7 +203,9 @@ Second argument can be either a RGB16-565 buffer or a callback. Width and height
      2. `width`: Width of drawing area
      3. `height`: Height of drawing area
 
-#### `device.drawScreen(screenID : String, buffer/callback : Buffer/Function)`
+Returns a Promise which resolves once the command has been acknowledged by the device.
+
+#### `device.drawScreen(screenID : String, buffer/callback : Buffer/Function) : Promise`
 
 Draw graphics to a specific screen. Screen sizes are as follows:
 
@@ -213,6 +221,8 @@ Draw graphics to a specific screen. Screen sizes are as follows:
      1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
      2. `width`: Width of drawing area
      3. `height`: Height of drawing area
+     
+Returns a Promise which resolves once the command has been acknowledged by the device.
 
 #### `device.getInfo() : Promise`
 
@@ -223,24 +233,30 @@ Request device information. Returns a promise resolving to object containing:
  
 If the device is not connected, the promise will reject.
 
-#### `device.setBrightness(brightness : Number)`
+#### `device.setBrightness(brightness : Number) : Promise`
 
 Set screen brightness.
 
  - `brightness`: Number between (0, 1) (`0` would turn the screen off, `1` for full brightness)
+ 
+Returns a Promise which resolves once the command has been acknowledged by the device.
 
-#### `device.setColor({ id : String, color : String })`
+#### `device.setColor({ id : String, color : String }) : Promise`
 
 Set a button LED to a particular color.
 
  - `id`: Button ID (possible choices: [`circle`, `1`, `2`, `3`, `4`, `5`, `6`, `7`])
  - `color`: Any [valid CSS color string](https://github.com/colorjs/color-parse#parsed-strings)
 
-#### `device.vibrate(pattern? : byte)`
+Returns a Promise which resolves once the command has been acknowledged by the device.
+
+#### `device.vibrate(pattern? : byte) : Promise`
 
 Make device vibrate.
 
  - `pattern`: A valid vibration pattern ([see `HAPTIC` for valid patterns](https://github.com/foxxyz/loupedeck/blob/master/constants.js#L50)) (default: `HAPTIC.SHORT`)
+ 
+Returns a Promise which resolves once the command has been acknowledged by the device.
 
 ### Touch Objects
 

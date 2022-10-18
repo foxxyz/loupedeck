@@ -34,7 +34,7 @@ class LoupedeckSerialConnection extends EventEmitter {
     }
     close() {
         if (!this.connection) return
-        this.connection.close()
+        return new Promise(res => this.connection.close(res))
     }
     async connect() {
         this.connection = new SerialPort({ path: this.path, baudRate: 256000 })

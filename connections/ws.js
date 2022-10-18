@@ -40,7 +40,9 @@ class LoupedeckWSConnection extends EventEmitter {
     }
     close() {
         if (!this.connection) return
+        const closed = new Promise(res => this.connection.once('close', res))
         this.connection.close()
+        return closed
     }
     connect() {
         this.address = `ws://${this.host}`
