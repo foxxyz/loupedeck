@@ -26,25 +26,20 @@ const DISPLAYS = {
     right: { id: Buffer.from('\x00R'), width: 60, height: 270 }, // "R"
 }
 
-const HEADERS = {
-    CONFIRM: 0x0302,
-    SERIAL_OUT: 0x0303,
-    VERSION_OUT: 0x0307,
-    TICK: 0x0400,
-    SET_BRIGHTNESS: 0x0409,
-    CONFIRM_FRAMEBUFF: 0x0410,
-    SET_VIBRATION: 0x041b,
-    BUTTON_PRESS: 0x0500,
-    KNOB_ROTATE: 0x0501,
-    RESET: 0x0506,
-    DRAW: 0x050f,
-    SET_COLOR: 0x0702,
-    TOUCH: 0x094d,
-    TOUCH_END: 0x096d,
-    VERSION_IN: 0x0c07,
-    MCU: 0x180d,
-    SERIAL_IN: 0x1f03,
-    WRITE_FRAMEBUFF: 0xff10
+const COMMANDS = {
+    BUTTON_PRESS: 0x00,
+    KNOB_ROTATE: 0x01,
+    SET_COLOR: 0x02,
+    SERIAL: 0x03,
+    RESET: 0x06,
+    VERSION: 0x07,
+    SET_BRIGHTNESS: 0x09,
+    FRAMEBUFF: 0x10,
+    SET_VIBRATION: 0x1b,
+    MCU: 0x0d,
+    DRAW: 0x0f,
+    TOUCH: 0x4d,
+    TOUCH_END: 0x6d,
 }
 
 const HAPTIC = {
@@ -87,9 +82,9 @@ const RECONNECT_INTERVAL = 3000
 module.exports = {
     MAX_BRIGHTNESS,
     BUTTONS,
+    COMMANDS,
     CONNECTION_TIMEOUT,
     DISPLAYS,
-    HEADERS,
     HAPTIC,
     RECONNECT_INTERVAL
 }

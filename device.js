@@ -3,9 +3,9 @@ const rgba = require('color-rgba')
 
 const {
     BUTTONS,
+    COMMANDS,
     DISPLAYS,
     HAPTIC,
-    HEADERS,
     MAX_BRIGHTNESS,
     RECONNECT_INTERVAL,
 } = require('./constants')
@@ -29,13 +29,13 @@ class LoupedeckDevice extends EventEmitter {
         this.transactionID = 0
         this.touches = {}
         this.handlers = {
-            [HEADERS.BUTTON_PRESS]: this.onButton.bind(this),
-            [HEADERS.KNOB_ROTATE]: this.onRotate.bind(this),
-            [HEADERS.SERIAL_IN]: this.onSerial.bind(this),
-            [HEADERS.TICK]: () => {},
-            [HEADERS.TOUCH]: this.onTouch.bind(this, 'touchmove'),
-            [HEADERS.TOUCH_END]: this.onTouch.bind(this, 'touchend'),
-            [HEADERS.VERSION_IN]: this.onVersion.bind(this),
+            [COMMANDS.BUTTON_PRESS]: this.onButton.bind(this),
+            [COMMANDS.KNOB_ROTATE]: this.onRotate.bind(this),
+            [COMMANDS.SERIAL]: this.onSerial.bind(this),
+            [COMMANDS.TICK]: () => {},
+            [COMMANDS.TOUCH]: this.onTouch.bind(this, 'touchmove'),
+            [COMMANDS.TOUCH_END]: this.onTouch.bind(this, 'touchend'),
+            [COMMANDS.VERSION]: this.onVersion.bind(this),
         }
         // Track pending transactions
         this.pendingTransactions = {}
@@ -97,7 +97,7 @@ class LoupedeckDevice extends EventEmitter {
         header.writeUInt16BE(height, 6)
 
         // Write to frame buffer
-        await this.send(HEADERS.WRITE_FRAMEBUFF, Buffer.concat([displayInfo.id, header, buffer]))
+        await this.send(COMMANDS.FRAMEBUFF, Buffer.concat([displayInfo.id, header, buffer]))
 
         // Draw to display
         if (autoRefresh) await this.refresh(id)
@@ -136,8 +136,8 @@ class LoupedeckDevice extends EventEmitter {
     async getInfo() {
         if (!this.connection || !this.connection.isReady()) throw new Error('Not connected!')
         return {
-            serial: await this.send(HEADERS.SERIAL_OUT),
-            version: await this.send(HEADERS.VERSION_OUT)
+            serial: await this.send(COMMANDS.SERIAL),
+            version: await this.send(COMMANDS.VERSION)
         }
     }
     onButton(buff) {
@@ -158,10 +158,10 @@ class LoupedeckDevice extends EventEmitter {
         this._reconnectTimer = setTimeout(this.connect.bind(this), this.reconnectInterval)
     }
     onReceive(buff) {
-        const header = buff.readUInt16BE()
-        const handler = this.handlers[header]
+        const msgLength = buff[0]
+        const handler = this.handlers[buff[1]]
         const transactionID = buff[2]
-        const response = handler ? handler(buff.slice(3)) : buff
+        const response = handler ? handler(buff.slice(3, msgLength)) : buff
         const resolver = this.pendingTransactions[transactionID]
         if (resolver) resolver(response)
         return response
@@ -208,15 +208,16 @@ class LoupedeckDevice extends EventEmitter {
     // Display the current framebuffer
     refresh(id) {
         const displayInfo = DISPLAYS[id]
-        return this.send(HEADERS.DRAW, displayInfo.id)
+        return this.send(COMMANDS.DRAW, displayInfo.id)
     }
-    send(action, data = Buffer.alloc(0)) {
+    send(command, data = Buffer.alloc(0)) {
         if (!this.connection || !this.connection.isReady()) return
         this.transactionID = (this.transactionID + 1) % 256
         // Skip transaction ID's of zero since the device seems to ignore them
         if (this.transactionID === 0) this.transactionID++
         const header = Buffer.alloc(3)
-        header.writeUInt16BE(action)
+        header[0] = Math.min(3 + data.length, 0xff)
+        header[1] = command
         header[2] = this.transactionID
         const packet = Buffer.concat([header, data])
         this.connection.send(packet)
@@ -226,17 +227,17 @@ class LoupedeckDevice extends EventEmitter {
     }
     setBrightness(value) {
         const byte = Math.max(0, Math.min(MAX_BRIGHTNESS, Math.round(value * MAX_BRIGHTNESS)))
-        return this.send(HEADERS.SET_BRIGHTNESS, Buffer.from([byte]))
+        return this.send(COMMANDS.SET_BRIGHTNESS, Buffer.from([byte]))
     }
     setButtonColor({ id, color }) {
         const key = Object.keys(BUTTONS).find(k => BUTTONS[k] === id)
         if (!key) throw new Error(`Invalid button ID: ${id}`)
         const [r, g, b] = rgba(color)
         const data = Buffer.from([key, r, g, b])
-        return this.send(HEADERS.SET_COLOR, data)
+        return this.send(COMMANDS.SET_COLOR, data)
     }
     vibrate(pattern = HAPTIC.SHORT) {
-        return this.send(HEADERS.SET_VIBRATION, Buffer.from([pattern]))
+        return this.send(COMMANDS.SET_VIBRATION, Buffer.from([pattern]))
     }
 }
 
