@@ -46,7 +46,7 @@ class LoupedeckDevice extends EventEmitter {
         // Path for serial connections
         this.path = path
         // Automatically connect?
-        if (autoConnect) this.connect()
+        if (autoConnect) this._connectBlind()
     }
     close() {
         if (!this.connection) return
@@ -64,18 +64,18 @@ class LoupedeckDevice extends EventEmitter {
                 const { type, ...args } = devices[0]
                 this.connection = new type(args)
             }
-            if (!this.connection) return Promise.resolve(this.onDisconnect(new Error('No devices found')))
+            if (!this.connection) {
+                return Promise.reject(this.onDisconnect(new Error('No devices found')))
+            }
         }
 
         this.connection.on('connect', this.onConnect.bind(this))
         this.connection.on('message', this.onReceive.bind(this))
         this.connection.on('disconnect', this.onDisconnect.bind(this))
-
-        const connectionPromise = new Promise(res => {
-            this._connectionResolver = res
-        })
-        this.connection.connect()
-        return connectionPromise
+        return this.connection.connect()
+    }
+    _connectBlind() {
+        return this.connect().catch(() => {})
     }
     // Draw an arbitrary buffer to the device
     // Buffer format must be 16bit 5-6-5
@@ -147,7 +147,6 @@ class LoupedeckDevice extends EventEmitter {
     }
     onConnect(info) {
         this.emit('connect', info)
-        this._connectionResolver()
     }
     onDisconnect(error) {
         this.emit('disconnect', error)
@@ -155,7 +154,8 @@ class LoupedeckDevice extends EventEmitter {
         this.connection = null
         // Normal disconnect, do not reconnect
         if (!error) return
-        this._reconnectTimer = setTimeout(this.connect.bind(this), this.reconnectInterval)
+        this._reconnectTimer = setTimeout(this._connectBlind.bind(this), this.reconnectInterval)
+        return error.message
     }
     onReceive(buff) {
         const msgLength = buff[0]

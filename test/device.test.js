@@ -405,7 +405,7 @@ describe('Connection Management', () => {
         device.on('disconnect', fn)
         device.reconnectInterval = 20
         const connect = jest.spyOn(device, 'connect')
-        device.connect()
+        await expect(device.connect()).rejects.toMatch(/no devices found/i)
         await delay(40)
         expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
         expect(fn.mock.calls[0][0].message).toMatch(/no devices found/i)
@@ -416,7 +416,7 @@ describe('Connection Management', () => {
     it('attempts reconnect on error', async() => {
         device = new LoupedeckDevice({ autoConnect: false })
         device.reconnectInterval = 20
-        const connect = jest.spyOn(device, 'connect').mockImplementation(() => {})
+        const connect = jest.spyOn(device, 'connect').mockImplementation(() => Promise.reject('some error'))
         device.onDisconnect('some error')
         await delay(40)
         expect(connect).toHaveBeenCalled()
@@ -462,6 +462,36 @@ describe('Connection Management', () => {
         expect(options.length).toBe(2)
         const options2 = await LoupedeckDevice.list({ ignoreSerial: true })
         expect(options2.length).toBe(1)
+    })
+    it('returns same connection if multiple connects are attempted', async() => {
+        const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [
+            { type: SerialConnection, path: '/dev/test1' }
+        ])
+        let slowSerialConnection
+        const serialConnect = jest.spyOn(SerialConnection.prototype, 'connect').mockImplementation(function() {
+            slowSerialConnection = this
+        })
+        device = new LoupedeckDevice({ autoConnect: false })
+        const fn = jest.fn()
+        device.on('connect', fn)
+        // Try initial connect
+        const connect1 = device.connect()
+        await delay(40)
+        expect(fn).not.toHaveBeenCalled()
+
+        // Try another connect
+        const connect2 = device.connect()
+
+        // Make the connection work
+        slowSerialConnection.emit('connect', { address: this.path })
+
+        // Both promises should resolve
+        await expect(connect1).resolves.toBe(undefined)
+        await expect(connect2).resolves.toBe(undefined)
+
+        serialDiscovery.mockRestore()
+        serialConnect.mockRestore()
+        device.close()
     })
 })
 
