@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const { LoupedeckDevice } = require('../..')
 
-const loupedeck = new LoupedeckDevice({ reconnectInterval: false })
+const loupedeck = new LoupedeckDevice()
 let brightness = 1
 let vibration = 0
 
