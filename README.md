@@ -98,7 +98,13 @@ Most use-cases should omit the `host`/`path` parameter, unless you're using mult
 
 #### Event: `'connect'`
 
-Emitted when connection to the device succeeds.
+Emitted when connection to the device succeeds. Includes an info object containing:
+
+ - `address`: Connection address (E.G. serial path or websocket address)
+ 
+#### Event: `'disconnect'`
+
+Emitted when a device disconnects for any reason. First argument for the event is an `Error` object in case of an abnormal disconnect (otherwise `undefined`).
 
 #### Event: `'down'`
 
