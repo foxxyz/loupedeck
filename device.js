@@ -4,10 +4,10 @@ const rgba = require('color-rgba')
 const {
     BUTTONS,
     COMMANDS,
+    DEFAULT_RECONNECT_INTERVAL,
     DISPLAYS,
     HAPTIC,
     MAX_BRIGHTNESS,
-    RECONNECT_INTERVAL,
 } = require('./constants')
 const WSConnection = require('./connections/ws')
 const SerialConnection = require('./connections/serial')
@@ -24,7 +24,7 @@ class LoupedeckDevice extends EventEmitter {
 
         return rawDevices.flat()
     }
-    constructor({ host, path, autoConnect = true } = {}) {
+    constructor({ host, path, autoConnect = true, reconnectInterval = DEFAULT_RECONNECT_INTERVAL } = {}) {
         super()
         this.transactionID = 0
         this.touches = {}
@@ -40,7 +40,7 @@ class LoupedeckDevice extends EventEmitter {
         // Track pending transactions
         this.pendingTransactions = {}
         // How long between reconnect attempts
-        this.reconnectInterval = RECONNECT_INTERVAL
+        this.reconnectInterval = reconnectInterval
         // Host for websocket connections
         this.host = host
         // Path for serial connections
@@ -154,7 +154,10 @@ class LoupedeckDevice extends EventEmitter {
         this.connection = null
         // Normal disconnect, do not reconnect
         if (!error) return
-        this._reconnectTimer = setTimeout(this._connectBlind.bind(this), this.reconnectInterval)
+        // Reconnect if desired
+        if (this.reconnectInterval) {
+            this._reconnectTimer = setTimeout(this._connectBlind.bind(this), this.reconnectInterval)
+        }
         return error.message
     }
     onReceive(buff) {

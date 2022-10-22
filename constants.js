@@ -42,6 +42,9 @@ const COMMANDS = {
     TOUCH_END: 0x6d,
 }
 
+// How long until trying to reconnect after a disconnect
+const DEFAULT_RECONNECT_INTERVAL = 3000
+
 const HAPTIC = {
     SHORT: 0x01,
     MEDIUM: 0x0a,
@@ -76,15 +79,12 @@ const HAPTIC = {
 // Maximum brightness value
 const MAX_BRIGHTNESS = 10
 
-// How long until trying to reconnect after a disconnect
-const RECONNECT_INTERVAL = 3000
-
 module.exports = {
     MAX_BRIGHTNESS,
     BUTTONS,
     COMMANDS,
     CONNECTION_TIMEOUT,
+    DEFAULT_RECONNECT_INTERVAL,
     DISPLAYS,
     HAPTIC,
-    RECONNECT_INTERVAL
 }

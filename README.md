@@ -94,6 +94,7 @@ Most use-cases should omit the `host`/`path` parameter, unless you're using mult
  - `path`: **(Firmware 0.2.X only)** Serial device path (example: `/dev/cu.ttymodem-1332` or `COM2`) (default: autodiscover)
  - `host`: **(Firmware 0.1.X only)** Host or IP address to connect to (example: `127.100.1.1`) (default: autodiscover)
  - `autoConnect`: Automatically connect during construction. (default: `true`) _Set to `false` if you'd prefer to call [`connect()`](#deviceconnect--promise). yourself._
+ - `reconnectInterval`: How many milliseconds to wait before attempting a reconnect after a failed connection (default: `3000`) _Set to `false` to turn off automatic reconnects._
 
 #### Event: `'connect'`
 

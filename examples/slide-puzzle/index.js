@@ -12,7 +12,7 @@ loupedeck.on('connect', async({ address }) => {
 })
 
 loupedeck.on('disconnect', err => {
-    console.info(`Connection to Loupedeck lost (${err.message}). Reconnecting in ${loupedeck.reconnectInterval / 1000}s...`)
+    console.info(`Connection to Loupedeck lost (${err?.message}). Reconnecting in ${loupedeck.reconnectInterval / 1000}s...`)
 })
 
 class SlidePuzzle {

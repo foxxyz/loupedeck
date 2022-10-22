@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const { LoupedeckDevice } = require('../..')
 
-const loupedeck = new LoupedeckDevice()
+const loupedeck = new LoupedeckDevice({ reconnectInterval: false })
 let brightness = 1
 let vibration = 0
 
@@ -15,7 +15,7 @@ loupedeck.on('connect', async({ address }) => {
 })
 
 loupedeck.on('disconnect', err => {
-    console.info(`Connection to Loupedeck lost (${err.message}). Reconnecting in ${loupedeck.reconnectInterval / 1000}s...`)
+    console.info(`Connection to Loupedeck lost (${err?.message}). Reconnecting in ${loupedeck.reconnectInterval / 1000}s...`)
 })
 
 loupedeck.on('down', ({ id }) => {

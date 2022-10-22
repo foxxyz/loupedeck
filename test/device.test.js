@@ -401,9 +401,8 @@ describe('Connection Management', () => {
         const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [])
         const wsDiscovery = jest.spyOn(WSConnection, 'discover').mockImplementation(() => [])
         const fn = jest.fn()
-        device = new LoupedeckDevice({ autoConnect: false })
+        device = new LoupedeckDevice({ autoConnect: false, reconnectInterval: 20 })
         device.on('disconnect', fn)
-        device.reconnectInterval = 20
         const connect = jest.spyOn(device, 'connect')
         await expect(device.connect()).rejects.toMatch(/no devices found/i)
         await delay(40)
@@ -414,8 +413,7 @@ describe('Connection Management', () => {
         device.close()
     })
     it('attempts reconnect on error', async() => {
-        device = new LoupedeckDevice({ autoConnect: false })
-        device.reconnectInterval = 20
+        device = new LoupedeckDevice({ autoConnect: false, reconnectInterval: 20 })
         const connect = jest.spyOn(device, 'connect').mockImplementation(() => Promise.reject('some error'))
         device.onDisconnect('some error')
         await delay(40)
@@ -423,12 +421,18 @@ describe('Connection Management', () => {
         device.close()
     })
     it('does not attempt reconnect if closed before reconnect time', async() => {
-        device = new LoupedeckDevice({ autoConnect: false })
-        device.reconnectInterval = 20
+        device = new LoupedeckDevice({ autoConnect: false, reconnectInterval: 20 })
         const connect = jest.spyOn(device, 'connect').mockImplementation(() => {})
         device.onDisconnect('some error')
         device.onDisconnect()
         await delay(40)
+        expect(connect).not.toHaveBeenCalled()
+    })
+    it('does not attempt reconnect if reconnect interval not set', async() => {
+        device = new LoupedeckDevice({ autoConnect: false, reconnectInterval: false })
+        const connect = jest.spyOn(device, 'connect').mockImplementation(() => {})
+        device.onDisconnect('some error')
+        await delay(100)
         expect(connect).not.toHaveBeenCalled()
     })
     it('ignores commands if connection not open', () => {
