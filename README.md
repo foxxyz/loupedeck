@@ -248,7 +248,7 @@ Set screen brightness.
  
 Returns a Promise which resolves once the command has been acknowledged by the device.
 
-#### `device.setColor({ id : String, color : String }) : Promise`
+#### `device.setButtonColor({ id : String, color : String }) : Promise`
 
 Set a button LED to a particular color.
 
