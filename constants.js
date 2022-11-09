@@ -24,6 +24,7 @@ const DISPLAYS = {
     center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
     left: { id: Buffer.from('\x00L'), width: 60, height: 270 }, // "L"
     right: { id: Buffer.from('\x00R'), width: 60, height: 270 }, // "R"
+    live_s: { id: Buffer.from('\x00M'), width: 480, height: 270 }, // "M"
 }
 
 const COMMANDS = {
