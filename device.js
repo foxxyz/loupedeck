@@ -55,11 +55,6 @@ class LoupedeckDevice extends EventEmitter {
         return -1;
     }
     buttonIndexToKey(buttonIndex) {
-             width: DISPLAYS[this.thisDevice].buttonWidth
-            ,height: DISPLAYS[this.thisDevice].buttonHeight
-            ,x: DISPLAYS[this.thisDevice].screenOffsetLeft + ((buttonIndex % DISPLAYS[this.thisDevice].columns) * DISPLAYS[this.thisDevice].buttonWidth) + ((buttonIndex % DISPLAYS[this.thisDevice].columns) * DISPLAYS[this.thisDevice].spacerWidth)
-            ,y: DISPLAYS[this.thisDevice].screenOffsetTop + (Math.floor(buttonIndex / DISPLAYS[this.thisDevice].rows) * DISPLAYS[this.thisDevice].buttonHeight) + (Math.floor(buttonIndex / DISPLAYS[this.thisDevice].rows) * DISPLAYS[this.thisDevice].spacerHeight)
-        }));
         return {
              width: DISPLAYS[this.thisDevice].buttonWidth
             ,height: DISPLAYS[this.thisDevice].buttonHeight
