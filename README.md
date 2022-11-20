@@ -168,7 +168,7 @@ Draw graphics to a particular area using a RGB16-565 pixel buffer.
 
 Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction) don't meet your needs.
 
- - `id`: Screen to write to [`left`, `center`, `right`]
+ - `id`: Screen to write to [`left`, `center`, `right`, `main`]
  - `width`: Width of area to draw
  - `height`: Height of area to draw
  - `x`: Starting X offset (default: `0`)
@@ -184,7 +184,7 @@ Draw graphics to a particular area using the [Canvas API](https://developer.mozi
 
 Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction) don't meet your needs.
 
- - `id`: Screen to write to [`left`, `center`, `right`]
+ - `id`: Screen to write to [`left`, `center`, `right`, `main`]
  - `width`: Width of area to draw
  - `height`: Height of area to draw
  - `x`: Starting X offset (default: `0`)
@@ -214,15 +214,19 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 #### `device.drawScreen(screenID : String, buffer/callback : Buffer/Function) : Promise`
 
-Draw graphics to a specific screen. Screen sizes are as follows:
+Draw graphics to a specific screen. Screen sizes depend on the device are as follows:
 
  * `left`: 60x270px
  * `center`: 360x270px
  * `right`: 60x60px
  
- Second argument can be either a RGB16-565 buffer or a callback. 
+Live S device:
 
- - `screenID`: Screen to write to [`left`, `center`, `right`]
+ * `main`: 480x270px
+ 
+ Second argument can be either a RGB16-565 buffer or a callback.
+
+ - `screenID`: Screen to write to [`left`, `center`, `right`, `main`]
  - `buffer`: RGB16-565 Buffer
  - `callback`: Function to handle draw calls. Receives the following arguments:
      1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
@@ -270,11 +274,11 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 Touch objects are emitted in the [`touchstart`](#event-touchstart), [`touchmove`](#event-touchmove), and [`touchend`](#event-touchend) events and have the following properties:
 
  + `id`: Unique touch identifier
- + `x`: Screen X-coordinate ([0, 480])
+ + `x`: Screen X-coordinate ([0, 480]) 
  + `y`: Screen Y-coordinate ([0, 270])
  + `target`:
-     * `screen`: Identifier of screen this touch was detected on ([`left`, `center`, `right`])
-     * `key`: Index of key touched ([0-11]) (`undefined` if not on `center` screen)
+     * `screen`: Identifier of screen this touch was detected on ([`left`, `center`, `right`, `main`])
+     * `key`: Index of key touched, depending on screen 0-2 on left/right screens, 0-12 on center screen, 0-14 on Live S device
 
 Contributing & Tests
 --------------------
