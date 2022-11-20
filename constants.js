@@ -20,11 +20,65 @@ const BUTTONS = {
 // How long without ticks until a connection is considered "timed out"
 const CONNECTION_TIMEOUT = 3000
 
+const WHICH_DISPLAY = [
+    {barrier:60,  screen:"left"},
+    {barrier:420, screen:"center"},
+    {barrier:480, screen:"right"}
+]
+
 const DISPLAYS = {
-    center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
-    left: { id: Buffer.from('\x00L'), width: 60, height: 270 }, // "L"
-    right: { id: Buffer.from('\x00R'), width: 60, height: 270 }, // "R"
-    live_s: { id: Buffer.from('\x00M'), width: 480, height: 270 }, // "M"
+    center: {
+        id: Buffer.from('\x00A'), // id = "A"	0x0041
+        width: 360,
+        height: 270,
+        screenOffsetLeft:  60,
+        screenOffsetTop: 0,
+        spacerWidth:  0,
+        spacerHeight:  0,
+        rows: 4,
+        columns: 4,
+        buttonHeight:  90,
+        buttonWidth: 90
+    },
+    left: {
+        id: Buffer.from('\x00L'),  	// id = "L"	0x004C
+        width:  60,
+        height: 270,
+        screenOffsetLeft:  0,
+        screenOffsetTop: 0,
+        spacerWidth:  0,
+        spacerHeight:  0,
+        rows: 3,
+        columns: 1,
+        buttonHeight:  90,
+        buttonWidth: 90
+    },
+    right: 	{
+        id: Buffer.from('\x00R'),  	// id = "R"	0x0052
+        width:  60,
+        height: 270,
+        screenOffsetLeft:  420,
+        screenOffsetTop: 0,
+        spacerWidth:  0,
+        spacerHeight:  0,
+        rows: 3,
+        columns: 1,
+        buttonHeight:  90,
+        buttonWidth: 90
+    },
+    live_s: {
+        id: Buffer.from('\x00M'),  	// id = "M"	0x004D
+        width: 480,
+        height: 270,
+        screenOffsetLeft: 18,
+        screenOffsetTop: 6,
+        spacerWidth: 12,
+        spacerHeight: 13,
+        rows: 3,
+        columns: 5,
+        buttonHeight:  77,
+        buttonWidth: 79
+    }
 }
 
 const COMMANDS = {

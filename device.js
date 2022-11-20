@@ -24,6 +24,49 @@ class LoupedeckDevice extends EventEmitter {
 
         return rawDevices.flat()
     }
+    static thisDevice = "center";
+    setDevice(x) {
+        this.thisDevice = x;
+    }
+    getScreen(x,y) {
+        switch(this.thisDevice) {
+            default:
+            case "center":
+                return WHICH_DISPLAY.find(wd=> x <= wd.barrier).screen;
+            case "live_s":
+                return this.thisDevice;
+        }
+    }
+    getButton(x,y) {
+        const screen = this.getScreen(x,y);
+        let buttonIndex = 0;
+        for(let r=0; r<DISPLAYS[screen].rows; r++) {
+            for(let c=0; c<DISPLAYS[screen].columns; c++) {
+                let leftBorder = DISPLAYS[screen].screenOffsetLeft + (c * DISPLAYS[screen].buttonWidth) + (DISPLAYS[screen].spacerWidth * c);
+                let rightBorder = leftBorder + DISPLAYS[screen].buttonWidth;
+                let bottomBorder = (r * DISPLAYS[screen].buttonHeight) + (DISPLAYS[screen].spacerHeight * r);
+                let topBorder = bottomBorder + DISPLAYS[screen].buttonHeight;
+                if((x>= leftBorder && x < rightBorder) && (y>=bottomBorder && y<topBorder)) {
+                    return buttonIndex;
+                }
+                buttonIndex++;
+            }
+        }
+        return -1;
+    }
+    buttonIndexToKey(buttonIndex) {
+             width: DISPLAYS[this.thisDevice].buttonWidth
+            ,height: DISPLAYS[this.thisDevice].buttonHeight
+            ,x: DISPLAYS[this.thisDevice].screenOffsetLeft + ((buttonIndex % DISPLAYS[this.thisDevice].columns) * DISPLAYS[this.thisDevice].buttonWidth) + ((buttonIndex % DISPLAYS[this.thisDevice].columns) * DISPLAYS[this.thisDevice].spacerWidth)
+            ,y: DISPLAYS[this.thisDevice].screenOffsetTop + (Math.floor(buttonIndex / DISPLAYS[this.thisDevice].rows) * DISPLAYS[this.thisDevice].buttonHeight) + (Math.floor(buttonIndex / DISPLAYS[this.thisDevice].rows) * DISPLAYS[this.thisDevice].spacerHeight)
+        }));
+        return {
+             width: DISPLAYS[this.thisDevice].buttonWidth
+            ,height: DISPLAYS[this.thisDevice].buttonHeight
+            ,x: DISPLAYS[this.thisDevice].screenOffsetLeft + ((buttonIndex % DISPLAYS[this.thisDevice].columns) * DISPLAYS[this.thisDevice].buttonWidth) + ((buttonIndex % DISPLAYS[this.thisDevice].columns) * DISPLAYS[this.thisDevice].spacerWidth)
+            ,y: DISPLAYS[this.thisDevice].screenOffsetTop + (Math.floor(buttonIndex / DISPLAYS[this.thisDevice].rows) * DISPLAYS[this.thisDevice].buttonHeight) + (Math.floor(buttonIndex / DISPLAYS[this.thisDevice].rows) * DISPLAYS[this.thisDevice].spacerHeight)
+        };
+    }
     constructor({ host, path, autoConnect = true, reconnectInterval = DEFAULT_RECONNECT_INTERVAL } = {}) {
         super()
         this.transactionID = 0
@@ -122,12 +165,8 @@ class LoupedeckDevice extends EventEmitter {
     }
     // Draw to a specific key index (0-12)
     drawKey(index, cb) {
-        // Get offset x/y for key index
-        const width = 90
-        const height = 90
-        const x = index % 4 * width
-        const y = Math.floor(index / 4) * height
-        return this[cb instanceof Buffer ? 'drawBuffer' : 'drawCanvas']({ id: 'center', x, y, width, height }, cb)
+        let buttonPosition = this.buttonIndexToKey(index);
+        return this[cb instanceof Buffer ? 'drawBuffer' : 'drawCanvas']({ id: this.thisDevice, ... buttonPosition }, cb)
     }
     // Draw to a specific screen
     drawScreen(id, cb) {
@@ -183,13 +222,8 @@ class LoupedeckDevice extends EventEmitter {
         const id = buff[5]
 
         // Determine target
-        const screen = x < 60 ? 'left' : x >= 420 ? 'right' : 'center'
-        let key
-        if (screen === 'center') {
-            const column = Math.floor((x - 60) / 90)
-            const row = Math.floor(y / 90)
-            key = row * 4 + column
-        }
+        const screen = this.getScreen(x,y);
+        let key = this.getButton(x, y);
 
         // Create touch
         const touch = { x, y, id, target: { screen, key } }
