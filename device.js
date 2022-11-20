@@ -33,7 +33,7 @@ class LoupedeckDevice extends EventEmitter {
             default:
             case "center":
                 return WHICH_DISPLAY.find(wd=> x <= wd.barrier).screen;
-            case "live_s":
+            case "main":
                 return this.thisDevice;
         }
     }

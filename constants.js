@@ -66,7 +66,7 @@ const DISPLAYS = {
         buttonHeight:  90,
         buttonWidth: 90
     },
-    live_s: {
+    main: {
         id: Buffer.from('\x00M'),  	// id = "M"	0x004D
         width: 480,
         height: 270,
