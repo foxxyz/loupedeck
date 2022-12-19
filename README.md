@@ -218,7 +218,7 @@ Draw graphics to a specific screen. Screen sizes are as follows:
 
  * `left`: 60x270px
  * `center`: 360x270px
- * `right`: 60x60px
+ * `right`: 60x270px
  
  Second argument can be either a RGB16-565 buffer or a callback. 
 
