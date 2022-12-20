@@ -11,7 +11,7 @@ describe('v0.1.X Connection', () => {
         os.networkInterfaces.mockReturnValue([{ address: '255.255.255.255' }])
         expect(await WSConnection.discover()).toEqual([])
         os.networkInterfaces.mockReturnValue([{ address: '100.127.80.1' }])
-        expect(await WSConnection.discover()).toEqual([{ type: WSConnection, host: '100.127.80.1' }])
+        expect(await WSConnection.discover()).toEqual([{ connectionType: WSConnection, host: '100.127.80.1' }])
     })
     it('connects via direct instantiation', async() => {
         connection = new WSConnection({ host: '127.0.0.1' })

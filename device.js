@@ -12,7 +12,18 @@ const {
 const WSConnection = require('./connections/ws')
 const SerialConnection = require('./connections/serial')
 
+
 class LoupedeckDevice extends EventEmitter {
+    static async discover() {
+        const devices = await this.list()
+        if (devices.length === 0) throw new Error('No devices found')
+        const { productId, ...args } = devices[0]
+        const deviceType = USB_PRODUCT_IDS[productId]
+        if (!deviceType) throw new Error(`Device with product ID ${productId} not yet supported! Please file an issue at https://github.com/foxxyz/loupedeck/issues`)
+        const device = new deviceType(args)
+        console.log(device)
+        return device
+    }
     static async list({ ignoreSerial = false, ignoreWebsocket = false } = {}) {
         const ps = []
 
@@ -61,8 +72,8 @@ class LoupedeckDevice extends EventEmitter {
         else {
             const devices = await this.constructor.list()
             if (devices.length > 0) {
-                const { type, ...args } = devices[0]
-                this.connection = new type(args)
+                const { connectionType, ...args } = devices[0]
+                this.connection = new connectionType(args)
             }
             if (!this.connection) {
                 return Promise.reject(this.onDisconnect(new Error('No devices found')))
@@ -242,6 +253,19 @@ class LoupedeckDevice extends EventEmitter {
     vibrate(pattern = HAPTIC.SHORT) {
         return this.send(COMMANDS.SET_VIBRATION, Buffer.from([pattern]))
     }
+}
+
+class LoupedeckLive extends LoupedeckDevice {
+    type = 'Loupedeck Live'
+}
+
+class LoupedeckLiveS extends LoupedeckDevice {
+    type = 'Loupedeck Live S'
+}
+
+const USB_PRODUCT_IDS = {
+    '0004': LoupedeckLive,
+    '0006': LoupedeckLiveS,
 }
 
 module.exports = LoupedeckDevice

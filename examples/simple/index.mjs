@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-const { LoupedeckDevice } = require('../..')
+import { LoupedeckDevice } from '../../index.js'
 
-const loupedeck = new LoupedeckDevice()
+const loupedeck = await LoupedeckDevice.discover()
 let brightness = 1
 let vibration = 0
 
 loupedeck.on('connect', async({ address }) => {
-    console.info(`✅ Connected to Loupedeck at ${address}`)
+    console.info(`✅ Connected to ${loupedeck.type} at ${address}`)
     const { serial, version } = await loupedeck.getInfo()
     console.info(`Device serial number ${serial}, software version ${version}`)
     loupedeck.setBrightness(1)

@@ -27,7 +27,7 @@ class LoupedeckWSConnection extends EventEmitter {
         for (const iface of interfaces) {
             if (iface.address.startsWith('100.127')) {
                 results.push({
-                    type: this,
+                    connectionType: this,
                     host: iface.address.replace(/.2$/, '.1')
                 })
             }
