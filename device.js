@@ -295,4 +295,7 @@ const USB_PRODUCT_IDS = {
     '0006': LoupedeckLiveS,
 }
 
-module.exports = LoupedeckDevice
+module.exports = {
+    LoupedeckDevice,
+    LoupedeckLive,
+}
