@@ -20,12 +20,6 @@ const BUTTONS = {
 // How long without ticks until a connection is considered "timed out"
 const CONNECTION_TIMEOUT = 3000
 
-const DISPLAYS = {
-    center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
-    left: { id: Buffer.from('\x00L'), width: 60, height: 270 }, // "L"
-    right: { id: Buffer.from('\x00R'), width: 60, height: 270 }, // "R"
-}
-
 const COMMANDS = {
     BUTTON_PRESS: 0x00,
     KNOB_ROTATE: 0x01,
@@ -85,6 +79,5 @@ module.exports = {
     COMMANDS,
     CONNECTION_TIMEOUT,
     DEFAULT_RECONNECT_INTERVAL,
-    DISPLAYS,
     HAPTIC,
 }

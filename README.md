@@ -24,7 +24,7 @@ Requirements
  * Node 14+
  * Loupedeck
 
-This library has been tested with firmware versions 0.1.79 and 0.2.5. Other versions may work.
+This library has been tested with firmware versions 0.1.3, 0.1.79 and 0.2.5. Other versions may work.
 
 Installation
 ------------

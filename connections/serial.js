@@ -42,7 +42,6 @@ class LoupedeckSerialConnection extends EventEmitter {
         this.connection.on('error', this.onError.bind(this))
         this.connection.on('close', this.onDisconnect.bind(this))
         await new Promise(res => this.connection.once('open', res))
-
         // Wait for the "websocket" handshake over serial (...)
         await new Promise((res, rej) => {
             this.connection.once('data', buff => {

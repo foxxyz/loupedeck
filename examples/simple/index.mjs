@@ -30,7 +30,7 @@ loupedeck.on('up', ({ id }) => {
 loupedeck.on('rotate', ({ id, delta }) => {
     console.log(`Knob ${id} rotated ${delta > 0 ? 'right' : 'left'}`)
     // Control brightness with top right knob
-    if (id === 'knobTR') {
+    if (id === 'knobCL') {
         brightness = Math.min(1, Math.max(0, brightness + delta * 0.1))
         console.log(`Setting brightness level ${Math.round(brightness * 100)}%`)
         loupedeck.setBrightness(brightness)
@@ -64,33 +64,38 @@ loupedeck.on('touchend', ({ changedTouches: [touch] }) => {
 
 // Cycle through random button colors
 function cycleColors(device) {
-    const buttons = ['circle', '1', '2', '3', '4', '5', '6', '7']
     let idx = 0
     setInterval(() => {
-        const id = buttons[idx]
+        const id = device.buttons[idx]
         const r = Math.round(Math.random() * 255)
         const g = Math.round(Math.random() * 255)
         const b = Math.round(Math.random() * 255)
         device.setButtonColor({ id, color: `rgba(${r}, ${g}, ${b})` })
-        idx = (idx + 1) % buttons.length
+        idx = (idx + 1) % device.buttons.length
     }, 100)
 }
 
 // Draw solid colors on each key screen
 async function drawKeyColors(device) {
     const colors = ['#f66', '#f95', '#fb4', '#fd6', '#ff9', '#be9', '#9e9', '#9db', '#9cc', '#88c', '#c9c', '#d89']
-    for(let i = 0; i < 12; i++) {
+    for(let i = 0; i < device.rows * device.columns; i++) {
         await device.drawKey(i, (ctx, w, h) => {
-            ctx.fillStyle = colors[i]
+            ctx.fillStyle = colors[i % colors.length]
             ctx.fillRect(0, 0, w, h)
         })
     }
-    await device.drawScreen('left', (ctx, w, h) => {
-        ctx.fillStyle = 'white'
-        ctx.fillRect(0, 0, w, h)
-    })
-    await device.drawScreen('right', (ctx, w, h) => {
-        ctx.fillStyle = 'white'
-        ctx.fillRect(0, 0, w, h)
-    })
+    // Only applicable for Loupedeck Live
+    if (device.displays.left) {
+        await device.drawScreen('left', (ctx, w, h) => {
+            ctx.fillStyle = 'white'
+            ctx.fillRect(0, 0, w, h)
+        })
+    }
+    // Only applicable for Loupedeck Live
+    if (device.displays.right) {
+        await device.drawScreen('right', (ctx, w, h) => {
+            ctx.fillStyle = 'white'
+            ctx.fillRect(0, 0, w, h)
+        })
+    }
 }
