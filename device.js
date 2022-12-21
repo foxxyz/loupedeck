@@ -89,6 +89,7 @@ class LoupedeckDevice extends EventEmitter {
     // Buffer format must be 16bit 5-6-5
     async drawBuffer({ id, width, height, x = 0, y = 0, autoRefresh = true }, buffer) {
         const displayInfo = this.displays[id]
+        if (!displayInfo) throw new Error(`Display '${id}' is not available on this device!`)
         if (!width) width = displayInfo.width
         if (!height) height = displayInfo.height
 
@@ -113,6 +114,7 @@ class LoupedeckDevice extends EventEmitter {
     // Create a canvas with correct dimensions and pass back for drawing
     drawCanvas({ id, width, height, ...args }, cb) {
         const displayInfo = this.displays[id]
+        if (!displayInfo) throw new Error(`Display '${id}' is not available on this device!`)
         if (!width) width = displayInfo.width
         if (!height) height = displayInfo.height
         let createCanvas
@@ -131,6 +133,7 @@ class LoupedeckDevice extends EventEmitter {
     // Draw to a specific key index (0-11 on Live, 0-14 on Live S)
     drawKey(index, cb) {
         // Get offset x/y for key index
+        if (index < 0 || index >= this.columns * this.rows) throw new Error(`Key ${index} is not a valid key`)
         const width = 90
         const height = 90
         const x = this.visibleX[0] + index % this.columns * width
@@ -245,7 +248,7 @@ class LoupedeckDevice extends EventEmitter {
 
 class LoupedeckLive extends LoupedeckDevice {
     type = 'Loupedeck Live'
-    buttons = ['circle', '1', '2', '3', '4', '5', '6', '7']
+    buttons = [0, 1, 2, 3, 4, 5, 6, 7]
     rows = 3
     columns = 4
     visibleX = [0, 480]
@@ -270,7 +273,7 @@ class LoupedeckLive extends LoupedeckDevice {
 
 class LoupedeckLiveS extends LoupedeckDevice {
     type = 'Loupedeck Live S'
-    buttons = ['circle', '1', '2', '3']
+    buttons = [0, 1, 2, 3]
     rows = 3
     columns = 5
     visibleX = [15, 465]
@@ -298,4 +301,5 @@ const USB_PRODUCT_IDS = {
 module.exports = {
     LoupedeckDevice,
     LoupedeckLive,
+    LoupedeckLiveS,
 }
