@@ -5,8 +5,8 @@ Loupedeck: Node.js Interface
 
 Unofficial Node.js API for [Loupedeck Live](https://loupedeck.com/products/loupedeck-live/) & [Loupedeck Live S](https://loupedeck.com/products/loupedeck-live-s/) controllers.
 
-![Loupedeck Live Interface](https://github.com/foxxyz/loupedeck/blob/master/docs/live-front-small.png?raw=true)
-![Loupedeck Live S Interface](https://github.com/foxxyz/loupedeck/blob/master/docs/live-s-front-small.png?raw=true)
+![Loupedeck Live Interface](/docs/live-front-small.png?raw=true)
+![Loupedeck Live S Interface](/docs/live-s-front-small.png?raw=true)
 
 Supports:
 
