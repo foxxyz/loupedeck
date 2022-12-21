@@ -44,6 +44,8 @@ Usage Examples
 
 _Note: Ensure Loupedeck software is not running as it may conflict with this library_
 
+### Automatic Discovery
+
 ```javascript
 const { LoupedeckDevice } = require('loupedeck')
 
@@ -66,29 +68,28 @@ device.on('rotate', ({ id, delta }) => {
 })
 ```
 
+### Manual Instantiation
+
+```javascript
+const { LoupedeckLiveS } = require('loupedeck')
+
+const device = new LoupedeckLiveS({ path: '/dev/tty.usbmodem101', autoConnect: false })
+await device.connect()
+console.info('Connection successful!')
+
+device.on('down', ({ id }) => {
+    console.info(`Button pressed: ${id}`)
+})
+```
+
 For all examples, see the [`examples` folder](/examples/). Running examples requires `canvas` to be installed (see above).
 
 📝 API Docs
 -----------
 
-### Class `LoupedeckDevice`
+### Class `LoupedeckLive`
 
-Main device class.
-
-All incoming messages are emitted as action events and can be subscribed to via `device.on()`.
-
-### `LoupedeckDevice.discover() : Promise<LoupedeckDevice>`
-
-Static method to find and connect to the first found Loupedeck device.
-
-### `LoupedeckDevice.list({ ignoreSerial : Boolean?, ignoreWebsocket : Boolean?} = {}) : Promise<Array>`
-
-Static method to scan for and return a list of all detected devices. This includes ones which are already opened.
-
- - `ignoreSerial`: Ignore devices which operate over serial (Firmware 0.2.X) (default: false)
- - `ignoreWebsocket`: Ignore devices which operate over websocket (Firmware 0.1.X) (default: false)
- 
-Device info can be directly passed on to the constructor below.
+Implements the `LoupedeckDevice` interface below.
 
 #### `new LoupedeckDevice({ path : String?, host : String?, autoConnect : Boolean? })`
 
@@ -100,6 +101,37 @@ Most use-cases should omit the `host`/`path` parameter, unless you're using mult
  - `host`: **(Firmware 0.1.X only)** Host or IP address to connect to (example: `127.100.1.1`) (default: autodiscover)
  - `autoConnect`: Automatically connect during construction. (default: `true`) _Set to `false` if you'd prefer to call [`connect()`](#deviceconnect--promise). yourself._
  - `reconnectInterval`: How many milliseconds to wait before attempting a reconnect after a failed connection (default: `3000`) _Set to `false` to turn off automatic reconnects._
+
+### Class `LoupedeckLiveS`
+
+Implements the `LoupedeckDevice` interface below.
+
+#### `new LoupedeckDevice({ path : String?, autoConnect : Boolean? })`
+
+Create a new Loupedeck Live S interface.
+
+ - `path`: Serial device path (example: `/dev/cu.ttymodem-1332` or `COM2`) (default: autodiscover)
+ - `autoConnect`: Automatically connect during construction. (default: `true`) _Set to `false` if you'd prefer to call [`connect()`](#deviceconnect--promise). yourself._
+ - `reconnectInterval`: How many milliseconds to wait before attempting a reconnect after a failed connection (default: `3000`) _Set to `false` to turn off automatic reconnects._
+
+### Interface `LoupedeckDevice`
+
+Shared device interface. Do not instantiate this manually, use one of the above classes instead or the [`discover()` method below](#test).
+
+All incoming messages are emitted as action events and can be subscribed to via `device.on()`.
+
+### `LoupedeckDevice.discover() : Promise<LoupedeckDevice>`
+
+Static method to find and connect to the first Loupedeck device found.
+
+### `LoupedeckDevice.list({ ignoreSerial : Boolean?, ignoreWebsocket : Boolean?} = {}) : Promise<Array>`
+
+Static method to scan for and return a list of all detected devices. This includes ones which are already opened.
+
+ - `ignoreSerial`: Ignore devices which operate over serial (Firmware 0.2.X) (default: false)
+ - `ignoreWebsocket`: Ignore devices which operate over websocket (Firmware 0.1.X) (default: false)
+ 
+Device info can be directly passed on to the constructor below.
 
 #### Event: `'connect'`
 
