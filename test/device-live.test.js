@@ -53,7 +53,7 @@ describe('Commands', () => {
     })
     it('sets button color', () => {
         const sender = jest.spyOn(device.connection, 'send')
-        device.setButtonColor({ id: '4', color: 'red' })
+        device.setButtonColor({ id: 4, color: 'red' })
         expect(sender).toHaveBeenCalledWith(Buffer.from('0702010bff0000', 'hex'))
     })
     it('errors on unknown button passed', () => {
@@ -227,14 +227,14 @@ describe('Message Parsing', () => {
         const fn = jest.fn()
         device.on('down', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({ id: '2' })
+        expect(fn).toHaveBeenCalledWith({ id: 2 })
     })
     it('processes button releases', () => {
         const SAMPLE_MESSAGE = Buffer.from('0500000701', 'hex')
         const fn = jest.fn()
         device.on('up', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({ id: 'circle' })
+        expect(fn).toHaveBeenCalledWith({ id: 0 })
     })
     it('processes clockwise knob turns', () => {
         const SAMPLE_MESSAGE = Buffer.from('0501000101', 'hex')

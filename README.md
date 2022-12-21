@@ -22,7 +22,7 @@ Requirements
 ------------
 
  * Node 14+
- * Loupedeck
+ * Loupedeck Live or Loupedeck Live S
 
 This library has been tested with firmware versions 0.1.3, 0.1.79 and 0.2.5. Other versions may work.
 
@@ -48,7 +48,7 @@ _Note: Ensure Loupedeck software is not running as it may conflict with this lib
 const { LoupedeckDevice } = require('loupedeck')
 
 // Detects and opens first connected device
-const device = new LoupedeckDevice()
+const device = await LoupedeckDevice.discover()
 
 // Observe connect events
 device.on('connect', () => {
@@ -77,7 +77,11 @@ Main device class.
 
 All incoming messages are emitted as action events and can be subscribed to via `device.on()`.
 
-### `LoupedeckDevice.list({ ignoreSerial : Boolean?, ignoreWebsocket : Boolean?} = {}) : Promise`
+### `LoupedeckDevice.discover() : Promise<LoupedeckDevice>`
+
+Static method to find and connect to the first found Loupedeck device.
+
+### `LoupedeckDevice.list({ ignoreSerial : Boolean?, ignoreWebsocket : Boolean?} = {}) : Promise<Array>`
 
 Static method to scan for and return a list of all detected devices. This includes ones which are already opened.
 
@@ -112,14 +116,14 @@ Emitted when a device disconnects for any reason. First argument for the event i
 Emitted when a button or knob is pressed down.
 
 Arguments:
- - `id`: Button ID ([see `constants.js` for possible IDs](https://github.com/foxxyz/loupedeck/blob/master/constants.js#L3))
+ - `id`: Button ID ([see `constants.js` for possible IDs](/constants.js#L3))
 
 #### Event: `'rotate'`
 
 Emitted when a knob is rotated.
 
 Arguments:
- - `id`: Button ID ([see `constants.js` for possible IDs](https://github.com/foxxyz/loupedeck/blob/master/constants.js#L3))
+ - `id`: Button ID ([see `constants.js` for possible IDs](/constants.js#L3))
  - `delta`: Rotation direction, `-1` for counter-clockwise, `1` for clockwise.
 
 #### Event: `'touchstart'`
@@ -151,7 +155,7 @@ Arguments:
 Emitted when a button or knob is released.
 
 Arguments:
- - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
+ - `id`: Button ID ([see `constants.js` for possible IDs](/constants.js#L3))
  
 #### `device.close() : Promise`
 
@@ -169,7 +173,7 @@ Draw graphics to a particular area using a RGB16-565 pixel buffer.
 
 Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction) don't meet your needs.
 
- - `id`: Screen to write to [`left`, `center`, `right`]
+ - `id`: Screen to write to [`left`, `center`, `right`] _(`left` and `right` available on Loupedeck Live only)_
  - `width`: Width of area to draw
  - `height`: Height of area to draw
  - `x`: Starting X offset (default: `0`)
@@ -185,7 +189,7 @@ Draw graphics to a particular area using the [Canvas API](https://developer.mozi
 
 Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction) don't meet your needs.
 
- - `id`: Screen to write to [`left`, `center`, `right`]
+ - `id`: Screen to write to [`left`, `center`, `right`] _(`left` and `right` available on Loupedeck Live only)_
  - `width`: Width of area to draw
  - `height`: Height of area to draw
  - `x`: Starting X offset (default: `0`)
@@ -204,7 +208,7 @@ Draw graphics to a specific key.
 
 Second argument can be either a RGB16-565 buffer or a callback. Width and height of callback will be `90`, as keys are 90x90px.
 
- - `key`: Key index to write to [0-11]
+ - `key`: Key index to write to ([0-11] on _Loupedeck Live_, [0-14] on _Loupedeck Live S_)
  - `buffer`: RGB16-565 Buffer
  - `callback`: Function to handle draw calls. Receives the following arguments:
      1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
@@ -217,13 +221,17 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 Draw graphics to a specific screen. Screen sizes are as follows:
 
+Loupedeck Live:
  * `left`: 60x270px
  * `center`: 360x270px
  * `right`: 60x270px
+
+Loupedeck Live S:
+ * `center`: 480x270px
  
  Second argument can be either a RGB16-565 buffer or a callback. 
 
- - `screenID`: Screen to write to [`left`, `center`, `right`]
+ - `screenID`: Screen to write to [`left`, `center`, `right`] (`center` only on _Loupedeck Live S_)
  - `buffer`: RGB16-565 Buffer
  - `callback`: Function to handle draw calls. Receives the following arguments:
      1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
@@ -245,7 +253,7 @@ If the device is not connected, the promise will reject.
 
 Set screen brightness.
 
- - `brightness`: Number between (0, 1) (`0` would turn the screen off, `1` for full brightness)
+ - `brightness`: Float between (0, 1) (`0` would turn the screen off, `1` for full brightness)
  
 Returns a Promise which resolves once the command has been acknowledged by the device.
 
@@ -253,7 +261,7 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 Set a button LED to a particular color.
 
- - `id`: Button ID (possible choices: [`circle`, `1`, `2`, `3`, `4`, `5`, `6`, `7`])
+ - `id`: Button ID (possible choices: 0-7 on _Loupedeck Live_ or 0-4 on _Loupedeck Live S_)
  - `color`: Any [valid CSS color string](https://github.com/colorjs/color-parse#parsed-strings)
 
 Returns a Promise which resolves once the command has been acknowledged by the device.
@@ -262,7 +270,7 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 Make device vibrate.
 
- - `pattern`: A valid vibration pattern ([see `HAPTIC` for valid patterns](https://github.com/foxxyz/loupedeck/blob/master/constants.js#L50)) (default: `HAPTIC.SHORT`)
+ - `pattern`: A valid vibration pattern ([see `HAPTIC` for valid patterns](/constants.js#L50)) (default: `HAPTIC.SHORT`)
  
 Returns a Promise which resolves once the command has been acknowledged by the device.
 
@@ -274,8 +282,8 @@ Touch objects are emitted in the [`touchstart`](#event-touchstart), [`touchmove`
  + `x`: Screen X-coordinate ([0, 480])
  + `y`: Screen Y-coordinate ([0, 270])
  + `target`:
-     * `screen`: Identifier of screen this touch was detected on ([`left`, `center`, `right`])
-     * `key`: Index of key touched ([0-11]) (`undefined` if not on `center` screen)
+     * `screen`: Identifier of screen this touch was detected on ([`left`, `center`, `right`]) (`center` only on _Loupedeck Live S_)
+     * `key`: Index of key touched ([0-11] on _Loupedeck Live_, [0-14] on _Loupedeck Live S_)
 
 Contributing & Tests
 --------------------

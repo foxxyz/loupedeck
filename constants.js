@@ -7,14 +7,14 @@ const BUTTONS = {
     0x04: 'knobTR',
     0x05: 'knobCR',
     0x06: 'knobBR',
-    0x07: 'circle',
-    0x08: '1',
-    0x09: '2',
-    0x0a: '3',
-    0x0b: '4',
-    0x0c: '5',
-    0x0d: '6',
-    0x0e: '7'
+    0x07: 0,
+    0x08: 1,
+    0x09: 2,
+    0x0a: 3,
+    0x0b: 4,
+    0x0c: 5,
+    0x0d: 6,
+    0x0e: 7
 }
 
 // How long without ticks until a connection is considered "timed out"
