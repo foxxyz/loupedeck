@@ -66,6 +66,7 @@ class LoupedeckSerialConnection extends EventEmitter {
     }
     onError(err) {
         console.error(`Loupedeck Serial Error: ${err.message}`)
+        this.onDisconnect(err)
     }
     send(buff, raw = false) {
         if (!raw) {
