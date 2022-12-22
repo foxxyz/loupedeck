@@ -1,7 +1,11 @@
-const LoupedeckDevice = require('./device')
+const { LoupedeckLive, LoupedeckLiveS } = require('./device')
 const { HAPTIC } = require('./constants')
+const { discover, listDevices } = require('./discovery')
 
 module.exports = {
-    LoupedeckDevice,
+    discover,
+    listDevices,
+    LoupedeckLive,
+    LoupedeckLiveS,
     HAPTIC
 }

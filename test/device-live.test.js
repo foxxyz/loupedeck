@@ -1,4 +1,4 @@
-const { LoupedeckDevice } = require('..')
+const { LoupedeckLive } = require('..')
 const SerialConnection = require('../connections/serial')
 const WSConnection = require('../connections/ws')
 
@@ -22,7 +22,7 @@ let device
 
 describe('Commands', () => {
     beforeEach(() => {
-        device = new LoupedeckDevice({ autoConnect: false })
+        device = new LoupedeckLive({ autoConnect: false })
         device.connection = { send: () => {}, isReady: () => true }
     })
     it('retrieves device information', async() => {
@@ -53,7 +53,7 @@ describe('Commands', () => {
     })
     it('sets button color', () => {
         const sender = jest.spyOn(device.connection, 'send')
-        device.setButtonColor({ id: '4', color: 'red' })
+        device.setButtonColor({ id: 4, color: 'red' })
         expect(sender).toHaveBeenCalledWith(Buffer.from('0702010bff0000', 'hex'))
     })
     it('errors on unknown button passed', () => {
@@ -72,7 +72,7 @@ describe('Commands', () => {
 })
 describe('Drawing (Callback API)', () => {
     beforeEach(() => {
-        device = new LoupedeckDevice({ autoConnect: false })
+        device = new LoupedeckLive({ autoConnect: false })
         device.connection = { send: () => {}, isReady: () => true }
     })
     it('writes pixels to left display', async() => {
@@ -152,7 +152,7 @@ describe('Drawing (Callback API)', () => {
 })
 describe('Drawing (Buffer API)', () => {
     beforeEach(() => {
-        device = new LoupedeckDevice({ autoConnect: false })
+        device = new LoupedeckLive({ autoConnect: false })
         device.connection = { send: () => {}, isReady: () => true }
     })
     it('writes pixels to left display', async() => {
@@ -220,21 +220,28 @@ describe('Drawing (Buffer API)', () => {
 
 describe('Message Parsing', () => {
     beforeEach(() => {
-        device = new LoupedeckDevice({ ip: '255.255.255.255', autoConnect: false })
+        device = new LoupedeckLive({ ip: '255.255.255.255', autoConnect: false })
+    })
+    it('processes timestamp events', () => {
+        const SAMPLE_MESSAGE = Buffer.from('040000ba', 'hex')
+        const fn = jest.fn()
+        device.on('up', fn)
+        device.onReceive(SAMPLE_MESSAGE)
+        expect(fn).not.toHaveBeenCalled()
     })
     it('processes button presses', () => {
         const SAMPLE_MESSAGE = Buffer.from('0500000900', 'hex')
         const fn = jest.fn()
         device.on('down', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({ id: '2' })
+        expect(fn).toHaveBeenCalledWith({ id: 2 })
     })
     it('processes button releases', () => {
         const SAMPLE_MESSAGE = Buffer.from('0500000701', 'hex')
         const fn = jest.fn()
         device.on('up', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({ id: 'circle' })
+        expect(fn).toHaveBeenCalledWith({ id: 0 })
     })
     it('processes clockwise knob turns', () => {
         const SAMPLE_MESSAGE = Buffer.from('0501000101', 'hex')
@@ -369,15 +376,15 @@ describe('Message Parsing', () => {
 describe('Connection Management', () => {
     it('connects to serial first if both connection types are available', async() => {
         const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [
-            { type: SerialConnection, path: '/dev/test1' }
+            { connectionType: SerialConnection, path: '/dev/test1' }
         ])
         const serialConnect = jest.spyOn(SerialConnection.prototype, 'connect').mockImplementation(function() {
             this.emit('connect', { address: this.path })
         })
         const wsDiscovery = jest.spyOn(WSConnection, 'discover').mockImplementation(() => [
-            { type: WSConnection, host: '128.0.0.1' }
+            { connectionType: WSConnection, host: '128.0.0.1' }
         ])
-        device = new LoupedeckDevice()
+        device = new LoupedeckLive()
         const fn = jest.fn()
         device.on('connect', fn)
         await device.connect()
@@ -388,12 +395,12 @@ describe('Connection Management', () => {
         device.close()
     })
     it('connects to serial if path explicitly set', () => {
-        device = new LoupedeckDevice({ path: '/dev/test2' })
+        device = new LoupedeckLive({ path: '/dev/test2' })
         expect(device.connection).toBeInstanceOf(SerialConnection)
         device.close()
     })
     it('connects to websocket if host explicitly set', () => {
-        device = new LoupedeckDevice({ host: '255.255.255.255' })
+        device = new LoupedeckLive({ host: '255.255.255.255' })
         expect(device.connection).toBeInstanceOf(WSConnection)
         device.close()
     })
@@ -401,7 +408,7 @@ describe('Connection Management', () => {
         const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [])
         const wsDiscovery = jest.spyOn(WSConnection, 'discover').mockImplementation(() => [])
         const fn = jest.fn()
-        device = new LoupedeckDevice({ autoConnect: false, reconnectInterval: 20 })
+        device = new LoupedeckLive({ autoConnect: false, reconnectInterval: 20 })
         device.on('disconnect', fn)
         const connect = jest.spyOn(device, 'connect')
         await expect(device.connect()).rejects.toMatch(/no devices found/i)
@@ -413,7 +420,7 @@ describe('Connection Management', () => {
         device.close()
     })
     it('attempts reconnect on error', async() => {
-        device = new LoupedeckDevice({ autoConnect: false, reconnectInterval: 20 })
+        device = new LoupedeckLive({ autoConnect: false, reconnectInterval: 20 })
         const connect = jest.spyOn(device, 'connect').mockImplementation(() => Promise.reject('some error'))
         device.onDisconnect('some error')
         await delay(40)
@@ -421,7 +428,7 @@ describe('Connection Management', () => {
         device.close()
     })
     it('does not attempt reconnect if closed before reconnect time', async() => {
-        device = new LoupedeckDevice({ autoConnect: false, reconnectInterval: 20 })
+        device = new LoupedeckLive({ autoConnect: false, reconnectInterval: 20 })
         const connect = jest.spyOn(device, 'connect').mockImplementation(() => {})
         device.onDisconnect('some error')
         device.onDisconnect()
@@ -429,14 +436,14 @@ describe('Connection Management', () => {
         expect(connect).not.toHaveBeenCalled()
     })
     it('does not attempt reconnect if reconnect interval not set', async() => {
-        device = new LoupedeckDevice({ autoConnect: false, reconnectInterval: false })
+        device = new LoupedeckLive({ autoConnect: false, reconnectInterval: false })
         const connect = jest.spyOn(device, 'connect').mockImplementation(() => {})
         device.onDisconnect('some error')
         await delay(100)
         expect(connect).not.toHaveBeenCalled()
     })
     it('ignores commands if connection not open', () => {
-        device = new LoupedeckDevice({ path: '/dev/test3', autoConnect: false })
+        device = new LoupedeckLive({ path: '/dev/test3', autoConnect: false })
         device.connection = { send: () => {}, isReady: () => false, close: () => {} }
         const sender = jest.spyOn(device.connection, 'send')
         device.send('test', Buffer.from([0xff]))
@@ -445,37 +452,37 @@ describe('Connection Management', () => {
     })
     it('can list connection options', async() => {
         jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [
-            { type: SerialConnection, path: '/dev/test1' },
-            { type: SerialConnection, path: '/dev/test2' },
+            { connectionType: SerialConnection, path: '/dev/test1' },
+            { connectionType: SerialConnection, path: '/dev/test2' },
         ])
         jest.spyOn(WSConnection, 'discover').mockImplementation(() => [
-            { type: WSConnection, host: '128.0.0.1' }
+            { connectionType: WSConnection, host: '128.0.0.1' }
         ])
-        const options = await LoupedeckDevice.list()
+        const options = await LoupedeckLive.list()
         expect(options.length).toBe(3)
     })
     it('can filter connection options', async() => {
         jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [
-            { type: SerialConnection, path: '/dev/test1' },
-            { type: SerialConnection, path: '/dev/test2' },
+            { connectionType: SerialConnection, path: '/dev/test1' },
+            { connectionType: SerialConnection, path: '/dev/test2' },
         ])
         jest.spyOn(WSConnection, 'discover').mockImplementation(() => [
-            { type: WSConnection, host: '128.0.0.1' }
+            { connectionType: WSConnection, host: '128.0.0.1' }
         ])
-        const options = await LoupedeckDevice.list({ ignoreWebsocket: true })
+        const options = await LoupedeckLive.list({ ignoreWebsocket: true })
         expect(options.length).toBe(2)
-        const options2 = await LoupedeckDevice.list({ ignoreSerial: true })
+        const options2 = await LoupedeckLive.list({ ignoreSerial: true })
         expect(options2.length).toBe(1)
     })
     it('returns same connection if multiple connects are attempted', async() => {
         const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [
-            { type: SerialConnection, path: '/dev/test1' }
+            { connectionType: SerialConnection, path: '/dev/test1' }
         ])
         let slowSerialConnection
         const serialConnect = jest.spyOn(SerialConnection.prototype, 'connect').mockImplementation(function() {
             slowSerialConnection = this
         })
-        device = new LoupedeckDevice({ autoConnect: false })
+        device = new LoupedeckLive({ autoConnect: false })
         const fn = jest.fn()
         device.on('connect', fn)
         // Try initial connect
@@ -501,7 +508,7 @@ describe('Connection Management', () => {
 
 describe('Edge Cases', () => {
     beforeEach(() => {
-        device = new LoupedeckDevice({ autoConnect: false })
+        device = new LoupedeckLive({ autoConnect: false })
         device.connection = { send: () => {}, isReady: () => true }
     })
     it('prevents transaction IDs of zero', () => {

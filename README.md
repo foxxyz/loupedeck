@@ -3,9 +3,10 @@ Loupedeck: Node.js Interface
 
 ![tests](https://github.com/foxxyz/loupedeck/workflows/tests/badge.svg?branch=master)
 
-Unofficial Node.js API for [Loupedeck Live](https://loupedeck.com/products/loupedeck-live/) controllers.
+Unofficial Node.js API for [Loupedeck Live](https://loupedeck.com/products/loupedeck-live/) & [Loupedeck Live S](https://loupedeck.com/products/loupedeck-live-s/) controllers.
 
-![Loupedeck Live Interface](https://github.com/foxxyz/loupedeck/blob/master/docs/device-front-small.png?raw=true)
+![Loupedeck Live Interface](/docs/live-front-small.png?raw=true)
+![Loupedeck Live S Interface](/docs/live-s-front-small.png?raw=true)
 
 Supports:
 
@@ -21,9 +22,9 @@ Requirements
 ------------
 
  * Node 14+
- * Loupedeck
+ * Loupedeck Live or Loupedeck Live S
 
-This library has been tested with firmware versions 0.1.79 and 0.2.5. Other versions may work.
+This library has been tested with firmware versions 0.1.3, 0.1.79 and 0.2.5. Other versions may work.
 
 Installation
 ------------
@@ -43,11 +44,13 @@ Usage Examples
 
 _Note: Ensure Loupedeck software is not running as it may conflict with this library_
 
+### Automatic Discovery
+
 ```javascript
-const { LoupedeckDevice } = require('loupedeck')
+const { discover } = require('loupedeck')
 
 // Detects and opens first connected device
-const device = new LoupedeckDevice()
+const device = await discover()
 
 // Observe connect events
 device.on('connect', () => {
@@ -65,27 +68,36 @@ device.on('rotate', ({ id, delta }) => {
 })
 ```
 
+### Manual Instantiation
+
+```javascript
+const { LoupedeckLiveS } = require('loupedeck')
+
+const device = new LoupedeckLiveS({ path: '/dev/tty.usbmodem101', autoConnect: false })
+await device.connect()
+console.info('Connection successful!')
+
+device.on('down', ({ id }) => {
+    console.info(`Button pressed: ${id}`)
+})
+```
+
 For all examples, see the [`examples` folder](/examples/). Running examples requires `canvas` to be installed (see above).
 
 📝 API Docs
 -----------
 
-### Class `LoupedeckDevice`
+### `discover() : Promise<LoupedeckDevice>`
 
-Main device class.
+Find the first connected Loupedeck device and return it.
 
-All incoming messages are emitted as action events and can be subscribed to via `device.on()`.
+Returns an instance of `LoupedeckLive` or `LoupedeckLiveS`, or throws an `Error` in case none or unsupported devices are found.
 
-### `LoupedeckDevice.list({ ignoreSerial : Boolean?, ignoreWebsocket : Boolean?} = {}) : Promise`
+### Class `LoupedeckLive`
 
-Static method to scan for and return a list of all detected devices. This includes ones which are already opened.
+Implements and supports all methods from the [`LoupedeckDevice` interface](#interface-loupedeckdevice).
 
- - `ignoreSerial`: Ignore devices which operate over serial (Firmware 0.2.X) (default: false)
- - `ignoreWebsocket`: Ignore devices which operate over websocket (Firmware 0.1.X) (default: false)
- 
-Device info can be directly passed on to the constructor below.
-
-#### `new LoupedeckDevice({ path : String?, host : String?, autoConnect : Boolean? })`
+#### `new LoupedeckLive({ path : String?, host : String?, autoConnect : Boolean? })`
 
 Create a new Loupedeck device interface.
 
@@ -95,6 +107,33 @@ Most use-cases should omit the `host`/`path` parameter, unless you're using mult
  - `host`: **(Firmware 0.1.X only)** Host or IP address to connect to (example: `127.100.1.1`) (default: autodiscover)
  - `autoConnect`: Automatically connect during construction. (default: `true`) _Set to `false` if you'd prefer to call [`connect()`](#deviceconnect--promise). yourself._
  - `reconnectInterval`: How many milliseconds to wait before attempting a reconnect after a failed connection (default: `3000`) _Set to `false` to turn off automatic reconnects._
+
+### Class `LoupedeckLiveS`
+
+Implements and supports all methods from the [`LoupedeckDevice` interface](#interface-loupedeckdevice).
+
+#### `new LoupedeckLiveS({ path : String?, autoConnect : Boolean? })`
+
+Create a new Loupedeck Live S interface.
+
+ - `path`: Serial device path (example: `/dev/cu.ttymodem-1332` or `COM2`) (default: autodiscover)
+ - `autoConnect`: Automatically connect during construction. (default: `true`) _Set to `false` if you'd prefer to call [`connect()`](#deviceconnect--promise). yourself._
+ - `reconnectInterval`: How many milliseconds to wait before attempting a reconnect after a failed connection (default: `3000`) _Set to `false` to turn off automatic reconnects._
+
+### Interface `LoupedeckDevice`
+
+Shared device interface. Do not instantiate this manually, use one of the above classes instead or the [`discover()` function](#discover--promiseloupedeckdevice).
+
+All incoming messages are emitted as action events and can be subscribed to via `device.on()`.
+
+### `LoupedeckDevice.list({ ignoreSerial : Boolean?, ignoreWebsocket : Boolean?} = {}) : Promise<Array>`
+
+Static method to scan for and return a list of all detected devices. This includes ones which are already opened.
+
+ - `ignoreSerial`: Ignore devices which operate over serial (Firmware 0.2.X) (default: false)
+ - `ignoreWebsocket`: Ignore devices which operate over websocket (Firmware 0.1.X) (default: false)
+ 
+Device info can be directly passed on to the constructor below.
 
 #### Event: `'connect'`
 
@@ -111,14 +150,14 @@ Emitted when a device disconnects for any reason. First argument for the event i
 Emitted when a button or knob is pressed down.
 
 Arguments:
- - `id`: Button ID ([see `constants.js` for possible IDs](https://github.com/foxxyz/loupedeck/blob/master/constants.js#L3))
+ - `id`: Button ID ([see `constants.js` for possible IDs](/constants.js#L3))
 
 #### Event: `'rotate'`
 
 Emitted when a knob is rotated.
 
 Arguments:
- - `id`: Button ID ([see `constants.js` for possible IDs](https://github.com/foxxyz/loupedeck/blob/master/constants.js#L3))
+ - `id`: Button ID ([see `constants.js` for possible IDs](/constants.js#L3))
  - `delta`: Rotation direction, `-1` for counter-clockwise, `1` for clockwise.
 
 #### Event: `'touchstart'`
@@ -150,7 +189,7 @@ Arguments:
 Emitted when a button or knob is released.
 
 Arguments:
- - `id`: Button ID (see [`device.js`](https://github.com/foxxyz/loupedeck/blob/master/device.js#L5) for valid button names)
+ - `id`: Button ID ([see `constants.js` for possible IDs](/constants.js#L3))
  
 #### `device.close() : Promise`
 
@@ -160,15 +199,15 @@ Returns Promise which resolves once the device has been closed.
 
 #### `device.connect() : Promise`
 
-Manually connect if `autoConnect` set to `false` during [construction](#new-loupedeckdevice-host--string-autoconnect--boolean-).
+Manually connect. Resolves on success.
 
 #### `device.drawBuffer({ id : String, width : Number, height : Number, x? : Number, y? : Number, autoRefresh? : Boolean }, buffer : Buffer) : Promise`
 
 Draw graphics to a particular area using a RGB16-565 pixel buffer.
 
-Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction) don't meet your needs.
+Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction--promise) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction--promise) don't meet your needs.
 
- - `id`: Screen to write to [`left`, `center`, `right`]
+ - `id`: Screen to write to [`left`, `center`, `right`] _(`left` and `right` available on Loupedeck Live only)_
  - `width`: Width of area to draw
  - `height`: Height of area to draw
  - `x`: Starting X offset (default: `0`)
@@ -182,9 +221,9 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 Draw graphics to a particular area using the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D). Requires [`canvas`](https://www.npmjs.com/package/canvas) to be installed.
 
-Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction) don't meet your needs.
+Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction--promise) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction--promise) don't meet your needs.
 
- - `id`: Screen to write to [`left`, `center`, `right`]
+ - `id`: Screen to write to [`left`, `center`, `right`] _(`left` and `right` available on Loupedeck Live only)_
  - `width`: Width of area to draw
  - `height`: Height of area to draw
  - `x`: Starting X offset (default: `0`)
@@ -203,7 +242,7 @@ Draw graphics to a specific key.
 
 Second argument can be either a RGB16-565 buffer or a callback. Width and height of callback will be `90`, as keys are 90x90px.
 
- - `key`: Key index to write to [0-11]
+ - `key`: Key index to write to ([0-11] on _Loupedeck Live_, [0-14] on _Loupedeck Live S_)
  - `buffer`: RGB16-565 Buffer
  - `callback`: Function to handle draw calls. Receives the following arguments:
      1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
@@ -216,13 +255,17 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 Draw graphics to a specific screen. Screen sizes are as follows:
 
+Loupedeck Live:
  * `left`: 60x270px
  * `center`: 360x270px
  * `right`: 60x270px
+
+Loupedeck Live S:
+ * `center`: 480x270px
  
  Second argument can be either a RGB16-565 buffer or a callback. 
 
- - `screenID`: Screen to write to [`left`, `center`, `right`]
+ - `screenID`: Screen to write to [`left`, `center`, `right`] _(`left` and `right` available on Loupedeck Live only)_
  - `buffer`: RGB16-565 Buffer
  - `callback`: Function to handle draw calls. Receives the following arguments:
      1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
@@ -244,7 +287,7 @@ If the device is not connected, the promise will reject.
 
 Set screen brightness.
 
- - `brightness`: Number between (0, 1) (`0` would turn the screen off, `1` for full brightness)
+ - `brightness`: Float between (0, 1) (`0` would turn the screen off, `1` for full brightness)
  
 Returns a Promise which resolves once the command has been acknowledged by the device.
 
@@ -252,7 +295,7 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 Set a button LED to a particular color.
 
- - `id`: Button ID (possible choices: [`circle`, `1`, `2`, `3`, `4`, `5`, `6`, `7`])
+ - `id`: Button ID (possible choices: 0-7 on _Loupedeck Live_ or 0-4 on _Loupedeck Live S_)
  - `color`: Any [valid CSS color string](https://github.com/colorjs/color-parse#parsed-strings)
 
 Returns a Promise which resolves once the command has been acknowledged by the device.
@@ -261,7 +304,7 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 Make device vibrate.
 
- - `pattern`: A valid vibration pattern ([see `HAPTIC` for valid patterns](https://github.com/foxxyz/loupedeck/blob/master/constants.js#L50)) (default: `HAPTIC.SHORT`)
+ - `pattern`: A valid vibration pattern ([see `HAPTIC` for valid patterns](/constants.js#L50)) (default: `HAPTIC.SHORT`)
  
 Returns a Promise which resolves once the command has been acknowledged by the device.
 
@@ -273,8 +316,8 @@ Touch objects are emitted in the [`touchstart`](#event-touchstart), [`touchmove`
  + `x`: Screen X-coordinate ([0, 480])
  + `y`: Screen Y-coordinate ([0, 270])
  + `target`:
-     * `screen`: Identifier of screen this touch was detected on ([`left`, `center`, `right`])
-     * `key`: Index of key touched ([0-11]) (`undefined` if not on `center` screen)
+     * `screen`: Identifier of screen this touch was detected on ([`left`, `center`, `right`]) (`center` only on _Loupedeck Live S_)
+     * `key`: Index of key touched ([0-11] on _Loupedeck Live_, [0-14] on _Loupedeck Live S_)
 
 Contributing & Tests
 --------------------

@@ -1,16 +1,15 @@
 const EventEmitter = require('events')
 const rgba = require('color-rgba')
+const SerialConnection = require('./connections/serial')
+const WSConnection = require('./connections/ws')
 
 const {
     BUTTONS,
     COMMANDS,
     DEFAULT_RECONNECT_INTERVAL,
-    DISPLAYS,
     HAPTIC,
     MAX_BRIGHTNESS,
 } = require('./constants')
-const WSConnection = require('./connections/ws')
-const SerialConnection = require('./connections/serial')
 
 class LoupedeckDevice extends EventEmitter {
     static async list({ ignoreSerial = false, ignoreWebsocket = false } = {}) {
@@ -61,8 +60,8 @@ class LoupedeckDevice extends EventEmitter {
         else {
             const devices = await this.constructor.list()
             if (devices.length > 0) {
-                const { type, ...args } = devices[0]
-                this.connection = new type(args)
+                const { connectionType, ...args } = devices[0]
+                this.connection = new connectionType(args)
             }
             if (!this.connection) {
                 return Promise.reject(this.onDisconnect(new Error('No devices found')))
@@ -80,7 +79,8 @@ class LoupedeckDevice extends EventEmitter {
     // Draw an arbitrary buffer to the device
     // Buffer format must be 16bit 5-6-5
     async drawBuffer({ id, width, height, x = 0, y = 0, autoRefresh = true }, buffer) {
-        const displayInfo = DISPLAYS[id]
+        const displayInfo = this.displays[id]
+        if (!displayInfo) throw new Error(`Display '${id}' is not available on this device!`)
         if (!width) width = displayInfo.width
         if (!height) height = displayInfo.height
 
@@ -104,7 +104,8 @@ class LoupedeckDevice extends EventEmitter {
     }
     // Create a canvas with correct dimensions and pass back for drawing
     drawCanvas({ id, width, height, ...args }, cb) {
-        const displayInfo = DISPLAYS[id]
+        const displayInfo = this.displays[id]
+        if (!displayInfo) throw new Error(`Display '${id}' is not available on this device!`)
         if (!width) width = displayInfo.width
         if (!height) height = displayInfo.height
         let createCanvas
@@ -120,13 +121,14 @@ class LoupedeckDevice extends EventEmitter {
         const buffer = canvas.toBuffer('raw')
         return this.drawBuffer({ id, width, height, ...args }, buffer)
     }
-    // Draw to a specific key index (0-12)
+    // Draw to a specific key index (0-11 on Live, 0-14 on Live S)
     drawKey(index, cb) {
         // Get offset x/y for key index
+        if (index < 0 || index >= this.columns * this.rows) throw new Error(`Key ${index} is not a valid key`)
         const width = 90
         const height = 90
-        const x = index % 4 * width
-        const y = Math.floor(index / 4) * height
+        const x = this.visibleX[0] + index % this.columns * width
+        const y = Math.floor(index / this.columns) * height
         return this[cb instanceof Buffer ? 'drawBuffer' : 'drawCanvas']({ id: 'center', x, y, width, height }, cb)
     }
     // Draw to a specific screen
@@ -141,6 +143,7 @@ class LoupedeckDevice extends EventEmitter {
         }
     }
     onButton(buff) {
+        if (buff.length < 2) return
         const id = BUTTONS[buff[0]]
         const event = buff[1] === 0x00 ? 'down' : 'up'
         this.emit(event, { id })
@@ -182,17 +185,8 @@ class LoupedeckDevice extends EventEmitter {
         const y = buff.readUInt16BE(3)
         const id = buff[5]
 
-        // Determine target
-        const screen = x < 60 ? 'left' : x >= 420 ? 'right' : 'center'
-        let key
-        if (screen === 'center') {
-            const column = Math.floor((x - 60) / 90)
-            const row = Math.floor(y / 90)
-            key = row * 4 + column
-        }
-
         // Create touch
-        const touch = { x, y, id, target: { screen, key } }
+        const touch = { x, y, id, target: this.getTarget(x, y) }
 
         // End touch, remove from local cache
         if (event === 'touchend') {
@@ -210,7 +204,7 @@ class LoupedeckDevice extends EventEmitter {
     }
     // Display the current framebuffer
     refresh(id) {
-        const displayInfo = DISPLAYS[id]
+        const displayInfo = this.displays[id]
         return this.send(COMMANDS.DRAW, displayInfo.id)
     }
     send(command, data = Buffer.alloc(0)) {
@@ -244,4 +238,57 @@ class LoupedeckDevice extends EventEmitter {
     }
 }
 
-module.exports = LoupedeckDevice
+class LoupedeckLive extends LoupedeckDevice {
+    buttons = [0, 1, 2, 3, 4, 5, 6, 7]
+    columns = 4
+    displays = {
+        center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
+        left: { id: Buffer.from('\x00L'), width: 60, height: 270 }, // "L"
+        right: { id: Buffer.from('\x00R'), width: 60, height: 270 }, // "R"
+    }
+    productId = '0004'
+    rows = 3
+    type = 'Loupedeck Live'
+    visibleX = [0, 480]
+    // Determine touch target based on x/y position
+    getTarget(x, y) {
+        if (x < 60) return { screen: 'left' }
+        if (x >= 420) return { screen: 'right' }
+        const column = Math.floor((x - 60) / 90)
+        const row = Math.floor(y / 90)
+        const key = row * this.columns + column
+        return {
+            screen: 'center',
+            key
+        }
+    }
+}
+
+class LoupedeckLiveS extends LoupedeckDevice {
+    buttons = [0, 1, 2, 3]
+    columns = 5
+    displays = {
+        center: { id: Buffer.from('\x00M'), width: 480, height: 270 },
+    }
+    productId = '0006'
+    rows = 3
+    type = 'Loupedeck Live S'
+    visibleX = [15, 465]
+    // Determine touch target based on x/y position
+    getTarget(x, y) {
+        if (x < this.visibleX[0] || x >= this.visibleX[1]) return {}
+        const column = Math.floor((x - this.visibleX[0]) / 90)
+        const row = Math.floor(y / 90)
+        const key = row * this.columns + column
+        return {
+            screen: 'center',
+            key
+        }
+    }
+}
+
+module.exports = {
+    LoupedeckDevice,
+    LoupedeckLive,
+    LoupedeckLiveS,
+}

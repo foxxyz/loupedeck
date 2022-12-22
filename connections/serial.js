@@ -20,10 +20,11 @@ class LoupedeckSerialConnection extends EventEmitter {
     // Automatically find Loupedeck Serial device by scanning ports
     static async discover() {
         const results = []
-        for (const { manufacturer, path, vendorId, productId, serialNumber } of await SerialPort.list()) {
+        for (const info of await SerialPort.list()) {
+            const { manufacturer, path, vendorId, productId, serialNumber } = info
             if (vendorId !== '2ec2' && manufacturer !== 'Loupedeck') continue
             results.push({
-                type: this,
+                connectionType: this,
                 path,
                 vendorId,
                 productId,
@@ -41,7 +42,6 @@ class LoupedeckSerialConnection extends EventEmitter {
         this.connection.on('error', this.onError.bind(this))
         this.connection.on('close', this.onDisconnect.bind(this))
         await new Promise(res => this.connection.once('open', res))
-
         // Wait for the "websocket" handshake over serial (...)
         await new Promise((res, rej) => {
             this.connection.once('data', buff => {
@@ -66,6 +66,7 @@ class LoupedeckSerialConnection extends EventEmitter {
     }
     onError(err) {
         console.error(`Loupedeck Serial Error: ${err.message}`)
+        this.onDisconnect(err)
     }
     send(buff, raw = false) {
         if (!raw) {
