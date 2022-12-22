@@ -47,10 +47,10 @@ _Note: Ensure Loupedeck software is not running as it may conflict with this lib
 ### Automatic Discovery
 
 ```javascript
-const { LoupedeckDevice } = require('loupedeck')
+const { discover } = require('loupedeck')
 
 // Detects and opens first connected device
-const device = await LoupedeckDevice.discover()
+const device = await discover()
 
 // Observe connect events
 device.on('connect', () => {
@@ -87,11 +87,17 @@ For all examples, see the [`examples` folder](/examples/). Running examples requ
 📝 API Docs
 -----------
 
+### `discover() : Promise<LoupedeckDevice>`
+
+Find the first connected Loupedeck device and return it.
+
+Returns an instance of `LoupedeckLive` or `LoupedeckLiveS`, or throws an `Error` in case none or unsupported devices are found.
+
 ### Class `LoupedeckLive`
 
 Implements the `LoupedeckDevice` interface below.
 
-#### `new LoupedeckDevice({ path : String?, host : String?, autoConnect : Boolean? })`
+#### `new LoupedeckLive({ path : String?, host : String?, autoConnect : Boolean? })`
 
 Create a new Loupedeck device interface.
 
@@ -106,7 +112,7 @@ Most use-cases should omit the `host`/`path` parameter, unless you're using mult
 
 Implements the `LoupedeckDevice` interface below.
 
-#### `new LoupedeckDevice({ path : String?, autoConnect : Boolean? })`
+#### `new LoupedeckLiveS({ path : String?, autoConnect : Boolean? })`
 
 Create a new Loupedeck Live S interface.
 
@@ -119,10 +125,6 @@ Create a new Loupedeck Live S interface.
 Shared device interface. Do not instantiate this manually, use one of the above classes instead or the [`discover()` method below](#test).
 
 All incoming messages are emitted as action events and can be subscribed to via `device.on()`.
-
-### `LoupedeckDevice.discover() : Promise<LoupedeckDevice>`
-
-Static method to find and connect to the first Loupedeck device found.
 
 ### `LoupedeckDevice.list({ ignoreSerial : Boolean?, ignoreWebsocket : Boolean?} = {}) : Promise<Array>`
 
