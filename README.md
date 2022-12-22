@@ -95,7 +95,7 @@ Returns an instance of `LoupedeckLive` or `LoupedeckLiveS`, or throws an `Error`
 
 ### Class `LoupedeckLive`
 
-Implements the `LoupedeckDevice` interface below.
+Implements and supports all methods from the [`LoupedeckDevice` interface](#interface-loupedeckdevice).
 
 #### `new LoupedeckLive({ path : String?, host : String?, autoConnect : Boolean? })`
 
@@ -110,7 +110,7 @@ Most use-cases should omit the `host`/`path` parameter, unless you're using mult
 
 ### Class `LoupedeckLiveS`
 
-Implements the `LoupedeckDevice` interface below.
+Implements and supports all methods from the [`LoupedeckDevice` interface](#interface-loupedeckdevice).
 
 #### `new LoupedeckLiveS({ path : String?, autoConnect : Boolean? })`
 
@@ -122,7 +122,7 @@ Create a new Loupedeck Live S interface.
 
 ### Interface `LoupedeckDevice`
 
-Shared device interface. Do not instantiate this manually, use one of the above classes instead or the [`discover()` method below](#test).
+Shared device interface. Do not instantiate this manually, use one of the above classes instead or the [`discover()` function](#discover--promiseloupedeckdevice).
 
 All incoming messages are emitted as action events and can be subscribed to via `device.on()`.
 
@@ -199,13 +199,13 @@ Returns Promise which resolves once the device has been closed.
 
 #### `device.connect() : Promise`
 
-Manually connect if `autoConnect` set to `false` during [construction](#new-loupedeckdevice-host--string-autoconnect--boolean-).
+Manually connect. Resolves on success.
 
 #### `device.drawBuffer({ id : String, width : Number, height : Number, x? : Number, y? : Number, autoRefresh? : Boolean }, buffer : Buffer) : Promise`
 
 Draw graphics to a particular area using a RGB16-565 pixel buffer.
 
-Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction) don't meet your needs.
+Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction--promise) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction--promise) don't meet your needs.
 
  - `id`: Screen to write to [`left`, `center`, `right`] _(`left` and `right` available on Loupedeck Live only)_
  - `width`: Width of area to draw
@@ -221,7 +221,7 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 Draw graphics to a particular area using the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D). Requires [`canvas`](https://www.npmjs.com/package/canvas) to be installed.
 
-Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction) don't meet your needs.
+Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction--promise) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction--promise) don't meet your needs.
 
  - `id`: Screen to write to [`left`, `center`, `right`] _(`left` and `right` available on Loupedeck Live only)_
  - `width`: Width of area to draw
@@ -265,7 +265,7 @@ Loupedeck Live S:
  
  Second argument can be either a RGB16-565 buffer or a callback. 
 
- - `screenID`: Screen to write to [`left`, `center`, `right`] (`center` only on _Loupedeck Live S_)
+ - `screenID`: Screen to write to [`left`, `center`, `right`] _(`left` and `right` available on Loupedeck Live only)_
  - `buffer`: RGB16-565 Buffer
  - `callback`: Function to handle draw calls. Receives the following arguments:
      1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
