@@ -152,6 +152,7 @@ class LoupedeckDevice extends EventEmitter {
         }
     }
     onButton(buff) {
+        if (buff.length < 2) return
         const id = BUTTONS[buff[0]]
         const event = buff[1] === 0x00 ? 'down' : 'up'
         this.emit(event, { id })

@@ -222,6 +222,13 @@ describe('Message Parsing', () => {
     beforeEach(() => {
         device = new LoupedeckLive({ ip: '255.255.255.255', autoConnect: false })
     })
+    it('processes timestamp events', () => {
+        const SAMPLE_MESSAGE = Buffer.from('040000ba', 'hex')
+        const fn = jest.fn()
+        device.on('up', fn)
+        device.onReceive(SAMPLE_MESSAGE)
+        expect(fn).not.toHaveBeenCalled()
+    })
     it('processes button presses', () => {
         const SAMPLE_MESSAGE = Buffer.from('0500000900', 'hex')
         const fn = jest.fn()
