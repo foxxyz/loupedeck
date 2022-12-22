@@ -47,7 +47,7 @@ _Note: Ensure Loupedeck software is not running as it may conflict with this lib
 ### Automatic Discovery
 
 ```javascript
-const { discover } = require('loupedeck')
+import { discover } from 'loupedeck'
 
 // Detects and opens first connected device
 const device = await discover()
@@ -71,7 +71,7 @@ device.on('rotate', ({ id, delta }) => {
 ### Manual Instantiation
 
 ```javascript
-const { LoupedeckLiveS } = require('loupedeck')
+import { LoupedeckLiveS } from 'loupedeck'
 
 const device = new LoupedeckLiveS({ path: '/dev/tty.usbmodem101', autoConnect: false })
 await device.connect()
