@@ -241,7 +241,7 @@ device.on('rotate', async({ id, delta }) => {
 
 // Reset the game when circle pressed
 device.on('down', ({ id }) => {
-    if (id === 'circle' && game.outcome === 'win') game.start()
+    if (id === 0) game.start()
 })
 
 game.start()

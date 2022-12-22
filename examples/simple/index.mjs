@@ -1,7 +1,15 @@
 #!/usr/bin/env node
 import { LoupedeckDevice } from '../../index.js'
 
-const loupedeck = await LoupedeckDevice.discover()
+let loupedeck
+while(!loupedeck) {
+    try {
+        loupedeck = await LoupedeckDevice.discover()
+    } catch(e) {
+        console.error(`${e}. Reattempting in 3 seconds...`)
+        await new Promise(res => setTimeout(res, 3000))
+    }
+}
 let brightness = 1
 let vibration = 0
 
@@ -20,7 +28,7 @@ loupedeck.on('disconnect', err => {
 
 loupedeck.on('down', ({ id }) => {
     console.log(`Button ${id} pressed`)
-    if (id === 'circle') drawKeyColors(loupedeck)
+    if (id === 0) drawKeyColors(loupedeck)
 })
 
 loupedeck.on('up', ({ id }) => {
