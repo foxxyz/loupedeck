@@ -1,5 +1,7 @@
 const EventEmitter = require('events')
 const rgba = require('color-rgba')
+const SerialConnection = require('./connections/serial')
+const WSConnection = require('./connections/ws')
 
 const {
     BUTTONS,
@@ -8,19 +10,8 @@ const {
     HAPTIC,
     MAX_BRIGHTNESS,
 } = require('./constants')
-const WSConnection = require('./connections/ws')
-const SerialConnection = require('./connections/serial')
 
 class LoupedeckDevice extends EventEmitter {
-    static async discover() {
-        const devices = await this.list()
-        if (devices.length === 0) throw new Error('No devices found')
-        const { productId, ...args } = devices[0]
-        const deviceType = USB_PRODUCT_IDS[productId]
-        if (!deviceType) throw new Error(`Device with product ID ${productId} not yet supported! Please file an issue at https://github.com/foxxyz/loupedeck/issues`)
-        const device = new deviceType(args)
-        return device
-    }
     static async list({ ignoreSerial = false, ignoreWebsocket = false } = {}) {
         const ps = []
 
@@ -248,16 +239,17 @@ class LoupedeckDevice extends EventEmitter {
 }
 
 class LoupedeckLive extends LoupedeckDevice {
-    type = 'Loupedeck Live'
     buttons = [0, 1, 2, 3, 4, 5, 6, 7]
-    rows = 3
     columns = 4
-    visibleX = [0, 480]
     displays = {
         center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
         left: { id: Buffer.from('\x00L'), width: 60, height: 270 }, // "L"
         right: { id: Buffer.from('\x00R'), width: 60, height: 270 }, // "R"
     }
+    productId = '0004'
+    rows = 3
+    type = 'Loupedeck Live'
+    visibleX = [0, 480]
     // Determine touch target based on x/y position
     getTarget(x, y) {
         if (x < 60) return { screen: 'left' }
@@ -273,14 +265,15 @@ class LoupedeckLive extends LoupedeckDevice {
 }
 
 class LoupedeckLiveS extends LoupedeckDevice {
-    type = 'Loupedeck Live S'
     buttons = [0, 1, 2, 3]
-    rows = 3
     columns = 5
-    visibleX = [15, 465]
     displays = {
         center: { id: Buffer.from('\x00M'), width: 480, height: 270 },
     }
+    productId = '0006'
+    rows = 3
+    type = 'Loupedeck Live S'
+    visibleX = [15, 465]
     // Determine touch target based on x/y position
     getTarget(x, y) {
         if (x < this.visibleX[0] || x >= this.visibleX[1]) return {}
@@ -292,11 +285,6 @@ class LoupedeckLiveS extends LoupedeckDevice {
             key
         }
     }
-}
-
-const USB_PRODUCT_IDS = {
-    '0004': LoupedeckLive,
-    '0006': LoupedeckLiveS,
 }
 
 module.exports = {

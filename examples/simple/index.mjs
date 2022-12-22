@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import { LoupedeckDevice } from '../../index.js'
+import { discover } from '../../index.js'
 
 let loupedeck
 while(!loupedeck) {
     try {
-        loupedeck = await LoupedeckDevice.discover()
+        loupedeck = await discover()
     } catch(e) {
         console.error(`${e}. Reattempting in 3 seconds...`)
         await new Promise(res => setTimeout(res, 3000))

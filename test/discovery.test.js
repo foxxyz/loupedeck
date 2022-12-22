@@ -1,5 +1,4 @@
-const { LoupedeckDevice, LoupedeckLive, LoupedeckLiveS } = require('..')
-
+const { discover, LoupedeckLive, LoupedeckLiveS } = require('..')
 const { SerialPort } = require('serialport')
 
 describe('Device Discovery', () => {
@@ -14,11 +13,11 @@ describe('Device Discovery', () => {
                 productId: '52b5'
             }
         ])
-        await expect(LoupedeckDevice.discover()).rejects.toThrow(/no devices found/i)
+        await expect(discover()).rejects.toThrow(/no devices found/i)
         spy.mockRestore()
     })
     it('can auto-discover a Loupedeck Live device', async() => {
-        const device = await LoupedeckDevice.discover()
+        const device = await discover()
         expect(device).toBeInstanceOf(LoupedeckLive)
     })
     it('can auto-discover a Loupedeck Live S device', async() => {
@@ -32,7 +31,7 @@ describe('Device Discovery', () => {
                 productId: '0006'
             }
         ])
-        const device = await LoupedeckDevice.discover()
+        const device = await discover()
         expect(device).toBeInstanceOf(LoupedeckLiveS)
         spy.mockRestore()
     })
@@ -47,7 +46,7 @@ describe('Device Discovery', () => {
                 productId: '000d'
             }
         ])
-        await expect(LoupedeckDevice.discover()).rejects.toThrow(/not yet supported/i)
+        await expect(discover()).rejects.toThrow(/not yet supported/i)
         spy.mockRestore()
     })
 })

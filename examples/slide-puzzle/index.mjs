@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import { LoupedeckDevice } from '../../index.js'
+import { discover } from '../../index.js'
 import { createCanvas, loadImage } from 'canvas'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
-const device = await LoupedeckDevice.discover()
+const device = await discover()
 
 device.on('connect', async({ address }) => {
     console.info(`✅ Connected to ${device.type} at ${address}`)
