@@ -7,9 +7,7 @@ class MagicByteLengthParser extends Transform {
         super(args)
         this.delimiter = magicByte
         this.buffer = Buffer.alloc(0)
-        this.nextLength = null
     }
-
     _transform(chunk, encoding, cb) {
         let data = Buffer.concat([this.buffer, chunk])
         let position
@@ -26,7 +24,6 @@ class MagicByteLengthParser extends Transform {
         this.buffer = data
         cb()
     }
-
     _flush(cb) {
         this.push(this.buffer)
         this.buffer = Buffer.alloc(0)

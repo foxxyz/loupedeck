@@ -1,7 +1,13 @@
 const EventEmitter = require('events')
 const rgba = require('color-rgba')
-const SerialConnection = require('./connections/serial')
-const WSConnection = require('./connections/ws')
+
+let SerialConnection, WSConnection
+if (typeof navigator !== 'undefined') {
+    SerialConnection = require('./connections/web-serial')
+} else {
+    SerialConnection = require('./connections/serial')
+    WSConnection = require('./connections/ws')
+}
 
 const {
     BUTTONS,
@@ -16,7 +22,7 @@ class LoupedeckDevice extends EventEmitter {
         const ps = []
 
         if (!ignoreSerial) ps.push(SerialConnection.discover())
-        if (!ignoreWebsocket) ps.push(WSConnection.discover())
+        if (!ignoreWebsocket && WSConnection) ps.push(WSConnection.discover())
 
         // Run them in parallel
         const rawDevices = await Promise.all(ps)
@@ -111,7 +117,7 @@ class LoupedeckDevice extends EventEmitter {
         let createCanvas
         try {
             createCanvas = require('canvas').createCanvas
-        } catch(e) {
+        } catch (e) {
             throw new Error('Using callbacks requires the `canvas` library to be installed. Install it using `npm install canvas`.')
         }
 
