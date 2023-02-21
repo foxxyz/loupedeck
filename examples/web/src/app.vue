@@ -15,6 +15,7 @@
         <loupedeck-knob :pressed="state.buttons.knobCL" :rotation="state.knobCL" />
         <div class="screen">
             <div v-for="idx in 15" :key="idx" />
+            <canvas width="480" height="270" ref="screenCanvas" />
         </div>
     </div>
     <div v-else-if="deviceInfo.type" class="loupedeck">
@@ -56,6 +57,19 @@ const state = reactive({
     knobBR: 0,
 })
 
+const screenCanvas = ref()
+let screenCtx
+function render({ touches }) {
+    if (!screenCtx) return
+    screenCtx.clearRect(0, 0, screenCtx.canvas.width, screenCtx.canvas.height)
+    screenCtx.fillStyle = '#ffffff88'
+    for (const touch of touches) {
+        screenCtx.beginPath()
+        screenCtx.arc(touch.x, touch.y, 16, 0, 2 * Math.PI)
+        screenCtx.fill()
+    }
+}
+
 async function request() {
     let device
     try {
@@ -69,7 +83,10 @@ async function request() {
         // Load device info
         deviceInfo.type = device.type
         Object.assign(deviceInfo, await device.getInfo())
+        screenCtx = screenCanvas.value.getContext('2d')
     })
+
+    console.log(device)
 
     device.on('down', ({ id }) => {
         state.buttons[id] = true
@@ -80,6 +97,9 @@ async function request() {
     device.on('rotate', ({ id, delta }) => {
         state[id] += delta
     })
+    device.on('touchstart', render)
+    device.on('touchmove', render)
+    device.on('touchend', render)
 }
 request()
 </script>
@@ -155,6 +175,12 @@ body
         display: flex
         align-items: center
         box-sizing: border-box
+        canvas
+            position: absolute
+            top: 0
+            left: 0
+            width: 100%
+            height: 100%
         > div
             aspect-ratio: 1
             background: #222
