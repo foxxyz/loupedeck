@@ -90,7 +90,7 @@ class LoupedeckWebSerialConnection extends EventEmitter {
     }
     async connect() {
         await this.port.open({ baudRate: 256000 })
-        console.log('opened!')
+        
         navigator.serial.addEventListener('connect', e => {
             console.log('connect', e)
         })
