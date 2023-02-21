@@ -1,34 +1,44 @@
 <template>
-    <h1>Loupedeck Web Serial Example</h1>
+    <h1>Loupedeck WebSerial Example</h1>
     <button v-if="!connected" @click="request" type="button">
-        Request Access
+        Connect Device
     </button>
-    <div class="loupedecklives">
-        <div :class="['button', { active: state.buttons[0] }]" />
-        <div :class="['button', { active: state.buttons[1] }]" />
-        <div :class="['button', { active: state.buttons[2] }]" />
-        <div :class="['button', { active: state.buttons[3] }]" />
-        <div :class="['knob', { active: state.buttons.knobTL }]" :style="{ transform: `rotate(${state.knobTL * DEG_PER_UNIT}deg)` }" />
-        <div :class="['knob', { active: state.buttons.knobCL }]" :style="{ transform: `rotate(${state.knobCL * DEG_PER_UNIT}deg)` }" />
+    <p class="info" v-if="deviceInfo.type">
+        {{ deviceInfo.type }} connected with serial {{ deviceInfo.serial }} and firmware {{ deviceInfo.version }}
+    </p>
+    <div v-if="deviceInfo.type === 'Loupedeck Live S'" class="loupedecklives">
+        <loupedeck-button :pressed="state.buttons[0]" color="#0f0" />
+        <loupedeck-button :pressed="state.buttons[1]" color="#666" />
+        <loupedeck-button :pressed="state.buttons[2]" color="#666" />
+        <loupedeck-button :pressed="state.buttons[3]" color="#666" />
+        <loupedeck-knob :pressed="state.buttons.knobTL" :rotation="state.knobTL" />
+        <loupedeck-knob :pressed="state.buttons.knobCL" :rotation="state.knobCL" />
         <div class="screen">
             <div v-for="idx in 15" :key="idx" />
         </div>
     </div>
+    <div v-else-if="deviceInfo.type" class="loupedeck">
+        <h3>Test</h3>
+    </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 
 import { Buffer } from 'buffer'
 window.Buffer = Buffer
 
 import { discover } from 'loupedeck'
 
-// Encoder seems to have 30 indents per full revolution,
-// so 360 / 30 = 12 degrees per tick
-const DEG_PER_UNIT = 12
+import loupedeckButton from './components/loupedeck-button.vue'
+import loupedeckKnob from './components/loupedeck-knob.vue'
 
 const connected = ref(false)
+const deviceInfo = reactive({
+    serial: null,
+    version: null,
+    type: null
+})
 const state = reactive({
     buttons: {
         0: false,
@@ -47,8 +57,19 @@ const state = reactive({
 })
 
 async function request() {
-    const device = await discover()
-    device.on('connect', () => connected.value = true)
+    let device
+    try {
+        device = await discover()
+    } catch (e) {
+        return console.error(e.message)
+    }
+
+    device.on('connect', async() => {
+        connected.value = true
+        // Load device info
+        deviceInfo.type = device.type
+        Object.assign(deviceInfo, await device.getInfo())
+    })
 
     device.on('down', ({ id }) => {
         state.buttons[id] = true
@@ -70,26 +91,35 @@ body
     font-size: 16px
     font-family: sans-serif
     min-height: 100vh
+    padding: 1rem 2rem
 
 .loupedecklives
     //background: url(./images/loupedeck-live-s.png)
     background-color: #444
-    border-radius: 8vw
+    max-width: 50rem
     background-size: 100%
     width: 100%
     background-repeat: no-repeat
     aspect-ratio: 1.76
     position: relative
+    container-type: size
+    border-radius: 8% / calc(8% * 1.76)
+
+    @container (min-width: 0px)
+        .screen
+            border-radius: 2cqw
+            padding: 1.5cqw 3cqw
+            > div
+                width: calc((100% - 5cqw - 10px) / 5)
+                aspect-ratio: 1
+                margin: .5cqw
+                background: #222
+                border-radius: 1cqw
+                border: inset 1px gray
 
     .button
-        width: 7.8%
-        aspect-ratio: 1
         position: absolute
-        border-radius: 100%
-        border: solid 2px black
-        background: #ffffff22
-        &.active
-            background: #ffffff88
+        width: 7.8%
         &:nth-child(1)
             left: 4.5%
             top: 71%
@@ -103,29 +133,14 @@ body
             right: 4.5%
             top: 71%
     .knob
-        width: 7.8%
-        aspect-ratio: 1
-        border-radius: 100%
-        background: red
+        width: 11%
         position: absolute
-        &.active
-            background: #ffffff88
-        &:before
-            content: ''
-            display: block
-            width: 10%
-            background: black
-            height: 20%
-            left: 50%
-            top: -10%
-            position: absolute
-            margin-left: -5%
         &:nth-child(5)
-            left: 4.5%
-            top: 15%
+            left: 3.2%
+            top: 13%
         &:nth-child(6)
-            left: 4.5%
-            top: 43%
+            left: 3.2%
+            top: 41%
 
     .screen
         width: 66%
@@ -136,17 +151,12 @@ body
         margin-left: -33%
         top: 12%
         border: inset 3px gray
-        border-radius: 2vw
         flex-wrap: wrap
         display: flex
         align-items: center
-        padding: 1.5vw 3vw
         box-sizing: border-box
         > div
-            width: calc((100% - 5vw - 10px) / 5)
             aspect-ratio: 1
-            margin: .5vw
             background: #222
-            border-radius: 1vw
             border: inset 1px gray
 </style>
