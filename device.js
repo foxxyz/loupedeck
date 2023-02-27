@@ -246,6 +246,7 @@ class LoupedeckDevice extends EventEmitter {
 
 class LoupedeckLive extends LoupedeckDevice {
     buttons = [0, 1, 2, 3, 4, 5, 6, 7]
+    knobs = ['knobCL', 'knobCR', 'knobTL', 'knobTR', 'knobBL', 'knobBR']
     columns = 4
     displays = {
         center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
@@ -272,6 +273,7 @@ class LoupedeckLive extends LoupedeckDevice {
 
 class LoupedeckLiveS extends LoupedeckDevice {
     buttons = [0, 1, 2, 3]
+    knobs = ['knobCL', 'knobTL']
     columns = 5
     displays = {
         center: { id: Buffer.from('\x00M'), width: 480, height: 270 },
