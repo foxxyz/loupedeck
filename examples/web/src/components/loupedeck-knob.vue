@@ -31,7 +31,7 @@ const DEG_PER_UNIT = 12
         content: ''
         display: block
         width: 10%
-        background: #333
+        background: #aaa
         height: 20%
         left: 50%
         top: 0
@@ -50,10 +50,4 @@ const DEG_PER_UNIT = 12
         background: #444
         border: solid 2px #222
         border-radius: 100%
-    &:nth-child(5)
-        left: 4.5%
-        top: 15%
-    &:nth-child(6)
-        left: 4.5%
-        top: 43%
 </style>

@@ -17,6 +17,7 @@ defineProps({
 
 <style lang="sass">
 .loupedeck.button
+    position: relative
     aspect-ratio: 1
     border-radius: 100%
     border: outset 2px #333
