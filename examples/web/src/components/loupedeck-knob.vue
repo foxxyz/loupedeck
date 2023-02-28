@@ -26,7 +26,7 @@ const DEG_PER_UNIT = 12
     background: radial-gradient(#000, #777)
     border: solid 2px #111
     &.pressed
-        background: #ffffff88
+        background: #ffffff33
     &:before
         content: ''
         display: block

@@ -3,22 +3,10 @@
     <button v-if="!connected" @click="request" type="button">
         Connect Device
     </button>
-    <p class="info" v-if="deviceInfo.type">
+    <p class="info" v-if="deviceInfo">
         {{ deviceInfo.type }} connected with serial {{ deviceInfo.serial }} and firmware {{ deviceInfo.version }}
     </p>
-    <div v-if="deviceInfo.type === 'Loupedeck Live S'" class="loupedecklives">
-        <loupedeck-button :pressed="state.buttons[0]" color="#0f0" />
-        <loupedeck-button :pressed="state.buttons[1]" color="#666" />
-        <loupedeck-button :pressed="state.buttons[2]" color="#666" />
-        <loupedeck-button :pressed="state.buttons[3]" color="#666" />
-        <loupedeck-knob :pressed="state.buttons.knobTL" :rotation="state.knobTL" />
-        <loupedeck-knob :pressed="state.buttons.knobCL" :rotation="state.knobCL" />
-        <div class="screen">
-            <div v-for="idx in 15" :key="idx" />
-            <canvas width="480" height="270" ref="screenCanvas" />
-        </div>
-    </div>
-    <div v-else-if="deviceInfo.type" class="loupedecklive">
+    <div v-if="deviceInfo" :class="deviceInfo.id">
         <div class="buttons">
             <loupedeck-button
                 v-for="idx of deviceInfo.buttons"
@@ -36,15 +24,15 @@
         />
         <div class="screen">
             <div v-for="idx in (deviceInfo.columns * deviceInfo.rows)" :key="idx" />
-            <div class="left" />
-            <div class="right" />
+            <div v-if="deviceInfo.displays.left" class="left" />
+            <div v-if="deviceInfo.displays.right" class="right" />
             <canvas width="480" height="270" ref="screenCanvas" />
         </div>
     </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 
 import { Buffer } from 'buffer'
 window.Buffer = Buffer
@@ -55,16 +43,7 @@ import loupedeckButton from './components/loupedeck-button.vue'
 import loupedeckKnob from './components/loupedeck-knob.vue'
 
 const connected = ref(false)
-const deviceInfo = reactive({
-    serial: null,
-    version: null,
-    type: null,
-    knobs: [],
-    buttons: [],
-    columns: 0,
-    rows: 0,
-    displays: {}
-})
+const deviceInfo = ref()
 const state = reactive({
     buttons: {
         0: false,
@@ -103,8 +82,19 @@ function render({ touches }) {
     }
 }
 
+function touchstart({ touches, changedTouches: [touch] }) {
+    // Clear key when touched
+    if (touch.target.key !== undefined) {
+        device.drawKey(touch.target.key, (ctx, w, h) => {
+            ctx.fillStyle = 'black'
+            ctx.fillRect(0, 0, w, h)
+        })
+    }
+    render({ touches })
+}
+
+let device
 async function request() {
-    let device
     try {
         device = await discover()
     } catch (e) {
@@ -114,14 +104,17 @@ async function request() {
     device.on('connect', async() => {
         connected.value = true
         // Load device info
-        deviceInfo.type = device.type
-        deviceInfo.knobs = device.knobs
-        deviceInfo.buttons = device.buttons
-        deviceInfo.columns = device.columns
-        deviceInfo.rows = device.rows
-        deviceInfo.displays = device.displays
-        Object.assign(deviceInfo, await device.getInfo())
+        const info = Object.assign({}, device)
+        Object.assign(info, await device.getInfo())
+        info.id = device.constructor.name
+        deviceInfo.value = info
+        await nextTick()
         screenCtx = screenCanvas.value.getContext('2d')
+    })
+
+    device.on('disconnect', async() => {
+        connected.value = false
+        deviceInfo.value = null
     })
 
     device.on('down', ({ id }) => {
@@ -149,7 +142,7 @@ body
     min-height: 100vh
     padding: 1rem 2rem
 
-.loupedecklive
+.LoupedeckLive
     //background: url(./images/loupedeck-live.jpeg)
     background-color: #444
     max-width: 50rem
@@ -241,7 +234,7 @@ body
                 height: 88%
                 width: 10%
 
-.loupedecklives
+.LoupedeckLiveS
     //background: url(./images/loupedeck-live-s.png)
     background-color: #444
     max-width: 50rem
@@ -283,10 +276,10 @@ body
     .knob
         width: 11%
         position: absolute
-        &:nth-child(5)
+        &.knobTL
             left: 3.2%
             top: 13%
-        &:nth-child(6)
+        &.knobCL
             left: 3.2%
             top: 41%
 
