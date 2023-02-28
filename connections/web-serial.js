@@ -59,6 +59,7 @@ class LoupedeckWebSerialConnection extends EventEmitter {
     constructor({ port } = {}) {
         super()
         this.port = port
+        navigator.serial.addEventListener('disconnect', this.onDisconnect.bind(this))
     }
     // Automatically find Loupedeck Serial device by scanning ports
     static async discover() {
@@ -90,14 +91,6 @@ class LoupedeckWebSerialConnection extends EventEmitter {
     }
     async connect() {
         await this.port.open({ baudRate: 256000 })
-        
-        navigator.serial.addEventListener('connect', e => {
-            console.log('connect', e)
-        })
-
-        navigator.serial.addEventListener('disconnect', e => {
-            console.log('disconnect', e)
-        })
 
         const reader = this.port.readable.getReader()
         this.writer = this.port.writable.getWriter()
