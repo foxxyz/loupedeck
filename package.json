@@ -13,6 +13,7 @@
     "discovery.js",
     "constants.js",
     "parser.js",
+    "util.js",
     "connections"
   ],
   "dependencies": {

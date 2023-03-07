@@ -17,6 +17,8 @@ const {
     MAX_BRIGHTNESS,
 } = require('./constants')
 
+const { rgba2rgb565 } = require('./util')
+
 class LoupedeckDevice extends EventEmitter {
     static async list({ ignoreSerial = false, ignoreWebsocket = false } = {}) {
         const ps = []
@@ -126,7 +128,17 @@ class LoupedeckDevice extends EventEmitter {
         const canvas = createCanvas(width, height)
         const ctx = canvas.getContext('2d', { pixelFormat: 'RGB16_565' }) // Loupedeck uses 16-bit (5-6-5) LE RGB colors
         cb(ctx, width, height)
-        const buffer = canvas.toBuffer('raw')
+        let buffer
+        // If using NodeJS canvas package
+        if (canvas.toBuffer) {
+            buffer = canvas.toBuffer('raw')
+        // If using browser canvas API
+        } else {
+            const imageData = ctx.getImageData(0, 0, width, height)
+            const rgba = imageData.data
+            // Convert from RGBA to RGB16_565
+            buffer = rgba2rgb565(rgba, width * height)
+        }
         // Swap endianness depending on display
         if (displayInfo.endianness === 'be') buffer.swap16()
         return this.drawBuffer({ id, width, height, ...args }, buffer)
