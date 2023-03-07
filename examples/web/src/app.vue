@@ -144,7 +144,6 @@ body
     padding: 1rem 2rem
 
 .LoupedeckLive
-    //background: url(./images/loupedeck-live.jpeg)
     background-color: #444
     max-width: 50rem
     background-size: 100%
@@ -236,7 +235,6 @@ body
                 width: 10%
 
 .LoupedeckLiveS
-    //background: url(./images/loupedeck-live-s.png)
     background-color: #444
     max-width: 50rem
     background-size: 100%
