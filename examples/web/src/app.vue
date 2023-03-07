@@ -83,10 +83,11 @@ function render({ touches }) {
 }
 
 function touchstart({ touches, changedTouches: [touch] }) {
-    // Clear key when touched
+    // Color key when touched
+    const colors = ['#f66', '#f95', '#fb4', '#fd6', '#ff9', '#be9', '#9e9', '#9db', '#9cc', '#88c', '#c9c', '#d89']
     if (touch.target.key !== undefined) {
         device.drawKey(touch.target.key, (ctx, w, h) => {
-            ctx.fillStyle = 'black'
+            ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)]
             ctx.fillRect(0, 0, w, h)
         })
     }
@@ -126,7 +127,7 @@ async function request() {
     device.on('rotate', ({ id, delta }) => {
         state[id] += delta
     })
-    device.on('touchstart', render)
+    device.on('touchstart', touchstart)
     device.on('touchmove', render)
     device.on('touchend', render)
 }

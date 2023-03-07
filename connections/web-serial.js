@@ -35,21 +35,18 @@ class MagicByteLengthParser {
     }
 }
 
+// Async pipeline transformer that splits a stream by 0x82 magic bytes
 async function *read(port) {
     const transformed = port.readable.pipeThrough(new TransformStream(new MagicByteLengthParser({ magicByte: 0x82 })))
     const reader = transformed.getReader()
     try {
         while (true) {
             const { value, done } = await reader.read()
-            if (done) {
-                // |reader| has been canceled.
-                break
-            }
-            yield value// Do something with |value|…
+            if (done) break
+            yield value
         }
     } catch (error) {
         console.error('error', error)
-        // Handle |error|…
     } finally {
         reader.releaseLock()
     }
