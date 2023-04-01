@@ -222,7 +222,7 @@ Draw graphics to a particular area using a RGB16-565 pixel buffer.
 
 Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction--promise) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction--promise) don't meet your needs.
 
- - `id`: Screen to write to [`left`, `center`, `right`] _(`left` and `right` available on Loupedeck Live only)_
+ - `id`: Screen to write to [`left`, `center`, `right`, `knob`] _(`left` and `right` available on Loupedeck Live only)_ _(`knob` available on Loupedeck CT only)_
  - `width`: Width of area to draw
  - `height`: Height of area to draw
  - `x`: Starting X offset (default: `0`)
@@ -238,7 +238,7 @@ Draw graphics to a particular area using the [Canvas API](https://developer.mozi
 
 Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction--promise) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction--promise) don't meet your needs.
 
- - `id`: Screen to write to [`left`, `center`, `right`, `knob`] _(`left` and `right` available on Loupedeck Live only)_ _(`knob` available on Loupedeck CT only)
+ - `id`: Screen to write to [`left`, `center`, `right`, `knob`] _(`left` and `right` available on Loupedeck Live only)_ _(`knob` available on Loupedeck CT only)_
  - `width`: Width of area to draw
  - `height`: Height of area to draw
  - `x`: Starting X offset (default: `0`)
@@ -286,8 +286,8 @@ Loupedeck Live S:
  
  Second argument can be either a RGB16-565 buffer or a callback. 
 
- - `screenID`: Screen to write to [`left`, `center`, `right`] _(`left` and `right` available on Loupedeck Live only)_
- - `buffer`: RGB16-565 Buffer
+ - `screenID`: Screen to write to [`left`, `center`, `right`, `knob`] _(`left` and `right` available on Loupedeck Live only)_ _(`knob` available on Loupedeck CT only)_
+ - `buffer`: RGB16-565 Buffer (BE for `knob`, LE otherwise)
  - `callback`: Function to handle draw calls. Receives the following arguments:
      1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
      2. `width`: Width of drawing area
