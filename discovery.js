@@ -1,6 +1,7 @@
-const { LoupedeckDevice, LoupedeckLive, LoupedeckLiveS } = require('./device')
+const { LoupedeckCT, LoupedeckDevice, LoupedeckLive, LoupedeckLiveS } = require('./device')
 
 const USB_PRODUCT_IDS = {
+    '0003': LoupedeckCT,
     '0004': LoupedeckLive,
     '0006': LoupedeckLiveS,
 }

@@ -35,6 +35,8 @@ class LoupedeckDevice extends EventEmitter {
             [COMMANDS.TOUCH]: this.onTouch.bind(this, 'touchmove'),
             [COMMANDS.TOUCH_END]: this.onTouch.bind(this, 'touchend'),
             [COMMANDS.VERSION]: this.onVersion.bind(this),
+            [COMMANDS.TOUCH_CT]: this.onTouch.bind(this, 'touchmove'),
+            [COMMANDS.TOUCH_END_CT]: this.onTouch.bind(this, 'touchend'),
         }
         // Track pending transactions
         this.pendingTransactions = {}
@@ -77,7 +79,7 @@ class LoupedeckDevice extends EventEmitter {
         return this.connect().catch(() => {})
     }
     // Draw an arbitrary buffer to the device
-    // Buffer format must be 16bit 5-6-5
+    // Buffer format must be 16bit 5-6-5 (LE, except BE for the Loupedeck CT Knob screen)
     async drawBuffer({ id, width, height, x = 0, y = 0, autoRefresh = true }, buffer) {
         const displayInfo = this.displays[id]
         if (!displayInfo) throw new Error(`Display '${id}' is not available on this device!`)
@@ -111,7 +113,7 @@ class LoupedeckDevice extends EventEmitter {
         let createCanvas
         try {
             createCanvas = require('canvas').createCanvas
-        } catch(e) {
+        } catch (e) {
             throw new Error('Using callbacks requires the `canvas` library to be installed. Install it using `npm install canvas`.')
         }
 
@@ -119,6 +121,8 @@ class LoupedeckDevice extends EventEmitter {
         const ctx = canvas.getContext('2d', { pixelFormat: 'RGB16_565' }) // Loupedeck uses 16-bit (5-6-5) LE RGB colors
         cb(ctx, width, height)
         const buffer = canvas.toBuffer('raw')
+        // Swap endianness depending on display
+        if (displayInfo.endianness === 'be') buffer.swap16()
         return this.drawBuffer({ id, width, height, ...args }, buffer)
     }
     // Draw to a specific key index (0-11 on Live, 0-14 on Live S)
@@ -186,7 +190,7 @@ class LoupedeckDevice extends EventEmitter {
         const id = buff[5]
 
         // Create touch
-        const touch = { x, y, id, target: this.getTarget(x, y) }
+        const touch = { x, y, id, target: this.getTarget(x, y, id) }
 
         // End touch, remove from local cache
         if (event === 'touchend') {
@@ -264,6 +268,23 @@ class LoupedeckLive extends LoupedeckDevice {
     }
 }
 
+class LoupedeckCT extends LoupedeckLive {
+    buttons = [0, 1, 2, 3, 4, 5, 6, 7, 'home', 'enter', 'undo', 'save', 'keyboard', 'fnL', 'fnR', 'a', 'b', 'c', 'd', 'e']
+    displays = {
+        center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
+        left: { id: Buffer.from('\x00L'), width: 60, height: 270 }, // "L"
+        right: { id: Buffer.from('\x00R'), width: 60, height: 270 }, // "R"
+        knob: { id: Buffer.from('\x00W'), width: 240, height: 240, endianness: 'be' }, // "W"
+    }
+    productId = '0003'
+    type = 'Loupedeck CT'
+    // Determine touch target based on x/y position
+    getTarget(x, y, id) {
+        if (id === 0) return { screen: 'knob' }
+        return super.getTarget(x, y)
+    }
+}
+
 class LoupedeckLiveS extends LoupedeckDevice {
     buttons = [0, 1, 2, 3]
     columns = 5
@@ -288,6 +309,7 @@ class LoupedeckLiveS extends LoupedeckDevice {
 }
 
 module.exports = {
+    LoupedeckCT,
     LoupedeckDevice,
     LoupedeckLive,
     LoupedeckLiveS,

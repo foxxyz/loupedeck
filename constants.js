@@ -1,6 +1,7 @@
 // Various constants used by the Loupedeck firmware
 
 const BUTTONS = {
+    0x00: 'knobCT',
     0x01: 'knobTL',
     0x02: 'knobCL',
     0x03: 'knobBL',
@@ -14,7 +15,19 @@ const BUTTONS = {
     0x0b: 4,
     0x0c: 5,
     0x0d: 6,
-    0x0e: 7
+    0x0e: 7,
+    0x0f: 'home',
+    0x10: 'undo',
+    0x11: 'keyboard',
+    0x12: 'enter',
+    0x13: 'save',
+    0x14: 'fnL',
+    0x15: 'a',
+    0x16: 'c',
+    0x17: 'fnR',
+    0x18: 'b',
+    0x19: 'd',
+    0x1a: 'e',
 }
 
 // How long without ticks until a connection is considered "timed out"
@@ -33,7 +46,9 @@ const COMMANDS = {
     MCU: 0x0d,
     DRAW: 0x0f,
     TOUCH: 0x4d,
+    TOUCH_CT: 0x52,
     TOUCH_END: 0x6d,
+    TOUCH_END_CT: 0x72,
 }
 
 // How long until trying to reconnect after a disconnect
