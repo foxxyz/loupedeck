@@ -3,10 +3,11 @@ Loupedeck: Node.js Interface
 
 ![tests](https://github.com/foxxyz/loupedeck/workflows/tests/badge.svg?branch=master)
 
-Unofficial Node.js API for [Loupedeck Live](https://loupedeck.com/products/loupedeck-live/) & [Loupedeck Live S](https://loupedeck.com/products/loupedeck-live-s/) controllers.
+Unofficial Node.js API for [Loupedeck Live](https://loupedeck.com/products/loupedeck-live/), [Loupedeck Live S](https://loupedeck.com/products/loupedeck-live-s/) & [Loupedeck CT](https://loupedeck.com/us/products/loupedeck-ct/) controllers.
 
 ![Loupedeck Live Interface](/docs/live-front-small.png?raw=true)
 ![Loupedeck Live S Interface](/docs/live-s-front-small.png?raw=true)
+![Loupedeck CT Interface](/docs/ct-front-small.png?raw=true)
 
 Supports:
 
@@ -22,9 +23,9 @@ Requirements
 ------------
 
  * Node 14+
- * Loupedeck Live or Loupedeck Live S
+ * Loupedeck Live, Loupedeck Live S or Loupedeck CT
 
-This library has been tested with firmware versions 0.1.3, 0.1.79 and 0.2.5. Other versions may work.
+This library has been tested with firmware versions 0.1.3, 0.1.79, 0.2.5 and 0.2.8. Other versions may work.
 
 Installation
 ------------
@@ -33,7 +34,7 @@ Installation
 npm install loupedeck
 ```
 
-By default, `loupedeck` handles RGB565 (16-bit) buffers for drawing. To enable a more pleasant API that allows for drawing using [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) callbacks, also install `canvas`:
+By default, `loupedeck` uses RGB565 (16-bit) buffers for drawing (with small exceptions, see below). To enable a more pleasant API that allows for drawing using [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) callbacks, also install `canvas`:
 
 ```shell
 npm install canvas
@@ -91,7 +92,21 @@ For all examples, see the [`examples` folder](/examples/). Running examples requ
 
 Find the first connected Loupedeck device and return it.
 
-Returns an instance of `LoupedeckLive` or `LoupedeckLiveS`, or throws an `Error` in case none or unsupported devices are found.
+Returns an instance of `LoupedeckLive`, `LoupedeckLiveS` or `LoupedeckCT`, or throws an `Error` in case none or unsupported devices are found.
+
+### Class `LoupedeckCT`
+
+Implements and supports all methods from the [`LoupedeckDevice` interface](#interface-loupedeckdevice).
+
+#### `new LoupedeckCT({ path : String?, host : String?, autoConnect : Boolean? })`
+
+Create a new Loupedeck CT device interface.
+
+Most use-cases should omit the `host`/`path` parameter, unless you're using multiple devices or know specifically which IP or device path you want to connect to. Either use `path` OR `host`, never both.
+
+ - `path`: Serial device path (example: `/dev/cu.ttymodem-1332` or `COM2`) (default: autodiscover)
+ - `autoConnect`: Automatically connect during construction. (default: `true`) _Set to `false` if you'd prefer to call [`connect()`](#deviceconnect--promise). yourself._
+ - `reconnectInterval`: How many milliseconds to wait before attempting a reconnect after a failed connection (default: `3000`) _Set to `false` to turn off automatic reconnects._
 
 ### Class `LoupedeckLive`
 
@@ -99,7 +114,7 @@ Implements and supports all methods from the [`LoupedeckDevice` interface](#inte
 
 #### `new LoupedeckLive({ path : String?, host : String?, autoConnect : Boolean? })`
 
-Create a new Loupedeck device interface.
+Create a new Loupedeck Live device interface.
 
 Most use-cases should omit the `host`/`path` parameter, unless you're using multiple devices or know specifically which IP or device path you want to connect to. Either use `path` OR `host`, never both.
 
@@ -213,7 +228,7 @@ Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bu
  - `x`: Starting X offset (default: `0`)
  - `y`: Starting Y offset (default: `0`)
  - `autoRefresh`: Whether to refresh the screen after drawing (default: `true`)
- - `buffer`: RGB16-565 Buffer. Should be `width * height * 2` bytes long, with each pixel represented by 2 bytes (5 bits red, 6 bits green, 5 bits blue) in little-endian (LE)
+ - `buffer`: RGB16-565 Buffer. Should be `width * height * 2` bytes long, with each pixel represented by 2 bytes (5 bits red, 6 bits green, 5 bits blue) in little-endian (LE). _Note: Loupedeck CT knob screen is the only exception, it uses big-endian (BE)_
  
 Returns a Promise which resolves once the command has been acknowledged by the device.
 
@@ -223,7 +238,7 @@ Draw graphics to a particular area using the [Canvas API](https://developer.mozi
 
 Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction--promise) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction--promise) don't meet your needs.
 
- - `id`: Screen to write to [`left`, `center`, `right`] _(`left` and `right` available on Loupedeck Live only)_
+ - `id`: Screen to write to [`left`, `center`, `right`, `knob`] _(`left` and `right` available on Loupedeck Live only)_ _(`knob` available on Loupedeck CT only)
  - `width`: Width of area to draw
  - `height`: Height of area to draw
  - `x`: Starting X offset (default: `0`)
@@ -242,7 +257,7 @@ Draw graphics to a specific key.
 
 Second argument can be either a RGB16-565 buffer or a callback. Width and height of callback will be `90`, as keys are 90x90px.
 
- - `key`: Key index to write to ([0-11] on _Loupedeck Live_, [0-14] on _Loupedeck Live S_)
+ - `key`: Key index to write to ([0-11] on _Loupedeck Live/Loupedeck CT_, [0-14] on _Loupedeck Live S_)
  - `buffer`: RGB16-565 Buffer
  - `callback`: Function to handle draw calls. Receives the following arguments:
      1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
@@ -254,6 +269,12 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 #### `device.drawScreen(screenID : String, buffer/callback : Buffer/Function) : Promise`
 
 Draw graphics to a specific screen. Screen sizes are as follows:
+
+Loupedeck CT:
+ * `left`: 60x270px
+ * `center`: 360x270px
+ * `right`: 60x270px
+ * `knob`: 240x240px _(Note: uses big-endian byte order!)_
 
 Loupedeck Live:
  * `left`: 60x270px
@@ -295,7 +316,7 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 Set a button LED to a particular color.
 
- - `id`: Button ID (possible choices: 0-7 on _Loupedeck Live_ or 0-4 on _Loupedeck Live S_)
+ - `id`: Button ID (possible choices: 0-7 on _Loupedeck Live/CT_, 0-4 on _Loupedeck Live S_, [see `BUTTONS` for _Loupedeck CT_ square buttons](/constants.js#L19))
  - `color`: Any [valid CSS color string](https://github.com/colorjs/color-parse#parsed-strings)
 
 Returns a Promise which resolves once the command has been acknowledged by the device.
@@ -304,7 +325,7 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 Make device vibrate.
 
- - `pattern`: A valid vibration pattern ([see `HAPTIC` for valid patterns](/constants.js#L50)) (default: `HAPTIC.SHORT`)
+ - `pattern`: A valid vibration pattern ([see `HAPTIC` for valid patterns](/constants.js#L57)) (default: `HAPTIC.SHORT`)
  
 Returns a Promise which resolves once the command has been acknowledged by the device.
 
@@ -316,8 +337,8 @@ Touch objects are emitted in the [`touchstart`](#event-touchstart), [`touchmove`
  + `x`: Screen X-coordinate ([0, 480])
  + `y`: Screen Y-coordinate ([0, 270])
  + `target`:
-     * `screen`: Identifier of screen this touch was detected on ([`left`, `center`, `right`]) (`center` only on _Loupedeck Live S_)
-     * `key`: Index of key touched ([0-11] on _Loupedeck Live_, [0-14] on _Loupedeck Live S_)
+     * `screen`: Identifier of screen this touch was detected on ([`left`, `center`, `right`, `knob`]) (`center` only on _Loupedeck Live S_, `knob` only on _Loupedeck CT_)
+     * `key`: Index of key touched ([0-11] on _Loupedeck Live/CT_, [0-14] on _Loupedeck Live S_)
 
 Contributing & Tests
 --------------------
