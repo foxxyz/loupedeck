@@ -35,6 +35,8 @@ class LoupedeckDevice extends EventEmitter {
             [COMMANDS.TOUCH]: this.onTouch.bind(this, 'touchmove'),
             [COMMANDS.TOUCH_END]: this.onTouch.bind(this, 'touchend'),
             [COMMANDS.VERSION]: this.onVersion.bind(this),
+            [COMMANDS.TOUCH_CT]: this.onTouch.bind(this, 'touchmove'),
+            [COMMANDS.TOUCH_END_CT]: this.onTouch.bind(this, 'touchend'),
         }
         // Track pending transactions
         this.pendingTransactions = {}
@@ -111,7 +113,7 @@ class LoupedeckDevice extends EventEmitter {
         let createCanvas
         try {
             createCanvas = require('canvas').createCanvas
-        } catch(e) {
+        } catch (e) {
             throw new Error('Using callbacks requires the `canvas` library to be installed. Install it using `npm install canvas`.')
         }
 
@@ -186,7 +188,7 @@ class LoupedeckDevice extends EventEmitter {
         const id = buff[5]
 
         // Create touch
-        const touch = { x, y, id, target: this.getTarget(x, y) }
+        const touch = { x, y, id, target: this.getTarget(x, y, id) }
 
         // End touch, remove from local cache
         if (event === 'touchend') {
@@ -264,6 +266,21 @@ class LoupedeckLive extends LoupedeckDevice {
     }
 }
 
+class LoupedeckCT extends LoupedeckLive {
+    displays = {
+        center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
+        left: { id: Buffer.from('\x00L'), width: 60, height: 270 }, // "L"
+        right: { id: Buffer.from('\x00R'), width: 60, height: 270 }, // "R"
+    }
+    productId = '0003'
+    type = 'Loupedeck CT'
+    // Determine touch target based on x/y position
+    getTarget(x, y, id) {
+        if (id === 0) return { screen: 'knob' }
+        return super.getTarget(x, y)
+    }
+}
+
 class LoupedeckLiveS extends LoupedeckDevice {
     buttons = [0, 1, 2, 3]
     columns = 5
@@ -288,6 +305,7 @@ class LoupedeckLiveS extends LoupedeckDevice {
 }
 
 module.exports = {
+    LoupedeckCT,
     LoupedeckDevice,
     LoupedeckLive,
     LoupedeckLiveS,

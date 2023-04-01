@@ -86,20 +86,20 @@ function cycleColors(device) {
 // Draw solid colors on each key screen
 async function drawKeyColors(device) {
     const colors = ['#f66', '#f95', '#fb4', '#fd6', '#ff9', '#be9', '#9e9', '#9db', '#9cc', '#88c', '#c9c', '#d89']
-    for(let i = 0; i < device.rows * device.columns; i++) {
+    for (let i = 0; i < device.rows * device.columns; i++) {
         await device.drawKey(i, (ctx, w, h) => {
             ctx.fillStyle = colors[i % colors.length]
             ctx.fillRect(0, 0, w, h)
         })
     }
-    // Only applicable for Loupedeck Live
+    // Only applicable for Loupedeck Live/CT
     if (device.displays.left) {
         await device.drawScreen('left', (ctx, w, h) => {
             ctx.fillStyle = 'white'
             ctx.fillRect(0, 0, w, h)
         })
     }
-    // Only applicable for Loupedeck Live
+    // Only applicable for Loupedeck Live/CT
     if (device.displays.right) {
         await device.drawScreen('right', (ctx, w, h) => {
             ctx.fillStyle = 'white'
