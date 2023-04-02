@@ -327,7 +327,7 @@ body
                 border: inset 1px gray
 
     .button
-        position: absolute
+        position: absolute !important
         width: 7.8%
         &:nth-child(1)
             left: 4.5%
