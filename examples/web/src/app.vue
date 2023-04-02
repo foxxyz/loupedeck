@@ -6,10 +6,10 @@
     <p class="info" v-if="deviceInfo">
         {{ deviceInfo.type }} connected with serial {{ deviceInfo.serial }} and firmware {{ deviceInfo.version }}
     </p>
-    <div v-if="deviceInfo" :class="deviceInfo.id">
+    <div v-if="deviceInfo" :class="['device', deviceInfo.id]">
         <div class="buttons">
             <loupedeck-button
-                v-for="idx of deviceInfo.buttons"
+                v-for="idx of deviceInfo.buttons.slice(0, 8)"
                 :key="idx"
                 :pressed="state.buttons[idx]"
                 :color="idx === 0 ? '#0f0' : '#666'"
@@ -21,6 +21,24 @@
             :class="key"
             :pressed="state.buttons[key]"
             :rotation="state[key]"
+        />
+        <div class="square-buttons left" v-if="deviceInfo.buttons.length > 8">
+            <loupedeck-button-square
+                v-for="idx of deviceInfo.buttons.slice(8, 14)"
+                :key="idx"
+                :pressed="state.buttons[idx]"
+            />
+        </div>
+        <div class="square-buttons right" v-if="deviceInfo.buttons.length > 8">
+            <loupedeck-button-square
+                v-for="idx of deviceInfo.buttons.slice(14)"
+                :key="idx"
+                :pressed="state.buttons[idx]"
+            />
+        </div>
+        <loupedeck-knob-ct
+            v-if="deviceInfo.id === 'LoupedeckCT'"
+            :rotation="state.knobCT"
         />
         <div class="screen">
             <div v-for="idx in (deviceInfo.columns * deviceInfo.rows)" :key="idx" />
@@ -40,7 +58,9 @@ window.Buffer = Buffer
 import { discover } from 'loupedeck'
 
 import loupedeckButton from './components/loupedeck-button.vue'
+import loupedeckButtonSquare from './components/loupedeck-button-square.vue'
 import loupedeckKnob from './components/loupedeck-knob.vue'
+import loupedeckKnobCt from './components/loupedeck-knob-ct.vue'
 
 const connected = ref(false)
 const deviceInfo = ref()
@@ -61,6 +81,7 @@ const state = reactive({
         knobCR: false,
         knobBR: false,
     },
+    knobCT: 0,
     knobTL: 0,
     knobCL: 0,
     knobBL: 0,
@@ -76,6 +97,7 @@ function render({ touches }) {
     screenCtx.clearRect(0, 0, screenCtx.canvas.width, screenCtx.canvas.height)
     screenCtx.fillStyle = '#ffffff88'
     for (const touch of touches) {
+        if (touch.target.screen === 'knob') continue
         screenCtx.beginPath()
         screenCtx.arc(touch.x, touch.y, 16, 0, 2 * Math.PI)
         screenCtx.fill()
@@ -113,7 +135,7 @@ async function request() {
         screenCtx = screenCanvas.value.getContext('2d')
     })
 
-    device.on('disconnect', async() => {
+    device.on('disconnect', () => {
         connected.value = false
         deviceInfo.value = null
     })
@@ -143,7 +165,7 @@ body
     min-height: 100vh
     padding: 1rem 2rem
 
-.LoupedeckLive
+.device
     background-color: #444
     max-width: 50rem
     background-size: 100%
@@ -153,7 +175,32 @@ body
     position: relative
     container-type: size
     border-radius: 8% / calc(8% * 1.48)
+    .button
+        width: 7.8%
+    .buttons
+        display: flex
+    .knob
+        width: 9%
+    .screen
+        width: 66%
+        background: black
+        position: absolute
+        left: 50%
+        margin-left: -33%
+        top: 10%
+        border: inset 3px gray
+        flex-wrap: wrap
+        display: flex
+        align-items: center
+        box-sizing: border-box
+        canvas
+            position: absolute
+            top: 0
+            left: 0
+            height: 100%
+            width: 100%
 
+.LoupedeckLive, .LoupedeckCT
     @container (min-width: 0px)
         .screen
             border-radius: 2cqw
@@ -198,25 +245,7 @@ body
             top: 55%
 
     .screen
-        width: 66%
-        aspect-ratio: 1.7
-        background: black
-        position: absolute
-        left: 50%
-        margin-left: -33%
-        top: 10%
-        border: inset 3px gray
-        flex-wrap: wrap
-        display: flex
         padding: 2% 9%
-        align-items: center
-        box-sizing: border-box
-        canvas
-            position: absolute
-            top: 0
-            left: 0
-            height: 100%
-            width: 100%
         > div
             aspect-ratio: 1
             background: #222
@@ -234,15 +263,55 @@ body
                 height: 88%
                 width: 10%
 
+.LoupedeckCT
+    background-size: cover
+    aspect-ratio: 0.96
+    border-radius: 8% / calc(8% * 0.96)
+    .knob
+        &.knobTL
+            left: 3.2%
+            top: 6%
+        &.knobCL
+            left: 3.2%
+            top: 21%
+        &.knobBL
+            left: 3.2%
+            top: 36%
+        &.knobTR
+            right: 3.2%
+            top: 6%
+        &.knobCR
+            right: 3.2%
+            top: 21%
+        &.knobBR
+            right: 3.2%
+            top: 36%
+    .knobct
+        position: absolute
+        bottom: 6%
+        left: 33%
+        width: 33%
+    .screen
+        top: 7%
+    .square-buttons
+        position: absolute
+        bottom: 0
+        padding: 5cqw 4cqw
+        width: 25%
+        display: flex
+        flex-wrap: wrap
+        .button
+            width: 11cqw
+            margin: .3cqw
+        &.left
+            left: 0
+        &.right
+            right: 0
+    .buttons
+        top: 48%
+
 .LoupedeckLiveS
-    background-color: #444
-    max-width: 50rem
-    background-size: 100%
-    width: 100%
-    background-repeat: no-repeat
     aspect-ratio: 1.76
-    position: relative
-    container-type: size
     border-radius: 8% / calc(8% * 1.76)
 
     @container (min-width: 0px)
@@ -283,24 +352,8 @@ body
             top: 41%
 
     .screen
-        width: 66%
         aspect-ratio: 1.7
-        background: black
-        position: absolute
-        left: 50%
-        margin-left: -33%
         top: 12%
-        border: inset 3px gray
-        flex-wrap: wrap
-        display: flex
-        align-items: center
-        box-sizing: border-box
-        canvas
-            position: absolute
-            top: 0
-            left: 0
-            width: 100%
-            height: 100%
         > div
             aspect-ratio: 1
             background: #222

@@ -1,5 +1,5 @@
 <template>
-    <div :class="['loupedeck button', { pressed }]" :style="`--color: ${color}`" />
+    <div :class="['loupedeck button round', { pressed }]" :style="`--color: ${color}`" />
 </template>
 
 <script setup>
@@ -16,7 +16,7 @@ defineProps({
 </script>
 
 <style lang="sass">
-.loupedeck.button
+.loupedeck.button.round
     position: relative
     aspect-ratio: 1
     border-radius: 100%

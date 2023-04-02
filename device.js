@@ -288,7 +288,7 @@ class LoupedeckLive extends LoupedeckDevice {
 }
 
 class LoupedeckCT extends LoupedeckLive {
-    buttons = [0, 1, 2, 3, 4, 5, 6, 7, 'home', 'enter', 'undo', 'save', 'keyboard', 'fnL', 'fnR', 'a', 'b', 'c', 'd', 'e']
+    buttons = [0, 1, 2, 3, 4, 5, 6, 7, 'home', 'enter', 'undo', 'save', 'keyboard', 'fnL', 'a', 'b', 'c', 'd', 'fnR', 'e']
     displays = {
         center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
         left: { id: Buffer.from('\x00L'), width: 60, height: 270 }, // "L"
