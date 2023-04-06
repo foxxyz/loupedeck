@@ -3,6 +3,17 @@
     <button v-if="!connected" @click="request" type="button">
         Connect Device
     </button>
+    <div class="force">
+        Force device (for debugging):
+        <select v-model="forceDevice">
+            <option value="">
+                None
+            </option>
+            <option v-for="type of DEVICE_TYPES" :key="type" :value="type.name">
+                {{ type.name }}
+            </option>
+        </select>
+    </div>
     <p class="info" v-if="deviceInfo">
         {{ deviceInfo.type }} connected with serial {{ deviceInfo.serial }} and firmware {{ deviceInfo.version }}
     </p>
@@ -50,17 +61,23 @@
 </template>
 
 <script setup>
-import { nextTick, reactive, ref } from 'vue'
+import { nextTick, reactive, ref, watch } from 'vue'
 
 import { Buffer } from 'buffer'
 window.Buffer = Buffer
 
-import { discover } from 'loupedeck'
+import { discover, LoupedeckLive, LoupedeckLiveS, LoupedeckCT } from 'loupedeck'
 
 import loupedeckButton from './components/loupedeck-button.vue'
 import loupedeckButtonSquare from './components/loupedeck-button-square.vue'
 import loupedeckKnob from './components/loupedeck-knob.vue'
 import loupedeckKnobCt from './components/loupedeck-knob-ct.vue'
+
+const DEVICE_TYPES = [
+    LoupedeckCT,
+    LoupedeckLive,
+    LoupedeckLiveS,
+]
 
 const connected = ref(false)
 const deviceInfo = ref()
@@ -154,6 +171,25 @@ async function request() {
     device.on('touchend', render)
 }
 request()
+
+// Force override (for debugging)
+const forceDevice = ref('')
+watch(forceDevice, value => {
+    const deviceType = DEVICE_TYPES.find(t => t.name === value)
+    if (!deviceType) {
+        connected.value = false
+        deviceInfo.value = null
+        return
+    }
+    connected.value = true
+    device = new deviceType({ autoConnect: false })
+    const info = Object.assign({
+        id: value,
+        serial: 'TESTING',
+        version: 'TESTING'
+    }, device)
+    deviceInfo.value = info
+})
 </script>
 
 <style lang="sass">
@@ -358,4 +394,15 @@ body
             aspect-ratio: 1
             background: #222
             border: inset 1px gray
+
+.force
+    position: absolute
+    opacity: .3
+    right: 0
+    top: 0
+    padding: 1rem
+    color: gray
+    font-size: .7em
+    select
+        background: gray
 </style>
