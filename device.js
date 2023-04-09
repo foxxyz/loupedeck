@@ -1,7 +1,13 @@
 const EventEmitter = require('events')
 const rgba = require('color-rgba')
-const SerialConnection = require('./connections/serial')
-const WSConnection = require('./connections/ws')
+
+let SerialConnection, WSConnection
+if (typeof navigator !== 'undefined') {
+    SerialConnection = require('./connections/web-serial')
+} else {
+    SerialConnection = require('./connections/serial')
+    WSConnection = require('./connections/ws')
+}
 
 const {
     BUTTONS,
@@ -11,12 +17,14 @@ const {
     MAX_BRIGHTNESS,
 } = require('./constants')
 
+const { rgba2rgb565 } = require('./util')
+
 class LoupedeckDevice extends EventEmitter {
     static async list({ ignoreSerial = false, ignoreWebsocket = false } = {}) {
         const ps = []
 
         if (!ignoreSerial) ps.push(SerialConnection.discover())
-        if (!ignoreWebsocket) ps.push(WSConnection.discover())
+        if (!ignoreWebsocket && WSConnection) ps.push(WSConnection.discover())
 
         // Run them in parallel
         const rawDevices = await Promise.all(ps)
@@ -120,7 +128,17 @@ class LoupedeckDevice extends EventEmitter {
         const canvas = createCanvas(width, height)
         const ctx = canvas.getContext('2d', { pixelFormat: 'RGB16_565' }) // Loupedeck uses 16-bit (5-6-5) LE RGB colors
         cb(ctx, width, height)
-        const buffer = canvas.toBuffer('raw')
+        let buffer
+        // If using NodeJS canvas package
+        if (canvas.toBuffer) {
+            buffer = canvas.toBuffer('raw')
+        // If using browser canvas API
+        } else {
+            const imageData = ctx.getImageData(0, 0, width, height)
+            const rgba = imageData.data
+            // Convert from RGBA to RGB16_565
+            buffer = rgba2rgb565(rgba, width * height)
+        }
         // Swap endianness depending on display
         if (displayInfo.endianness === 'be') buffer.swap16()
         return this.drawBuffer({ id, width, height, ...args }, buffer)
@@ -244,6 +262,7 @@ class LoupedeckDevice extends EventEmitter {
 
 class LoupedeckLive extends LoupedeckDevice {
     buttons = [0, 1, 2, 3, 4, 5, 6, 7]
+    knobs = ['knobCL', 'knobCR', 'knobTL', 'knobTR', 'knobBL', 'knobBR']
     columns = 4
     displays = {
         center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
@@ -269,7 +288,7 @@ class LoupedeckLive extends LoupedeckDevice {
 }
 
 class LoupedeckCT extends LoupedeckLive {
-    buttons = [0, 1, 2, 3, 4, 5, 6, 7, 'home', 'enter', 'undo', 'save', 'keyboard', 'fnL', 'fnR', 'a', 'b', 'c', 'd', 'e']
+    buttons = [0, 1, 2, 3, 4, 5, 6, 7, 'home', 'enter', 'undo', 'save', 'keyboard', 'fnL', 'a', 'b', 'c', 'd', 'fnR', 'e']
     displays = {
         center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
         left: { id: Buffer.from('\x00L'), width: 60, height: 270 }, // "L"
@@ -287,6 +306,7 @@ class LoupedeckCT extends LoupedeckLive {
 
 class LoupedeckLiveS extends LoupedeckDevice {
     buttons = [0, 1, 2, 3]
+    knobs = ['knobCL', 'knobTL']
     columns = 5
     displays = {
         center: { id: Buffer.from('\x00M'), width: 480, height: 270 },

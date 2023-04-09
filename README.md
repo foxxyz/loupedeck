@@ -83,7 +83,7 @@ device.on('down', ({ id }) => {
 })
 ```
 
-For all examples, see the [`examples` folder](/examples/). Running examples requires `canvas` to be installed (see above).
+For all examples, see the [`examples` folder](/examples/). Running some examples requires `canvas` to be installed (see above).
 
 📝 API Docs
 -----------

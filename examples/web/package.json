@@ -1,0 +1,32 @@
+{
+  "name": "loupedeck-web-example",
+  "version": "1.0.0",
+  "description": "Example on using Loupedeck via WebSerial",
+  "scripts": {
+    "dev": "vite --force",
+    "build": "vite build",
+    "lint": "eslint src"
+  },
+  "author": "Ivo Janssen <hello@ivo.la>",
+  "license": "MIT",
+  "devDependencies": {
+    "@appliedminds/eslint-config": "^1.5.0",
+    "@vitejs/plugin-vue": "^4.1.0",
+    "eslint": "^8.37.0",
+    "eslint-plugin-vue": "^9.10.0",
+    "sass": "^1.60.0",
+    "vite": "^4.2.1"
+  },
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "events": "^3.3.0",
+    "loupedeck": "file:../..",
+    "vue": "^3.2.47"
+  },
+  "eslintConfig": {
+    "extends": [
+      "@appliedminds",
+      "@appliedminds/eslint-config/vue"
+    ]
+  }
+}
