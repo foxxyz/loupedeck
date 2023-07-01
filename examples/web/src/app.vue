@@ -66,7 +66,7 @@ import { nextTick, reactive, ref, watch } from 'vue'
 import { Buffer } from 'buffer'
 window.Buffer = Buffer
 
-import { discover, LoupedeckLive, LoupedeckLiveS, LoupedeckCT } from 'loupedeck'
+import { discover, LoupedeckLive, LoupedeckLiveS, LoupedeckCT, RazerStreamController } from 'loupedeck'
 
 import loupedeckButton from './components/loupedeck-button.vue'
 import loupedeckButtonSquare from './components/loupedeck-button-square.vue'
@@ -77,6 +77,7 @@ const DEVICE_TYPES = [
     LoupedeckCT,
     LoupedeckLive,
     LoupedeckLiveS,
+    RazerStreamController,
 ]
 
 const connected = ref(false)
@@ -236,7 +237,7 @@ body
             height: 100%
             width: 100%
 
-.LoupedeckLive, .LoupedeckCT
+.LoupedeckLive, .LoupedeckCT, .RazerStreamController
     @container (min-width: 0px)
         .screen
             border-radius: 2cqw

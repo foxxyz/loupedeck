@@ -265,8 +265,8 @@ class LoupedeckDevice extends EventEmitter {
 }
 
 class LoupedeckLive extends LoupedeckDevice {
-    static productId = '0004'
-    static vendorId = '2ec2'
+    static productId = 0x0004
+    static vendorId = 0x2ec2
     buttons = [0, 1, 2, 3, 4, 5, 6, 7]
     knobs = ['knobCL', 'knobCR', 'knobTL', 'knobTR', 'knobBL', 'knobBR']
     columns = 4
@@ -293,7 +293,7 @@ class LoupedeckLive extends LoupedeckDevice {
 }
 
 class LoupedeckCT extends LoupedeckLive {
-    static productId = '0003'
+    static productId = 0x0003
     buttons = [0, 1, 2, 3, 4, 5, 6, 7, 'home', 'enter', 'undo', 'save', 'keyboard', 'fnL', 'a', 'b', 'c', 'd', 'fnR', 'e']
     displays = {
         center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
@@ -310,8 +310,8 @@ class LoupedeckCT extends LoupedeckLive {
 }
 
 class LoupedeckLiveS extends LoupedeckDevice {
-    static productId = '0006'
-    static vendorId = '2ec2'
+    static productId = 0x0006
+    static vendorId = 0x2ec2
     buttons = [0, 1, 2, 3]
     knobs = ['knobCL', 'knobTL']
     columns = 5
@@ -335,8 +335,9 @@ class LoupedeckLiveS extends LoupedeckDevice {
 }
 
 class RazerStreamController extends LoupedeckLive {
-    static productId = '0d06'
-    static vendorId = '1532'
+    static productId = 0x0d06
+    static vendorId = 0x1532
+    type = 'Razer Stream Controller'
     // All displays are addressed as the same screen
     // So we add offsets
     displays = {

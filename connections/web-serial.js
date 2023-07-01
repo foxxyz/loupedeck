@@ -65,7 +65,7 @@ class LoupedeckWebSerialConnection extends EventEmitter {
         if (!ports.length) {
             // Request a new port
             try {
-                ports.push(await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x2ec2 }] }))
+                ports.push(await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x2ec2 }, { usbVendorId: 0x1532 }] }))
             } catch (e) {
                 console.warn('Unable to open port!')
             }
