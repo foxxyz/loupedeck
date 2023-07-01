@@ -6,6 +6,7 @@ Loupedeck: Node.js Interface
 Unofficial Node.js API for [Loupedeck Live](https://loupedeck.com/products/loupedeck-live/), [Loupedeck Live S](https://loupedeck.com/products/loupedeck-live-s/), [Loupedeck CT](https://loupedeck.com/us/products/loupedeck-ct/) and [Razer Stream](https://www.razer.com/streaming-accessories/razer-stream-controller) controllers.
 
 ![Loupedeck Live Interface](/docs/live-front-small.png?raw=true)
+![Razer Stream Controller Interface](/docs/rsc-front-small.png?raw=true)
 ![Loupedeck Live S Interface](/docs/live-s-front-small.png?raw=true)
 ![Loupedeck CT Interface](/docs/ct-front-small.png?raw=true)
 
