@@ -261,6 +261,8 @@ class LoupedeckDevice extends EventEmitter {
 }
 
 class LoupedeckLive extends LoupedeckDevice {
+    static productId = '0004'
+    static vendorId = '2ec2'
     buttons = [0, 1, 2, 3, 4, 5, 6, 7]
     knobs = ['knobCL', 'knobCR', 'knobTL', 'knobTR', 'knobBL', 'knobBR']
     columns = 4
@@ -269,7 +271,6 @@ class LoupedeckLive extends LoupedeckDevice {
         left: { id: Buffer.from('\x00L'), width: 60, height: 270 }, // "L"
         right: { id: Buffer.from('\x00R'), width: 60, height: 270 }, // "R"
     }
-    productId = '0004'
     rows = 3
     type = 'Loupedeck Live'
     visibleX = [0, 480]
@@ -288,6 +289,7 @@ class LoupedeckLive extends LoupedeckDevice {
 }
 
 class LoupedeckCT extends LoupedeckLive {
+    static productId = '0003'
     buttons = [0, 1, 2, 3, 4, 5, 6, 7, 'home', 'enter', 'undo', 'save', 'keyboard', 'fnL', 'a', 'b', 'c', 'd', 'fnR', 'e']
     displays = {
         center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
@@ -295,7 +297,6 @@ class LoupedeckCT extends LoupedeckLive {
         right: { id: Buffer.from('\x00R'), width: 60, height: 270 }, // "R"
         knob: { id: Buffer.from('\x00W'), width: 240, height: 240, endianness: 'be' }, // "W"
     }
-    productId = '0003'
     type = 'Loupedeck CT'
     // Determine touch target based on x/y position
     getTarget(x, y, id) {
@@ -305,13 +306,14 @@ class LoupedeckCT extends LoupedeckLive {
 }
 
 class LoupedeckLiveS extends LoupedeckDevice {
+    static productId = '0006'
+    static vendorId = '2ec2'
     buttons = [0, 1, 2, 3]
     knobs = ['knobCL', 'knobTL']
     columns = 5
     displays = {
         center: { id: Buffer.from('\x00M'), width: 480, height: 270 },
     }
-    productId = '0006'
     rows = 3
     type = 'Loupedeck Live S'
     visibleX = [15, 465]
@@ -328,9 +330,15 @@ class LoupedeckLiveS extends LoupedeckDevice {
     }
 }
 
+class RazerStreamController extends LoupedeckLive {
+    static productId = '0d06'
+    static vendorId = '1532'
+}
+
 module.exports = {
     LoupedeckCT,
     LoupedeckDevice,
     LoupedeckLive,
     LoupedeckLiveS,
+    RazerStreamController,
 }

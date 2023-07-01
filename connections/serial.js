@@ -12,6 +12,15 @@ Sec-WebSocket-Key: 123abc
 `
 const WS_UPGRADE_RESPONSE = 'HTTP/1.1'
 
+const VENDOR_IDS = [
+    '2ec2', // Loupedeck
+    '1532', // Razer
+]
+const MANUFACTURERS = [
+    'Loupedeck',
+    'Razer'
+]
+
 class LoupedeckSerialConnection extends EventEmitter {
     constructor({ path } = {}) {
         super()
@@ -22,7 +31,7 @@ class LoupedeckSerialConnection extends EventEmitter {
         const results = []
         for (const info of await SerialPort.list()) {
             const { manufacturer, path, vendorId, productId, serialNumber } = info
-            if (vendorId !== '2ec2' && manufacturer !== 'Loupedeck') continue
+            if (!VENDOR_IDS.includes(vendorId) && !MANUFACTURERS.includes(manufacturer)) continue
             results.push({
                 connectionType: this,
                 path,

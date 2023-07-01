@@ -1,16 +1,10 @@
-const { LoupedeckCT, LoupedeckDevice, LoupedeckLive, LoupedeckLiveS } = require('./device')
-
-const USB_PRODUCT_IDS = {
-    3: LoupedeckCT,
-    4: LoupedeckLive,
-    6: LoupedeckLiveS,
-}
+const ALL_DEVICES = require('./device')
 
 async function discover() {
-    const devices = await LoupedeckDevice.list()
+    const devices = await ALL_DEVICES.LoupedeckDevice.list()
     if (devices.length === 0) throw new Error('No devices found')
     const { productId, ...args } = devices[0]
-    const deviceType = USB_PRODUCT_IDS[parseInt(productId)]
+    const deviceType = Object.values(ALL_DEVICES).find(dev => dev.productId === productId)
     if (!deviceType) throw new Error(`Device with product ID ${productId} not yet supported! Please file an issue at https://github.com/foxxyz/loupedeck/issues`)
     const device = new deviceType(args)
     return device
