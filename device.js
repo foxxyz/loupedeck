@@ -93,6 +93,10 @@ class LoupedeckDevice extends EventEmitter {
         if (!displayInfo) throw new Error(`Display '${id}' is not available on this device!`)
         if (!width) width = displayInfo.width
         if (!height) height = displayInfo.height
+        if (displayInfo.offset) {
+            x += displayInfo.offset[0]
+            y += displayInfo.offset[1]
+        }
 
         const pixelCount = width * height * 2
         if (buffer.length !== pixelCount) {
@@ -333,6 +337,13 @@ class LoupedeckLiveS extends LoupedeckDevice {
 class RazerStreamController extends LoupedeckLive {
     static productId = '0d06'
     static vendorId = '1532'
+    // All displays are addressed as the same screen
+    // So we add offsets
+    displays = {
+        center: { id: Buffer.from('\x00M'), width: 360, height: 270, offset: [60, 0] },
+        left: { id: Buffer.from('\x00M'), width: 60, height: 270 },
+        right: { id: Buffer.from('\x00M'), width: 60, height: 270, offset: [420, 0] },
+    }
 }
 
 module.exports = {
