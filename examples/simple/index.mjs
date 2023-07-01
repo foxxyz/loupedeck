@@ -58,6 +58,7 @@ loupedeck.on('rotate', ({ id, delta }) => {
 
 loupedeck.on('touchstart', ({ changedTouches: [touch] }) => {
     console.log(`Touch #${touch.id} started: x: ${touch.x}, y: ${touch.y}`)
+    console.log(touch.target)
     // Clear key when touched
     if (touch.target.key !== undefined) {
         loupedeck.drawKey(touch.target.key, (ctx, w, h) => {
