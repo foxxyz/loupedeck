@@ -2,7 +2,7 @@ const EventEmitter = require('events')
 const rgba = require('color-rgba')
 
 let SerialConnection, WSConnection
-if (typeof navigator !== 'undefined') {
+if (typeof navigator !== 'undefined' && navigator.getPorts) {
     SerialConnection = require('./connections/web-serial')
 } else {
     SerialConnection = require('./connections/serial')
