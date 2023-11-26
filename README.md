@@ -23,7 +23,7 @@ Supports:
 Requirements
 ------------
 
- * Node 14+
+ * Node 18+
  * Loupedeck Live, Loupedeck Live S, Loupedeck CT or Razer Stream Controller (RSC)
 
 This library has been tested with firmware versions 0.1.3, 0.1.79, 0.2.5 and 0.2.8. Other versions may work.
