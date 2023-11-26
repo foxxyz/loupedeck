@@ -20,7 +20,10 @@ class MockSocket extends EventEmitter {
         clearTimeout(this.timeout)
         this.emit('close', code)
     }
-    send() {}
+    // eslint-disable-next-line class-methods-use-this
+    send() {
+        // do nothing
+    }
     terminate() {
         clearTimeout(this.timeout)
         this.emit('close', 1006)

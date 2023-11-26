@@ -28,7 +28,7 @@ describe('v0.1.X Connection', () => {
         connection.connectionTimeout = 20
         const connect = jest.spyOn(connection, 'connect')
         await connection.connect()
-        for(let i = 0; i < 8; i++) {
+        for (let i = 0; i < 8; i++) {
             await delay(10)
             connection.onReceive()
         }

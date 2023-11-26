@@ -65,7 +65,7 @@ class LoupedeckWSConnection extends EventEmitter {
     }
     onDisconnect(errCode) {
         let error = null
-        switch(errCode) {
+        switch (errCode) {
             case DISCONNECT_CODES.TIMEOUT:
                 error = new Error('Connection timeout - was the device disconnected?')
         }

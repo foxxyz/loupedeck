@@ -38,11 +38,11 @@ class LoupedeckDevice extends EventEmitter {
         this.handlers = {
             [COMMANDS.BUTTON_PRESS]: this.onButton.bind(this),
             [COMMANDS.KNOB_ROTATE]: this.onRotate.bind(this),
-            [COMMANDS.SERIAL]: this.onSerial.bind(this),
+            [COMMANDS.SERIAL]: buff => buff.toString().trim(),
             [COMMANDS.TICK]: () => {},
             [COMMANDS.TOUCH]: this.onTouch.bind(this, 'touchmove'),
             [COMMANDS.TOUCH_END]: this.onTouch.bind(this, 'touchend'),
-            [COMMANDS.VERSION]: this.onVersion.bind(this),
+            [COMMANDS.VERSION]: buff => `${buff[0]}.${buff[1]}.${buff[2]}`,
             [COMMANDS.TOUCH_CT]: this.onTouch.bind(this, 'touchmove'),
             [COMMANDS.TOUCH_END_CT]: this.onTouch.bind(this, 'touchend'),
         }
@@ -203,9 +203,6 @@ class LoupedeckDevice extends EventEmitter {
         const delta = buff.readInt8(1)
         this.emit('rotate', { id, delta })
     }
-    onSerial(buff) {
-        return buff.toString().trim()
-    }
     onTouch(event, buff) {
         const x = buff.readUInt16BE(1)
         const y = buff.readUInt16BE(3)
@@ -224,9 +221,6 @@ class LoupedeckDevice extends EventEmitter {
         }
 
         this.emit(event, { touches: Object.values(this.touches), changedTouches: [touch] })
-    }
-    onVersion(buff) {
-        return `${buff[0]}.${buff[1]}.${buff[2]}`
     }
     // Display the current framebuffer
     refresh(id) {

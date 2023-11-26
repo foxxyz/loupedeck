@@ -36,7 +36,7 @@ class MockLoupedeckSerialPort extends EventEmitter {
             }
         ]
     }
-    constructor({ path, baudRate }) {
+    constructor({ path }) {
         super()
         this.path = path
         this.isOpen = false
@@ -50,8 +50,9 @@ class MockLoupedeckSerialPort extends EventEmitter {
         clearTimeout(this.timeout)
         this.emit('close')
     }
-    pipe(sink) {
-
+    // eslint-disable-next-line class-methods-use-this
+    pipe() {
+        // do nothing
     }
     write(buff) {
         if (buff.toString() === WS_UPGRADE_HEADER) this.emit('data', Buffer.from(WS_UPGRADE_RESPONSE))
