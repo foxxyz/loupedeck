@@ -84,12 +84,12 @@ describe('Drawing (Callback API)', () => {
         // Color format is 5-6-5 16-bit RGB
         // so first 5 bits for full red is 0xf800, or 0x00f8 in LE
         const pixels = '00f8'.repeat(60 * 270)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004c, x: 0, y: 0, width: 60, height: 270 })
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004d, x: 0, y: 0, width: 60, height: 270 })
         expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004c', 'hex'))
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels to right display', async() => {
         const sender = jest.spyOn(device.connection, 'send')
@@ -100,12 +100,12 @@ describe('Drawing (Callback API)', () => {
         // Color format is 5-6-5 16-bit RGB
         // so middle 6 bits for full green is 0x07e0, or 0xe007 in LE
         const pixels = 'e007'.repeat(60 * 270)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0052, x: 0, y: 0, width: 60, height: 270 })
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004d, x: 420, y: 0, width: 60, height: 270 })
         expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020052', 'hex'))
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels to center display', async() => {
         const sender = jest.spyOn(device.connection, 'send')
@@ -116,12 +116,12 @@ describe('Drawing (Callback API)', () => {
         // Color format is 5-6-5 16-bit RGB
         // so last 5 bits for full blue is 0x001f, or 0x1f00 in LE
         const pixels = '1f00'.repeat(360 * 270)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 0, y: 0, width: 360, height: 270 })
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004d, x: 60, y: 0, width: 360, height: 270 })
         expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels to a specific key area', async() => {
         const sender = jest.spyOn(device.connection, 'send')
@@ -130,12 +130,12 @@ describe('Drawing (Callback API)', () => {
             ctx.fillRect(0, 0, w, h)
         })
         const pixels = 'ffff'.repeat(90 * 90)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 180, y: 90, width: 90, height: 90 })
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004d, x: 180 + 60, y: 90, width: 90, height: 90 })
         expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels without refreshing the screen', async() => {
         const sender = jest.spyOn(device.connection, 'send')
@@ -161,12 +161,12 @@ describe('Drawing (Buffer API)', () => {
         const buffer = Buffer.from(pixels.flat())
         device.drawScreen('left', buffer)
         const hex = '00f8'.repeat(60 * 270)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004c, x: 0, y: 0, width: 60, height: 270 })
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004d, x: 0, y: 0, width: 60, height: 270 })
         expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(hex)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004c', 'hex'))
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels to right display', async() => {
         const sender = jest.spyOn(device.connection, 'send')
@@ -176,12 +176,12 @@ describe('Drawing (Buffer API)', () => {
         // Color format is 5-6-5 16-bit RGB
         // so middle 6 bits for full green is 0x07e0, or 0xe007 in LE
         const hex = 'e007'.repeat(60 * 270)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0052, x: 0, y: 0, width: 60, height: 270 })
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004d, x: 420, y: 0, width: 60, height: 270 })
         expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(hex)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020052', 'hex'))
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels to center display', async() => {
         const sender = jest.spyOn(device.connection, 'send')
@@ -191,12 +191,12 @@ describe('Drawing (Buffer API)', () => {
         // Color format is 5-6-5 16-bit RGB
         // so last 5 bits for full blue is 0x001f, or 0x1f00 in LE
         const hex = '1f00'.repeat(360 * 270)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 0, y: 0, width: 360, height: 270 })
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004d, x: 60, y: 0, width: 360, height: 270 })
         expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(hex)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels to a specific key area', async() => {
         const sender = jest.spyOn(device.connection, 'send')
@@ -204,12 +204,12 @@ describe('Drawing (Buffer API)', () => {
         const buffer = Buffer.from(pixels)
         device.drawKey(6, buffer)
         const hex = 'ffff'.repeat(90 * 90)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 180, y: 90, width: 90, height: 90 })
+        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004d, x: 180 + 60, y: 90, width: 90, height: 90 })
         expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(hex)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
+        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004d', 'hex'))
     })
     it('reports an error if the buffer is the wrong size', async() => {
         const pixels = Array(30).fill(0xff)

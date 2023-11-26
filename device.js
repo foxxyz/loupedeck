@@ -270,10 +270,12 @@ class LoupedeckLive extends LoupedeckDevice {
     buttons = [0, 1, 2, 3, 4, 5, 6, 7]
     knobs = ['knobCL', 'knobCR', 'knobTL', 'knobTR', 'knobBL', 'knobBR']
     columns = 4
+    // All displays are addressed as the same screen
+    // So we add offsets
     displays = {
-        center: { id: Buffer.from('\x00A'), width: 360, height: 270 }, // "A"
-        left: { id: Buffer.from('\x00L'), width: 60, height: 270 }, // "L"
-        right: { id: Buffer.from('\x00R'), width: 60, height: 270 }, // "R"
+        center: { id: Buffer.from('\x00M'), width: 360, height: 270, offset: [60, 0] },
+        left: { id: Buffer.from('\x00M'), width: 60, height: 270 },
+        right: { id: Buffer.from('\x00M'), width: 60, height: 270, offset: [420, 0] },
     }
     rows = 3
     type = 'Loupedeck Live'
@@ -338,13 +340,6 @@ class RazerStreamController extends LoupedeckLive {
     static productId = 0x0d06
     static vendorId = 0x1532
     type = 'Razer Stream Controller'
-    // All displays are addressed as the same screen
-    // So we add offsets
-    displays = {
-        center: { id: Buffer.from('\x00M'), width: 360, height: 270, offset: [60, 0] },
-        left: { id: Buffer.from('\x00M'), width: 60, height: 270 },
-        right: { id: Buffer.from('\x00M'), width: 60, height: 270, offset: [420, 0] },
-    }
 }
 
 module.exports = {
