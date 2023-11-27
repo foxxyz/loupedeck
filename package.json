@@ -19,6 +19,7 @@
   "dependencies": {
     "color-rgba": "^2.4.0",
     "events": "^3.3.0",
+    "readable-stream": "^4.4.2",
     "serialport": "^10.5.0",
     "ws": "^8.14.2"
   },
