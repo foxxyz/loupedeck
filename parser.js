@@ -1,4 +1,4 @@
-const { Transform } = require('readable-stream')
+const { Transform } = require('stream')
 
 // Parser to split incoming serial data by a magic byte sequence
 // followed by a length
