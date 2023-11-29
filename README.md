@@ -7,9 +7,9 @@ Unofficial Node.js API for [Loupedeck Live](https://loupedeck.com/products/loupe
 
 ![Loupedeck Live Interface](/docs/live-front-small.png?raw=true)
 ![Razer Stream Controller Interface](/docs/rsc-front-small.png?raw=true)
-![Loupedeck CT Interface](/docs/ct-front-small.png?raw=true)
-![Loupedeck Live S Interface](/docs/live-s-front-small.png?raw=true)
 ![Razer Stream Controller X Interface](/docs/rscx-front-small.png?raw=true)
+![Loupedeck Live S Interface](/docs/live-s-front-small.png?raw=true)
+![Loupedeck CT Interface](/docs/ct-front-small.png?raw=true)
 
 Supports:
 
@@ -29,8 +29,8 @@ Requirements
    * Loupedeck Live
    * Loupedeck Live S
    * Loupedeck CT
-   * Razer Stream Controller ("RSC")
-   * Razer Stream Controller X ("RSCX")
+   * Razer Stream Controller (_"RSC"_)
+   * Razer Stream Controller X (_"RSCX"_)
 
 This library has been tested with firmware versions 0.1.3, 0.1.79, 0.2.5, 0.2.8 and 0.2.23. Other versions may work.
 
