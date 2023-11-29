@@ -28,6 +28,22 @@ const BUTTONS = {
     0x18: 'b',
     0x19: 'd',
     0x1a: 'e',
+    // Below seem to be used only on the Razer Stream Controller X
+    0x1b: 0,
+    0x1c: 1,
+    0x1d: 2,
+    0x1e: 3,
+    0x1f: 4,
+    0x20: 5,
+    0x21: 6,
+    0x22: 7,
+    0x23: 8,
+    0x24: 9,
+    0x25: 10,
+    0x26: 11,
+    0x27: 12,
+    0x28: 13,
+    0x29: 14,
 }
 
 // How long without ticks until a connection is considered "timed out"

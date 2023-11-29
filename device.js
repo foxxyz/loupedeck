@@ -31,6 +31,7 @@ class LoupedeckDevice extends EventEmitter {
 
         return rawDevices.flat()
     }
+    keySize = 90
     constructor({ host, path, autoConnect = true, reconnectInterval = DEFAULT_RECONNECT_INTERVAL } = {}) {
         super()
         this.transactionID = 0
@@ -151,8 +152,8 @@ class LoupedeckDevice extends EventEmitter {
     drawKey(index, cb) {
         // Get offset x/y for key index
         if (index < 0 || index >= this.columns * this.rows) throw new Error(`Key ${index} is not a valid key`)
-        const width = 90
-        const height = 90
+        const width = this.keySize
+        const height = this.keySize
         const x = this.visibleX[0] + index % this.columns * width
         const y = Math.floor(index / this.columns) * height
         return this[cb instanceof Buffer ? 'drawBuffer' : 'drawCanvas']({ id: 'center', x, y, width, height }, cb)
@@ -276,10 +277,10 @@ class LoupedeckLive extends LoupedeckDevice {
     visibleX = [0, 480]
     // Determine touch target based on x/y position
     getTarget(x, y) {
-        if (x < 60) return { screen: 'left' }
-        if (x >= 420) return { screen: 'right' }
-        const column = Math.floor((x - 60) / 90)
-        const row = Math.floor(y / 90)
+        if (x < this.displays.left.width) return { screen: 'left' }
+        if (x >= this.displays.left.width + this.displays.center.width) return { screen: 'right' }
+        const column = Math.floor((x - this.displays.left.width) / this.keySize)
+        const row = Math.floor(y / this.keySize)
         const key = row * this.columns + column
         return {
             screen: 'center',
@@ -320,8 +321,8 @@ class LoupedeckLiveS extends LoupedeckDevice {
     // Determine touch target based on x/y position
     getTarget(x, y) {
         if (x < this.visibleX[0] || x >= this.visibleX[1]) return {}
-        const column = Math.floor((x - this.visibleX[0]) / 90)
-        const row = Math.floor(y / 90)
+        const column = Math.floor((x - this.visibleX[0]) / this.keySize)
+        const row = Math.floor(y / this.keySize)
         const key = row * this.columns + column
         return {
             screen: 'center',
@@ -336,10 +337,52 @@ class RazerStreamController extends LoupedeckLive {
     type = 'Razer Stream Controller'
 }
 
+class RazerStreamControllerX extends LoupedeckDevice {
+    static productId = 0x0d09
+    static vendorId = 0x1532
+    type = 'Razer Stream Controller X'
+    buttons = []
+    columns = 5
+    displays = {
+        center: { id: Buffer.from('\x00M'), width: 480, height: 288 },
+    }
+    rows = 3
+    visibleX = [0, 480]
+    keySize = 96
+    // Emit an extra touchstart event since we are touching keys
+    onButton(buff) {
+        super.onButton(buff)
+        const event = buff[1] === 0x00 ? 'touchstart' : 'touchend'
+        const key = BUTTONS[buff[0]]
+        const row = Math.floor(key / this.columns)
+        const col = key % this.columns
+        const touch = {
+            id: 0,
+            // Add half so touch is in the center of the key
+            x: (col + 0.5) * this.keySize,
+            y: (row + 0.5) * this.keySize,
+            target: { key }
+        }
+        this.emit(event, {
+            touches: event === 'touchstart' ? [touch] : [],
+            changedTouches: [touch],
+        })
+    }
+    // eslint-disable-next-line class-methods-use-this
+    setButtonColor() {
+        throw new Error('Setting key color not available on this device!')
+    }
+    // eslint-disable-next-line class-methods-use-this
+    vibrate() {
+        throw new Error('Vibration not available on this device!')
+    }
+}
+
 module.exports = {
     LoupedeckCT,
     LoupedeckDevice,
     LoupedeckLive,
     LoupedeckLiveS,
     RazerStreamController,
+    RazerStreamControllerX,
 }

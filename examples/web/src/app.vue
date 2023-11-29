@@ -66,7 +66,7 @@ import { nextTick, reactive, ref, watch } from 'vue'
 import { Buffer } from 'buffer'
 window.Buffer = Buffer
 
-import { discover, LoupedeckLive, LoupedeckLiveS, LoupedeckCT, RazerStreamController } from 'loupedeck'
+import { discover, LoupedeckLive, LoupedeckLiveS, LoupedeckCT, RazerStreamController, RazerStreamControllerX } from 'loupedeck'
 
 import loupedeckButton from './components/loupedeck-button.vue'
 import loupedeckButtonSquare from './components/loupedeck-button-square.vue'
@@ -78,6 +78,7 @@ const DEVICE_TYPES = [
     LoupedeckLive,
     LoupedeckLiveS,
     RazerStreamController,
+    RazerStreamControllerX,
 ]
 
 const connected = ref(false)
@@ -347,7 +348,7 @@ body
     .buttons
         top: 48%
 
-.LoupedeckLiveS
+.LoupedeckLiveS, .RazerStreamControllerX
     aspect-ratio: 1.76
     border-radius: 8% / calc(8% * 1.76)
 
@@ -395,6 +396,29 @@ body
             aspect-ratio: 1
             background: #222
             border: inset 1px gray
+
+.RazerStreamControllerX
+    aspect-ratio: 1.4
+    border-radius: 4% / calc(4% * 1.7)
+    max-width: 40rem
+    background-color: #0c0c0c
+    .screen
+        border: none
+        padding: 0
+        top: 5%
+        margin-left: -45%
+        width: 90%
+    @container (min-width: 0px)
+        .screen
+            border-radius: 2cqw
+            //padding: 1.5cqw 3cqw
+            > div
+                width: calc((100% - 10cqw - 10px) / 5)
+                aspect-ratio: 1
+                margin: 1cqw
+                background: #222
+                border-radius: 1cqw
+                border: inset 1px gray
 
 .force
     position: absolute

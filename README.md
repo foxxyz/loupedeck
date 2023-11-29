@@ -7,8 +7,9 @@ Unofficial Node.js API for [Loupedeck Live](https://loupedeck.com/products/loupe
 
 ![Loupedeck Live Interface](/docs/live-front-small.png?raw=true)
 ![Razer Stream Controller Interface](/docs/rsc-front-small.png?raw=true)
-![Loupedeck Live S Interface](/docs/live-s-front-small.png?raw=true)
 ![Loupedeck CT Interface](/docs/ct-front-small.png?raw=true)
+![Loupedeck Live S Interface](/docs/live-s-front-small.png?raw=true)
+![Razer Stream Controller X Interface](/docs/rscx-front-small.png?raw=true)
 
 Supports:
 
@@ -24,9 +25,14 @@ Requirements
 ------------
 
  * Node 18+
- * Loupedeck Live, Loupedeck Live S, Loupedeck CT or Razer Stream Controller (RSC)
+ * Supported Device
+   * Loupedeck Live
+   * Loupedeck Live S
+   * Loupedeck CT
+   * Razer Stream Controller ("RSC")
+   * Razer Stream Controller X ("RSCX")
 
-This library has been tested with firmware versions 0.1.3, 0.1.79, 0.2.5 and 0.2.8. Other versions may work.
+This library has been tested with firmware versions 0.1.3, 0.1.79, 0.2.5, 0.2.8 and 0.2.23. Other versions may work.
 
 Installation
 ------------
@@ -93,7 +99,7 @@ For all examples, see the [`examples` folder](/examples/). Running some examples
 
 Find the first connected Loupedeck device and return it.
 
-Returns an instance of `LoupedeckLive`, `LoupedeckLiveS`, `LoupedeckCT`, `RazerStreamController`, or throws an `Error` in case none or unsupported devices are found.
+Returns an instance of `LoupedeckLive`, `LoupedeckLiveS`, `LoupedeckCT`, `RazerStreamController`, `RazerStreamControllerX`, or throws an `Error` in case none or unsupported devices are found.
 
 ### Class `LoupedeckLive`
 
@@ -121,6 +127,12 @@ Same interface as [`LoupedeckLive`](#class-loupedecklive).
 ### Class `RazerStreamController`
 
 Same interface as [`LoupedeckLive`](#class-loupedecklive).
+
+### Class `RazerStreamControllerX`
+
+Same interface as [`LoupedeckLive`](#class-loupedecklive).
+
+Does not implement vibration or button colors.
 
 ### Interface `LoupedeckDevice`
 
@@ -242,9 +254,9 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 Draw graphics to a specific key.
 
-Second argument can be either a RGB16-565 buffer or a callback. Width and height of callback will be `90`, as keys are 90x90px.
+Second argument can be either a RGB16-565 buffer or a callback. Width and height of callback will typically be `90`, as keys are mostly 90x90px (_RSCX_ being the exception - those keys are 96x96px).
 
- - `key`: Key index to write to ([0-11] on _Loupedeck Live/Loupedeck CT/RSC_, [0-14] on _Loupedeck Live S_)
+ - `key`: Key index to write to ([0-11] on _Loupedeck Live/Loupedeck CT/RSC_, [0-14] on _Loupedeck Live S_ and _RSCX_)
  - `buffer`: RGB16-565 Buffer
  - `callback`: Function to handle draw calls. Receives the following arguments:
      1. `context`: [2d canvas graphics context](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
@@ -270,6 +282,9 @@ Loupedeck Live / Razer Stream Controller:
 
 Loupedeck Live S:
  * `center`: 480x270px
+
+Razer Stream Controller X:
+ * `center`: 480x288px
  
  Second argument can be either a RGB16-565 buffer or a callback. 
 
@@ -301,7 +316,7 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 #### `device.setButtonColor({ id : String, color : String }) : Promise`
 
-Set a button LED to a particular color.
+Set a button LED to a particular color. _(Unavailable on RSCX)_
 
  - `id`: Button ID (possible choices: 0-7 on _Loupedeck Live/CT/RSC_, 0-4 on _Loupedeck Live S_, [see `BUTTONS` for _Loupedeck CT_ square buttons](/constants.js#L19))
  - `color`: Any [valid CSS color string](https://github.com/colorjs/color-parse#parsed-strings)
@@ -310,7 +325,7 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 #### `device.vibrate(pattern? : byte) : Promise`
 
-Make device vibrate.
+Make device vibrate. _(Unavailable on RSCX)_
 
  - `pattern`: A valid vibration pattern ([see `HAPTIC` for valid patterns](/constants.js#L57)) (default: `HAPTIC.SHORT`)
  
@@ -325,7 +340,7 @@ Touch objects are emitted in the [`touchstart`](#event-touchstart), [`touchmove`
  + `y`: Screen Y-coordinate ([0, 270])
  + `target`:
      * `screen`: Identifier of screen this touch was detected on ([`left`, `center`, `right`, `knob`]) (`center` only on _Loupedeck Live S_, `knob` only on _Loupedeck CT_)
-     * `key`: Index of key touched ([0-11] on _Loupedeck Live/CT/RSC_, [0-14] on _Loupedeck Live S_)
+     * `key`: Index of key touched ([0-11] on _Loupedeck Live/CT/RSC_, [0-14] on _Loupedeck Live S_/_RSCX_)
 
 Contributing & Tests
 --------------------
