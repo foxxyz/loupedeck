@@ -1,5 +1,6 @@
-const { SerialPort } = require('serialport')
-const SerialConnection = require('../connections/serial')
+import { jest } from '@jest/globals'
+import { SerialPort } from 'serialport'
+import SerialConnection from '../connections/serial.js'
 
 let connection
 

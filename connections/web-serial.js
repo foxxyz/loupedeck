@@ -1,4 +1,4 @@
-const EventEmitter = require('events')
+import EventEmitter from 'events'
 
 const WS_UPGRADE_HEADER = `GET /index.html
 HTTP/1.1
@@ -52,7 +52,7 @@ async function *read(port) {
     }
 }
 
-class LoupedeckWebSerialConnection extends EventEmitter {
+export default class LoupedeckWebSerialConnection extends EventEmitter {
     constructor({ port } = {}) {
         super()
         this.port = port
@@ -144,5 +144,3 @@ class LoupedeckWebSerialConnection extends EventEmitter {
         return this.writer.write(buff)
     }
 }
-
-module.exports = LoupedeckWebSerialConnection

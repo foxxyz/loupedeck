@@ -1,6 +1,6 @@
 jest.mock('os', () => ({ networkInterfaces: jest.fn() }))
-const WSConnection = require('../connections/ws')
-const os = require('os')
+import WSConnection from '../connections/ws.js'
+import os from 'os'
 
 const delay = ms => new Promise(res => setTimeout(res, ms))
 

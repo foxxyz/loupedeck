@@ -1,17 +1,15 @@
-const EventEmitter = require('events')
-const { networkInterfaces } = require('os')
-const WebSocket = require('ws')
+import EventEmitter from 'events'
+import { networkInterfaces } from 'os'
+import WebSocket from 'ws'
 
-const {
-    CONNECTION_TIMEOUT,
-} = require('../constants')
+import { CONNECTION_TIMEOUT } from '../constants'
 
 const DISCONNECT_CODES = {
     NORMAL: 1000,
     TIMEOUT: 1006,
 }
 
-class LoupedeckWSConnection extends EventEmitter {
+export default class LoupedeckWSConnection extends EventEmitter {
     constructor({ host } = {}) {
         super()
         this.host = host
@@ -80,5 +78,3 @@ class LoupedeckWSConnection extends EventEmitter {
         this.connection.send(buff)
     }
 }
-
-module.exports = LoupedeckWSConnection

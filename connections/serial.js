@@ -1,7 +1,7 @@
-const EventEmitter = require('events')
-const { SerialPort } = require('serialport')
+import EventEmitter from 'events'
+import { SerialPort } from 'serialport'
 
-const MagicByteLengthParser = require('../parser')
+import { MagicByteLengthParser } from '../parser'
 
 const WS_UPGRADE_HEADER = `GET /index.html
 HTTP/1.1
@@ -21,7 +21,7 @@ const MANUFACTURERS = [
     'Razer'
 ]
 
-class LoupedeckSerialConnection extends EventEmitter {
+export default class LoupedeckSerialConnection extends EventEmitter {
     constructor({ path } = {}) {
         super()
         this.path = path
@@ -100,5 +100,3 @@ class LoupedeckSerialConnection extends EventEmitter {
         this.connection.write(buff)
     }
 }
-
-module.exports = LoupedeckSerialConnection

@@ -1,4 +1,4 @@
-const { RazerStreamController } = require('..')
+import { RazerStreamController } from '../index.js'
 
 expect.extend({
     toBePixelBuffer(received, { displayID, x, y, width, height }) {

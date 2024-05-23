@@ -1,6 +1,6 @@
-const { LoupedeckCT } = require('..')
-const SerialConnection = require('../connections/serial')
-const WSConnection = require('../connections/ws')
+import { LoupedeckCT } from '../index.js'
+import SerialConnection from '../connections/serial.js'
+import WSConnection from '../connections/ws.js'
 
 expect.extend({
     toBePixelBuffer(received, { displayID, x, y, width, height }) {

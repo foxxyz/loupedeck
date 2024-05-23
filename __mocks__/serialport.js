@@ -1,4 +1,4 @@
-const EventEmitter = require('events')
+import EventEmitter from 'events'
 
 const WS_UPGRADE_HEADER = `GET /index.html
 HTTP/1.1
@@ -15,7 +15,7 @@ Sec-WebSocket-Accept: PLOTDYCXHOTMeouth==
 `
 
 // Stand-in for a Loupedeck serial device
-class MockLoupedeckSerialPort extends EventEmitter {
+export default class MockLoupedeckSerialPort extends EventEmitter {
     static list() {
         return [
             {
@@ -57,8 +57,4 @@ class MockLoupedeckSerialPort extends EventEmitter {
     write(buff) {
         if (buff.toString() === WS_UPGRADE_HEADER) this.emit('data', Buffer.from(WS_UPGRADE_RESPONSE))
     }
-}
-
-module.exports = {
-    SerialPort: MockLoupedeckSerialPort
 }

@@ -1,4 +1,5 @@
-const MagicByteLengthParser = require('../parser')
+import { MagicByteLengthParser } from '../parser'
+import { jest } from '@jest/globals'
 
 describe('MagicByteLengthParser', () => {
     it('transforms data by magic byte', () => {

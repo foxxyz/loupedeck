@@ -1,5 +1,6 @@
-const { discover, LoupedeckLive, LoupedeckLiveS } = require('..')
-const { SerialPort } = require('serialport')
+import { discover, LoupedeckLive, LoupedeckLiveS } from '../index.js'
+import { jest } from '@jest/globals'
+import { SerialPort } from 'serialport'
 
 describe('Device Discovery', () => {
     it('reports if no devices found', async() => {
@@ -17,8 +18,19 @@ describe('Device Discovery', () => {
         spy.mockRestore()
     })
     it('can auto-discover a Loupedeck Live device', async() => {
-        const device = await discover()
+        const spy = jest.spyOn(SerialPort, 'list').mockImplementation(() => [
+            {
+                path: '/dev/cu.usbmodem-333',
+                manufacturer: 'Loupedeck',
+                serialNumber: 'LDD12345678',
+                locationId: '14100002',
+                vendorId: '2ec2',
+                productId: '0004'
+            }
+        ])
+        const device = await discover({ autoConnect: false })
         expect(device).toBeInstanceOf(LoupedeckLive)
+        spy.mockRestore()
     })
     it('can auto-discover a Loupedeck Live S device', async() => {
         const spy = jest.spyOn(SerialPort, 'list').mockImplementation(() => [
@@ -31,7 +43,7 @@ describe('Device Discovery', () => {
                 productId: '0006'
             }
         ])
-        const device = await discover()
+        const device = await discover({ autoConnect: false })
         expect(device).toBeInstanceOf(LoupedeckLiveS)
         spy.mockRestore()
     })

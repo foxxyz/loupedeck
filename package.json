@@ -3,9 +3,10 @@
   "version": "5.1.0",
   "description": "Loupedeck Device Interface",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "lint": "eslint .",
-    "test": "jest"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "files": [
     "index.js",
