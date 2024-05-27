@@ -10,6 +10,14 @@ if (typeof navigator !== 'undefined' && navigator.serial || import.meta.env?.PRO
     WSConnection = (await import('./connections/ws.js')).default
 }
 
+let canvasModule
+try {
+    canvasModule = await import('canvas')
+// eslint-disable-next-line
+} catch (e) {
+    // No canvas is ok, do check in `drawCanvas`
+}
+
 import {
     BUTTONS,
     COMMANDS,

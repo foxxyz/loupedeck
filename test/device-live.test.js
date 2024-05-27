@@ -150,6 +150,11 @@ describe('Drawing (Callback API)', () => {
         await delay(10)
         expect(sender).toHaveBeenCalledTimes(1)
     })
+    // TODO: Mock canvas lib
+    // it('informs the user if the canvas library is not installed', () => {
+    //     jest.mock('canvas', () => {})
+    //     expect(() => device.drawKey(6, () => {})).toThrow(/using callbacks requires the `canvas` library/i)
+    // })
 })
 describe('Drawing (Buffer API)', () => {
     beforeEach(() => {
