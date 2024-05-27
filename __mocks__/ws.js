@@ -1,7 +1,7 @@
-import EventEmitter from 'events'
+import EventEmitter from 'node:events'
 
 // Stand-in for a real WebSocket
-export class MockSocket extends EventEmitter {
+export default class MockSocket extends EventEmitter {
     constructor(url) {
         super()
         this.url = url

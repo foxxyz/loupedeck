@@ -1,6 +1,9 @@
-jest.mock('os', () => ({ networkInterfaces: jest.fn() }))
-import WSConnection from '../connections/ws.js'
-import os from 'os'
+import { jest } from '@jest/globals'
+import * as mockWS from '../__mocks__/ws.js'
+jest.unstable_mockModule('ws', () => mockWS)
+jest.unstable_mockModule('node:os', () => ({ networkInterfaces: jest.fn() }))
+const os = await import('node:os')
+const WSConnection = (await import('../connections/ws.js')).default
 
 const delay = ms => new Promise(res => setTimeout(res, ms))
 
@@ -62,7 +65,7 @@ describe('v0.1.X Connection', () => {
         expect(connection.isReady()).toBe(true)
         connection.close()
     })
-    it('can close even when not connection', () => {
+    it('can close even when not connected', () => {
         connection = new WSConnection()
         connection.close()
         expect(connection.connection).toBe(undefined)

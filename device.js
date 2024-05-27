@@ -1,4 +1,4 @@
-import EventEmitter from 'events'
+import EventEmitter from 'node:events'
 import rgba from 'color-rgba'
 
 let SerialConnection, WSConnection
@@ -7,6 +7,14 @@ if (typeof navigator !== 'undefined' && navigator.serial) {
 } else {
     SerialConnection = (await import('./connections/serial.js')).default
     WSConnection = (await import('./connections/ws.js')).default
+}
+
+let canvasModule
+try {
+    canvasModule = await import('canvas')
+// eslint-disable-next-line
+} catch (e) {
+    // No canvas is ok, do check in `drawCanvas`
 }
 
 import {
@@ -123,14 +131,11 @@ export class LoupedeckDevice extends EventEmitter {
         if (!displayInfo) throw new Error(`Display '${id}' is not available on this device!`)
         if (!width) width = displayInfo.width
         if (!height) height = displayInfo.height
-        let createCanvas
-        try {
-            createCanvas = require('canvas').createCanvas
-        } catch (e) {
+        if (!canvasModule || !canvasModule.createCanvas) {
             throw new Error('Using callbacks requires the `canvas` library to be installed. Install it using `npm install canvas`.')
         }
 
-        const canvas = createCanvas(width, height)
+        const canvas = canvasModule.createCanvas(width, height)
         const ctx = canvas.getContext('2d', { pixelFormat: 'RGB16_565' }) // Loupedeck uses 16-bit (5-6-5) LE RGB colors
         cb(ctx, width, height)
         let buffer

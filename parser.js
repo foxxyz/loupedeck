@@ -1,4 +1,4 @@
-import { Transform } from 'stream'
+import { Transform } from 'node:stream'
 
 // Parser to split incoming serial data by a magic byte sequence
 // followed by a length

@@ -1,6 +1,8 @@
 import { jest } from '@jest/globals'
-import { SerialPort } from 'serialport'
-import SerialConnection from '../connections/serial.js'
+import * as serialport from '../__mocks__/serialport.js'
+jest.unstable_mockModule('serialport', () => serialport)
+const { SerialPort } = await import('serialport')
+const SerialConnection = (await import('../connections/serial.js')).default
 
 let connection
 

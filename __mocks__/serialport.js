@@ -1,4 +1,4 @@
-import EventEmitter from 'events'
+import EventEmitter from 'node:events'
 
 const WS_UPGRADE_HEADER = `GET /index.html
 HTTP/1.1
@@ -15,7 +15,7 @@ Sec-WebSocket-Accept: PLOTDYCXHOTMeouth==
 `
 
 // Stand-in for a Loupedeck serial device
-export default class MockLoupedeckSerialPort extends EventEmitter {
+export class SerialPort extends EventEmitter {
     static list() {
         return [
             {
