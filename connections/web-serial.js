@@ -1,4 +1,4 @@
-import EventEmitter from 'node:events'
+import { Emitter as EventEmitter } from 'strict-event-emitter'
 
 const WS_UPGRADE_HEADER = `GET /index.html
 HTTP/1.1

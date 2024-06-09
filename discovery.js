@@ -1,4 +1,4 @@
-import * as ALL_DEVICES from './device'
+import * as ALL_DEVICES from './device.js'
 
 export async function discover(args) {
     const devices = await ALL_DEVICES.LoupedeckDevice.list()

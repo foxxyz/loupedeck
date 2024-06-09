@@ -1,8 +1,8 @@
-import EventEmitter from 'node:events'
+import { Emitter as EventEmitter } from 'strict-event-emitter'
 import { networkInterfaces } from 'node:os'
 import WebSocket from 'ws'
 
-import { CONNECTION_TIMEOUT } from '../constants'
+import { CONNECTION_TIMEOUT } from '../constants.js'
 
 const DISCONNECT_CODES = {
     NORMAL: 1000,

@@ -1,7 +1,7 @@
-import EventEmitter from 'node:events'
+import { Emitter as EventEmitter } from 'strict-event-emitter'
 import { SerialPort } from 'serialport'
 
-import { MagicByteLengthParser } from '../parser'
+import { MagicByteLengthParser } from '../parser.js'
 
 const WS_UPGRADE_HEADER = `GET /index.html
 HTTP/1.1

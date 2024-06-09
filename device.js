@@ -1,4 +1,4 @@
-import EventEmitter from 'node:events'
+import { Emitter as EventEmitter } from 'strict-event-emitter'
 import rgba from 'color-rgba'
 
 let SerialConnection, WSConnection
@@ -23,9 +23,9 @@ import {
     DEFAULT_RECONNECT_INTERVAL,
     HAPTIC,
     MAX_BRIGHTNESS,
-} from './constants'
+} from './constants.js'
 
-import { rgba2rgb565 } from './util'
+import { rgba2rgb565 } from './util.js'
 
 export class LoupedeckDevice extends EventEmitter {
     static async list({ ignoreSerial = false, ignoreWebsocket = false } = {}) {

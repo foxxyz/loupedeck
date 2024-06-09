@@ -1,3 +1,3 @@
-export * from './device'
-export { HAPTIC } from './constants'
-export { discover } from './discovery'
+export * from './device.js'
+export { HAPTIC } from './constants.js'
+export { discover } from './discovery.js'
