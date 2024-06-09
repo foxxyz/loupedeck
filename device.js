@@ -2,7 +2,8 @@ import { Emitter as EventEmitter } from 'strict-event-emitter'
 import rgba from 'color-rgba'
 
 let SerialConnection, WSConnection
-if (typeof navigator !== 'undefined' && navigator.serial) {
+// Only import when in a browser environment
+if (typeof navigator !== 'undefined' && navigator.serial || import.meta.env?.PROD) {
     SerialConnection = (await import('./connections/web-serial.js')).default
 } else {
     SerialConnection = (await import('./connections/serial.js')).default
