@@ -166,10 +166,6 @@ describe('Drawing (Callback API)', () => {
         await delay(10)
         expect(sender).toHaveBeenCalledTimes(1)
     })
-    // TODO: mock canvas
-    // it('informs the user if the canvas library is not installed', () => {
-    //     expect(() => device.drawKey(6, () => {})).toThrow(/using callbacks requires the `canvas` library/i)
-    // })
 })
 describe('Drawing (Buffer API)', () => {
     beforeEach(() => {
