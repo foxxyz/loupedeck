@@ -1,25 +1,34 @@
-const EventEmitter = require('events')
-const rgba = require('color-rgba')
+import { Emitter as EventEmitter } from 'strict-event-emitter'
+import rgba from 'color-rgba'
 
 let SerialConnection, WSConnection
-if (typeof navigator !== 'undefined' && navigator.serial) {
-    SerialConnection = require('./connections/web-serial')
+// Only import when in a browser environment
+if (typeof navigator !== 'undefined' && navigator.serial || import.meta.env?.PROD) {
+    SerialConnection = (await import('./connections/web-serial.js')).default
 } else {
-    SerialConnection = require('./connections/serial')
-    WSConnection = require('./connections/ws')
+    SerialConnection = (await import('./connections/serial.js')).default
+    WSConnection = (await import('./connections/ws.js')).default
 }
 
-const {
+let canvasModule
+try {
+    canvasModule = await import('canvas')
+// eslint-disable-next-line
+} catch (e) {
+    // No canvas is ok, do check in `drawCanvas`
+}
+
+import {
     BUTTONS,
     COMMANDS,
     DEFAULT_RECONNECT_INTERVAL,
     HAPTIC,
     MAX_BRIGHTNESS,
-} = require('./constants')
+} from './constants.js'
 
-const { rgba2rgb565 } = require('./util')
+import { rgba2rgb565 } from './util.js'
 
-class LoupedeckDevice extends EventEmitter {
+export class LoupedeckDevice extends EventEmitter {
     static async list({ ignoreSerial = false, ignoreWebsocket = false } = {}) {
         const ps = []
 
@@ -123,14 +132,11 @@ class LoupedeckDevice extends EventEmitter {
         if (!displayInfo) throw new Error(`Display '${id}' is not available on this device!`)
         if (!width) width = displayInfo.width
         if (!height) height = displayInfo.height
-        let createCanvas
-        try {
-            createCanvas = require('canvas').createCanvas
-        } catch (e) {
+        if (!canvasModule || !canvasModule.createCanvas) {
             throw new Error('Using callbacks requires the `canvas` library to be installed. Install it using `npm install canvas`.')
         }
 
-        const canvas = createCanvas(width, height)
+        const canvas = canvasModule.createCanvas(width, height)
         const ctx = canvas.getContext('2d', { pixelFormat: 'RGB16_565' }) // Loupedeck uses 16-bit (5-6-5) LE RGB colors
         cb(ctx, width, height)
         let buffer
@@ -259,7 +265,7 @@ class LoupedeckDevice extends EventEmitter {
     }
 }
 
-class LoupedeckLive extends LoupedeckDevice {
+export class LoupedeckLive extends LoupedeckDevice {
     static productId = 0x0004
     static vendorId = 0x2ec2
     buttons = [0, 1, 2, 3, 4, 5, 6, 7]
@@ -289,7 +295,7 @@ class LoupedeckLive extends LoupedeckDevice {
     }
 }
 
-class LoupedeckCT extends LoupedeckLive {
+export class LoupedeckCT extends LoupedeckLive {
     static productId = 0x0003
     buttons = [0, 1, 2, 3, 4, 5, 6, 7, 'home', 'enter', 'undo', 'save', 'keyboard', 'fnL', 'a', 'b', 'c', 'd', 'fnR', 'e']
     displays = {
@@ -306,7 +312,7 @@ class LoupedeckCT extends LoupedeckLive {
     }
 }
 
-class LoupedeckLiveS extends LoupedeckDevice {
+export class LoupedeckLiveS extends LoupedeckDevice {
     static productId = 0x0006
     static vendorId = 0x2ec2
     buttons = [0, 1, 2, 3]
@@ -331,13 +337,13 @@ class LoupedeckLiveS extends LoupedeckDevice {
     }
 }
 
-class RazerStreamController extends LoupedeckLive {
+export class RazerStreamController extends LoupedeckLive {
     static productId = 0x0d06
     static vendorId = 0x1532
     type = 'Razer Stream Controller'
 }
 
-class RazerStreamControllerX extends LoupedeckDevice {
+export class RazerStreamControllerX extends LoupedeckDevice {
     static productId = 0x0d09
     static vendorId = 0x1532
     type = 'Razer Stream Controller X'
@@ -376,13 +382,4 @@ class RazerStreamControllerX extends LoupedeckDevice {
     vibrate() {
         throw new Error('Vibration not available on this device!')
     }
-}
-
-module.exports = {
-    LoupedeckCT,
-    LoupedeckDevice,
-    LoupedeckLive,
-    LoupedeckLiveS,
-    RazerStreamController,
-    RazerStreamControllerX,
 }

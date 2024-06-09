@@ -1,9 +1,3 @@
-const DEVICES = require('./device')
-const { HAPTIC } = require('./constants')
-const { discover } = require('./discovery')
-
-module.exports = {
-    discover,
-    HAPTIC,
-    ...DEVICES,
-}
+export * from './device.js'
+export { HAPTIC } from './constants.js'
+export { discover } from './discovery.js'

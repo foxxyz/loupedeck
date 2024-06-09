@@ -1,6 +1,6 @@
 // Various constants used by the Loupedeck firmware
 
-const BUTTONS = {
+export const BUTTONS = {
     0x00: 'knobCT',
     0x01: 'knobTL',
     0x02: 'knobCL',
@@ -47,9 +47,9 @@ const BUTTONS = {
 }
 
 // How long without ticks until a connection is considered "timed out"
-const CONNECTION_TIMEOUT = 3000
+export const CONNECTION_TIMEOUT = 3000
 
-const COMMANDS = {
+export const COMMANDS = {
     BUTTON_PRESS: 0x00,
     KNOB_ROTATE: 0x01,
     SET_COLOR: 0x02,
@@ -68,9 +68,9 @@ const COMMANDS = {
 }
 
 // How long until trying to reconnect after a disconnect
-const DEFAULT_RECONNECT_INTERVAL = 3000
+export const DEFAULT_RECONNECT_INTERVAL = 3000
 
-const HAPTIC = {
+export const HAPTIC = {
     SHORT: 0x01,
     MEDIUM: 0x0a,
     LONG: 0x0f,
@@ -102,13 +102,4 @@ const HAPTIC = {
 }
 
 // Maximum brightness value
-const MAX_BRIGHTNESS = 10
-
-module.exports = {
-    MAX_BRIGHTNESS,
-    BUTTONS,
-    COMMANDS,
-    CONNECTION_TIMEOUT,
-    DEFAULT_RECONNECT_INTERVAL,
-    HAPTIC,
-}
+export const MAX_BRIGHTNESS = 10

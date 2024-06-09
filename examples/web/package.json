@@ -11,23 +11,17 @@
   "author": "Ivo Janssen <hello@ivo.la>",
   "license": "MIT",
   "devDependencies": {
-    "@appliedminds/eslint-config": "^1.6.0",
-    "@vitejs/plugin-vue": "^4.5.0",
-    "eslint": "^8.54.0",
-    "eslint-plugin-vue": "^9.18.1",
-    "sass": "^1.69.5",
-    "vite": "^5.0.2"
+    "@appliedminds/eslint-config": "^2.0.1",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "eslint": "^9.3.0",
+    "eslint-plugin-vue": "^9.26.0",
+    "sass": "^1.77.2",
+    "vite": "^5.2.11"
   },
   "dependencies": {
     "buffer": "^6.0.3",
     "events": "^3.3.0",
     "loupedeck": "file:../..",
-    "vue": "^3.3.9"
-  },
-  "eslintConfig": {
-    "extends": [
-      "@appliedminds",
-      "@appliedminds/eslint-config/vue"
-    ]
+    "vue": "^3.4.27"
   }
 }

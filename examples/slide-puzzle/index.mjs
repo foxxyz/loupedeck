@@ -34,8 +34,8 @@ class SlidePuzzle {
     async init() {
         this.sourceImage = await loadImage(this.sourceImageFile)
         const tiles = []
-        for(let column = 0; column < this.columns; column++) {
-            for(let row = 0; row < this.rows; row++) {
+        for (let column = 0; column < this.columns; column++) {
+            for (let row = 0; row < this.rows; row++) {
                 if (row === this.rows - 1 && column === this.columns - 1) continue
                 tiles.push(new Tile({
                     sourceImage: this.sourceImage,
@@ -82,8 +82,8 @@ class SlidePuzzle {
     }
     shuffle() {
         const shuffled = []
-        for(let column = 0; column < this.columns; column++) {
-            for(let row = 0; row < this.rows; row++) {
+        for (let column = 0; column < this.columns; column++) {
+            for (let row = 0; row < this.rows; row++) {
                 if (row === this.rows - 1 && column === this.columns - 1) continue
                 const randomIndex = Math.floor(Math.random() * this.tiles.length)
                 const tile = this.tiles[randomIndex]
@@ -163,7 +163,7 @@ await game.init()
 game.onStart = () => {
     clearTimeout(winAnimation)
     device.drawScreen('center', ctx => {
-        for(const tile of game.tiles) {
+        for (const tile of game.tiles) {
             ctx.drawImage(tile.canvas, tile.x, tile.y)
         }
     })

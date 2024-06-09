@@ -1,8 +1,8 @@
-const { Transform } = require('stream')
+import { Transform } from 'node:stream'
 
 // Parser to split incoming serial data by a magic byte sequence
 // followed by a length
-class MagicByteLengthParser extends Transform {
+export class MagicByteLengthParser extends Transform {
     constructor({ magicByte, ...args }) {
         super(args)
         this.delimiter = magicByte
@@ -30,5 +30,3 @@ class MagicByteLengthParser extends Transform {
         cb()
     }
 }
-
-module.exports = MagicByteLengthParser

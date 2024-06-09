@@ -1,7 +1,7 @@
-const EventEmitter = require('events')
+import EventEmitter from 'node:events'
 
 // Stand-in for a real WebSocket
-class MockSocket extends EventEmitter {
+export default class MockSocket extends EventEmitter {
     constructor(url) {
         super()
         this.url = url
@@ -29,5 +29,3 @@ class MockSocket extends EventEmitter {
         this.emit('close', 1006)
     }
 }
-
-module.exports = MockSocket
