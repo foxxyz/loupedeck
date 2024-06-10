@@ -36,8 +36,9 @@ class MagicByteLengthParser {
 }
 
 // Async pipeline transformer that splits a stream by 0x82 magic bytes
-async function *read(port) {
-    const transformed = port.readable.pipeThrough(new TransformStream(new MagicByteLengthParser({ magicByte: 0x82 })))
+async function *read(port, { signal }) {
+    const transformer = new TransformStream(new MagicByteLengthParser({ magicByte: 0x82 }))
+    const transformed = port.readable.pipeThrough(transformer, { signal })
     const reader = transformed.getReader()
     try {
         while (true) {
@@ -83,11 +84,27 @@ export default class LoupedeckWebSerialConnection extends EventEmitter {
         return connections
     }
     async close() {
+        this.aborter.abort('Manual close initiated')
+        await new Promise(res => this.on('readEnd', res))
+        this.writer.close()
         this.writer.releaseLock()
+        // Without the line below, the serialport will refuse to close with
+        // "TypeError: Failed to execute 'close': Cannot cancel a locked stream"
+        //
+        // However, the port.readable stream should have been unlocked via reader.releaseLock() (see read() above)
+        //
+        // Apparently it unlocks after a one tick propagation (due to pipeThrough()), but there doesn't
+        // seem to be a promise anywhere to await this happening...
+        //
+        // Annoyingly, we have to wait one tick here which is really hacky,
+        // and we should find a way to do this more robustly
+        await new Promise(res => setTimeout(res, 10))
         await this.port.close()
     }
     async connect() {
-        await this.port.open({ baudRate: 256000 })
+        if (!this.isReady()) {
+            await this.port.open({ baudRate: 256000 })
+        }
 
         const reader = this.port.readable.getReader()
         this.writer = this.port.writable.getWriter()
@@ -101,7 +118,8 @@ export default class LoupedeckWebSerialConnection extends EventEmitter {
         reader.releaseLock()
 
         // Set up data pipeline
-        this.reader = read(this.port)
+        this.aborter = new AbortController()
+        this.readStream = read(this.port, this.aborter)
         this.emit('connect', { address: 'web' })
         this.read()
     }
@@ -118,10 +136,11 @@ export default class LoupedeckWebSerialConnection extends EventEmitter {
         this.onDisconnect(err)
     }
     async read() {
-        for await (const message of this.reader) {
+        for await (const message of this.readStream) {
             if (!this.port.readable) break
             this.emit('message', message)
         }
+        this.emit('readEnd')
     }
     send(buff, raw = false) {
         if (!raw) {

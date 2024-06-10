@@ -58,6 +58,9 @@
             <canvas width="480" height="270" ref="screenCanvas" />
         </div>
     </div>
+    <button v-if="connected" @click="close" type="button" class="close">
+        Close Device
+    </button>
 </template>
 
 <script setup>
@@ -174,6 +177,13 @@ async function request() {
 }
 request()
 
+async function close() {
+    if (!device) return
+    await device.close()
+    connected.value = false
+    deviceInfo.value = null
+}
+
 // Force override (for debugging)
 const forceDevice = ref('')
 watch(forceDevice, value => {
@@ -202,7 +212,8 @@ body
     font-family: sans-serif
     min-height: 100vh
     padding: 1rem 2rem
-
+.close
+    margin-top: 1em
 .device
     background-color: #444
     max-width: 50rem
