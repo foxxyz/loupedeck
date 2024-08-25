@@ -11,6 +11,7 @@ Sec-WebSocket-Key: 123abc
 
 `
 const WS_UPGRADE_RESPONSE = 'HTTP/1.1'
+const WS_CLOSE_FRAME = [0x88, 0x80, 0x00, 0x00, 0x00, 0x00]
 
 const VENDOR_IDS = [
     0x2ec2, // Loupedeck
@@ -46,6 +47,7 @@ export default class LoupedeckSerialConnection extends EventEmitter {
     }
     close() {
         if (!this.connection) return
+        this.send(Buffer.from(WS_CLOSE_FRAME), true)
         return new Promise(res => this.connection.close(res))
     }
     async connect() {

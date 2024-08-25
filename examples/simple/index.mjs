@@ -23,6 +23,7 @@ loupedeck.on('connect', async({ address }) => {
 })
 
 loupedeck.on('disconnect', err => {
+    if (!err) return
     console.info(`Connection to Loupedeck lost (${err?.message}). Reconnecting in ${loupedeck.reconnectInterval / 1000}s...`)
 })
 
@@ -134,3 +135,11 @@ async function drawKeyColors(device) {
         await device.drawScreen('knob', drawGrid)
     }
 }
+
+async function shutdown() {
+    await loupedeck.close()
+    process.exit(0)
+}
+
+process.on('SIGTERM', shutdown)
+process.on('SIGINT', shutdown)
