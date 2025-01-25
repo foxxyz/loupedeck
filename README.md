@@ -34,6 +34,8 @@ Requirements
 
 This library has been tested with firmware versions 0.1.3, 0.1.79, 0.2.5, 0.2.8 and 0.2.23. Other versions may work.
 
+**Note: Firmware version 0.2.26 does not seem to work on Linux. Recommendation is to downgrade to 0.2.23 (see #30)**
+
 Installation
 ------------
 
