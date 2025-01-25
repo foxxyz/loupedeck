@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 21.x, latest]
+        node-version: [18.x, 20.x, 22.x, 23.x, latest]
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
@@ -21,7 +21,7 @@ jobs:
     - name: Install system dependencies
       run: sudo apt-get install libcairo2-dev libpango1.0-dev libgif-dev
     - run: npm ci
-    - run: npm install canvas
+    - run: npm install canvas@next
     - run: npm test
       env:
         CI: true
