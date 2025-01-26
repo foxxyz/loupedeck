@@ -51,7 +51,7 @@
   "author": "Ivo Janssen <hello@ivo.la>",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "devDependencies": {
     "@appliedminds/eslint-config": "^2.0.2",

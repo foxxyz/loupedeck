@@ -8,8 +8,8 @@ It uses [Vite](https://github.com/vitejs/vite) & [Vue 3](https://github.com/vuej
 Requirements
 ------------
 
- * Node 16+
- * Supported Browser
+ * Node 20+
+ * Supported Browsers
    * Google Chrome 89+
    * Microsoft Edge 89+
    * Opera 67+

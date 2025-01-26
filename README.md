@@ -24,8 +24,8 @@ Supports:
 Requirements
 ------------
 
- * Node 18+
- * Supported Device
+ * Node 20+
+ * Supported Devices:
    * Loupedeck Live
    * Loupedeck Live S
    * Loupedeck CT
