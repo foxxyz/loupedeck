@@ -195,9 +195,15 @@ describe('Message Parsing', () => {
         const fn = mock.fn()
         device.on('touchstart', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        assert.partialDeepStrictEqual(fn.mock.calls[0].arguments[0].changedTouches[0],
-            { x: 115, y: 226 }
-        )
+        assert.deepEqual(fn.mock.calls[0].arguments[0].changedTouches[0], {
+            id: 19,
+            target: {
+                key: 11,
+                screen: 'center',
+            },
+            x: 115,
+            y: 226,
+        })
     })
     it('processes ticks', () => {
         const SAMPLE_MESSAGE = Buffer.from('040000f9', 'hex')
@@ -210,16 +216,27 @@ describe('Message Parsing', () => {
         device.on('touchmove', fn)
         device.onReceive(SAMPLE_MESSAGE)
         device.onReceive(FOLLOW_MESSAGE)
-        assert.partialDeepStrictEqual(fn.mock.calls[0].arguments[0].changedTouches[0],
-            { x: 112, y: 229 }
-        )
+        assert.deepEqual(fn.mock.calls[0].arguments[0].changedTouches[0], {
+            id: 21,
+            target: {
+                screen: 'center',
+                key: 11,
+            },
+            x: 112,
+            y: 229,
+        })
     })
     it('processes screen touchends', () => {
         const SAMPLE_MESSAGE = Buffer.from('096d000001bf004c12', 'hex')
         const fn = mock.fn()
         device.on('touchend', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        assert.partialDeepStrictEqual(fn.mock.calls[0].arguments[0].changedTouches[0], {
+        assert.deepEqual(fn.mock.calls[0].arguments[0].changedTouches[0], {
+            id: 18,
+            target: {
+                key: 4,
+                screen: 'center'
+            },
             x: 447,
             y: 76,
         })
