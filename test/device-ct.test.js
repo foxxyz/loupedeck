@@ -1,25 +1,26 @@
-import { jest } from '@jest/globals'
-import * as mockWS from '../__mocks__/ws.js'
-import * as serialport from '../__mocks__/serialport.js'
-jest.unstable_mockModule('ws', () => mockWS)
-jest.unstable_mockModule('serialport', () => serialport)
+import assert from 'node:assert/strict'
+import { beforeEach, describe, it, mock } from 'node:test'
+
+import { MockSocket } from '../__mocks__/ws.js'
+import { MockSerialPort } from '../__mocks__/serialport.js'
+mock.module('ws', { defaultExport: MockSocket })
+mock.module('serialport', {
+    namedExports: { SerialPort: MockSerialPort }
+})
 const SerialConnection = (await import('../connections/serial.js')).default
 const WSConnection = (await import('../connections/ws.js')).default
 const { LoupedeckCT } = await import('../index.js')
 
-expect.extend({
-    toBePixelBuffer(received, { displayID, x, y, width, height }) {
-        if (received.readUInt16BE(0) !== 0xff10) return { pass: false, message: () => `Header should be 0xff10, found 0x${received.readUInt16BE().toString(16)}` }
-        if (received.readUInt16BE(3) !== displayID) return { pass: false, message: () => `Display ID should be ${displayID}, but found 0x${received.readUInt16BE(3).toString(16)}` }
-        if (received.readUInt16BE(5) !== x) return { pass: false, message: () => `X coordinate should be ${x}, but found ${received.readUInt16BE(3)}` }
-        if (received.readUInt16BE(7) !== y) return { pass: false, message: () => `Y coordinate should be ${y}, but found ${received.readUInt16BE(5)}` }
-        if (received.readUInt16BE(9) !== width) return { pass: false, message: () => `Width should be ${width}, but found ${received.readUInt16BE(9)}` }
-        if (received.readUInt16BE(11) !== height) return { pass: false, message: () => `Height should be ${height}, but found ${received.readUInt16BE(11)}` }
-        const correctLength = 13 + width * height * 2
-        if (received.length !== correctLength) return { pass: false, message: () => `Buffer length should be ${correctLength}, but found ${received.length}` }
-        return { pass: true }
-    }
-})
+function assertIsPixelBuffer(received, { displayID, x, y, width, height }) {
+    assert(received.readUInt16BE(0) === 0xff10, `Header should be 0xff10, found 0x${received.readUInt16BE().toString(16)}`)
+    assert(received.readUInt16BE(3) === displayID, `Display ID should be ${displayID}, but found 0x${received.readUInt16BE(3).toString(16)}`)
+    assert(received.readUInt16BE(5) === x, `X coordinate should be ${x}, but found ${received.readUInt16BE(3)}`)
+    assert(received.readUInt16BE(7) === y, `Y coordinate should be ${y}, but found ${received.readUInt16BE(5)}`)
+    assert(received.readUInt16BE(9) === width, `Width should be ${width}, but found ${received.readUInt16BE(9)}`)
+    assert(received.readUInt16BE(11) === height, `Height should be ${height}, but found ${received.readUInt16BE(11)}`)
+    const correctLength = 13 + width * height * 2
+    assert(received.length === correctLength, `Buffer length should be ${correctLength}, but found ${received.length}`)
+}
 
 const delay = ms => new Promise(res => setTimeout(res, ms))
 
@@ -31,14 +32,14 @@ describe('Commands', () => {
         device.connection = { send: () => {}, isReady: () => true }
     })
     it('retrieves device information', async() => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         const promise = device.getInfo()
-        expect(sender).toHaveBeenCalledWith(Buffer.from('030301', 'hex'))
+        assert.deepEqual(sender.mock.calls[0].arguments[0], Buffer.from('030301', 'hex'))
         device.onReceive(Buffer.from('1f03014c444c31313031303133303030333936373030313338413030303120', 'hex'))
         await delay(20)
-        expect(sender).toHaveBeenCalledWith(Buffer.from('030702', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('030702', 'hex'))
         device.onReceive(Buffer.from('0c0702000208000900000000', 'hex'))
-        await expect(promise).resolves.toEqual({
+        assert.deepEqual(await promise, {
             version: '0.2.8',
             serial: 'LDL1101013000396700138A0001'
         })
@@ -46,33 +47,33 @@ describe('Commands', () => {
     it('rejects retrieving device information if not connected', async() => {
         device.connection = { send: () => {}, isReady: () => false }
         const promise = device.getInfo()
-        await expect(promise).rejects.toThrow(/not connected/i)
+        await assert.rejects(promise, /not connected/i)
     })
     it('sets brightness', () => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         device.setBrightness(0)
-        expect(sender).toHaveBeenCalledWith(Buffer.from('04090100', 'hex'))
+        assert.deepEqual(sender.mock.calls[0].arguments[0], Buffer.from('04090100', 'hex'))
         device.setBrightness(1)
         // 0x0b should be max brightness
-        expect(sender).toHaveBeenCalledWith(Buffer.from('0409020a', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('0409020a', 'hex'))
     })
     it('sets button color', () => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         device.setButtonColor({ id: 'enter', color: 'red' })
-        expect(sender).toHaveBeenCalledWith(Buffer.from('07020112ff0000', 'hex'))
+        assert.deepEqual(sender.mock.calls[0].arguments[0], Buffer.from('07020112ff0000', 'hex'))
     })
     it('errors on unknown button passed', () => {
-        expect(() => device.setButtonColor({ id: 'triangle', color: 'blue' })).toThrow(/Invalid button/)
+        assert.throws(() => device.setButtonColor({ id: 'triangle', color: 'blue' }), /Invalid button/i)
     })
     it('vibrates short by default', () => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         device.vibrate()
-        expect(sender).toHaveBeenCalledWith(Buffer.from('041b0101', 'hex'))
+        assert.deepEqual(sender.mock.calls[0].arguments[0], Buffer.from('041b0101', 'hex'))
     })
     it('vibrates a specific pattern', () => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         device.vibrate(0x56)
-        expect(sender).toHaveBeenCalledWith(Buffer.from('041b0156', 'hex'))
+        assert.deepEqual(sender.mock.calls[0].arguments[0], Buffer.from('041b0156', 'hex'))
     })
 })
 describe('Drawing (Callback API)', () => {
@@ -81,7 +82,7 @@ describe('Drawing (Callback API)', () => {
         device.connection = { send: () => {}, isReady: () => true }
     })
     it('writes pixels to left display', async() => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         device.drawScreen('left', (ctx, w, h) => {
             ctx.fillStyle = '#f00' // red
             ctx.fillRect(0, 0, w, h)
@@ -89,15 +90,15 @@ describe('Drawing (Callback API)', () => {
         // Color format is 5-6-5 16-bit RGB
         // so first 5 bits for full red is 0xf800, or 0x00f8 in LE
         const pixels = '00f8'.repeat(60 * 270)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004c, x: 0, y: 0, width: 60, height: 270 })
-        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x004c, x: 0, y: 0, width: 60, height: 270 })
+        assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), pixels)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004c', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f02004c', 'hex'))
     })
     it('writes pixels to right display', async() => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         device.drawScreen('right', (ctx, w, h) => {
             ctx.fillStyle = '#0f0' // green
             ctx.fillRect(0, 0, w, h)
@@ -105,15 +106,15 @@ describe('Drawing (Callback API)', () => {
         // Color format is 5-6-5 16-bit RGB
         // so middle 6 bits for full green is 0x07e0, or 0xe007 in LE
         const pixels = 'e007'.repeat(60 * 270)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0052, x: 0, y: 0, width: 60, height: 270 })
-        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x0052, x: 0, y: 0, width: 60, height: 270 })
+        assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), pixels)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020052', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f020052', 'hex'))
     })
     it('writes pixels to center display', async() => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         device.drawScreen('center', (ctx, w, h) => {
             ctx.fillStyle = '#00f' // blue
             ctx.fillRect(0, 0, w, h)
@@ -121,15 +122,15 @@ describe('Drawing (Callback API)', () => {
         // Color format is 5-6-5 16-bit RGB
         // so last 5 bits for full blue is 0x001f, or 0x1f00 in LE
         const pixels = '1f00'.repeat(360 * 270)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 0, y: 0, width: 360, height: 270 })
-        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x0041, x: 0, y: 0, width: 360, height: 270 })
+        assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), pixels)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f020041', 'hex'))
     })
     it('writes pixels to knob display', async() => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         device.drawScreen('knob', (ctx, w, h) => {
             ctx.fillStyle = '#00f' // blue
             ctx.fillRect(0, 0, w, h)
@@ -137,34 +138,34 @@ describe('Drawing (Callback API)', () => {
         // Color format is 5-6-5 16-bit RGB (Big endian!)
         // so last 5 bits for full blue is 0x001f
         const pixels = '001f'.repeat(240 * 240)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0057, x: 0, y: 0, width: 240, height: 240 })
-        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x0057, x: 0, y: 0, width: 240, height: 240 })
+        assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), pixels)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020057', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f020057', 'hex'))
     })
     it('writes pixels to a specific key area', async() => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         device.drawKey(6, (ctx, w, h) => {
             ctx.fillStyle = '#fff'
             ctx.fillRect(0, 0, w, h)
         })
         const pixels = 'ffff'.repeat(90 * 90)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 180, y: 90, width: 90, height: 90 })
-        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(pixels)
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x0041, x: 180, y: 90, width: 90, height: 90 })
+        assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), pixels)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f020041', 'hex'))
     })
     it('writes pixels without refreshing the screen', async() => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         device.drawCanvas({ id: 'center', width: 10, height: 10, autoRefresh: false }, () => {})
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenCalledTimes(1)
+        assert.equal(sender.mock.calls.length, 1)
     })
 })
 describe('Drawing (Buffer API)', () => {
@@ -173,80 +174,80 @@ describe('Drawing (Buffer API)', () => {
         device.connection = { send: () => {}, isReady: () => true }
     })
     it('writes pixels to left display', async() => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         const pixels = Array(60 * 270).fill([0x00, 0xf8])
         const buffer = Buffer.from(pixels.flat())
         device.drawScreen('left', buffer)
         const hex = '00f8'.repeat(60 * 270)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x004c, x: 0, y: 0, width: 60, height: 270 })
-        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(hex)
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x004c, x: 0, y: 0, width: 60, height: 270 })
+        assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), hex)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f02004c', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f02004c', 'hex'))
     })
     it('writes pixels to right display', async() => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         const pixels = Array(60 * 270).fill([0xe0, 0x07])
         const buffer = Buffer.from(pixels.flat())
         device.drawScreen('right', buffer)
         // Color format is 5-6-5 16-bit RGB
         // so middle 6 bits for full green is 0x07e0, or 0xe007 in LE
         const hex = 'e007'.repeat(60 * 270)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0052, x: 0, y: 0, width: 60, height: 270 })
-        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(hex)
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x0052, x: 0, y: 0, width: 60, height: 270 })
+        assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), hex)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020052', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f020052', 'hex'))
     })
     it('writes pixels to center display', async() => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         const pixels = Array(360 * 270).fill([0x1f, 0x00])
         const buffer = Buffer.from(pixels.flat())
         device.drawScreen('center', buffer)
         // Color format is 5-6-5 16-bit RGB
         // so last 5 bits for full blue is 0x001f, or 0x1f00 in LE
         const hex = '1f00'.repeat(360 * 270)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 0, y: 0, width: 360, height: 270 })
-        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(hex)
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x0041, x: 0, y: 0, width: 360, height: 270 })
+        assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), hex)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f020041', 'hex'))
     })
     it('writes pixels to knob display', async() => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         const pixels = Array(240 * 240).fill([0x00, 0x1f])
         const buffer = Buffer.from(pixels.flat())
         device.drawScreen('knob', buffer)
         // Color format is 5-6-5 16-bit RGB (Big endian!)
         // so last 5 bits for full blue is 0x001f
         const hex = '001f'.repeat(240 * 240)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0057, x: 0, y: 0, width: 240, height: 240 })
-        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(hex)
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x0057, x: 0, y: 0, width: 240, height: 240 })
+        assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), hex)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020057', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f020057', 'hex'))
     })
     it('writes pixels to a specific key area', async() => {
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         const pixels = Array(90 * 90 * 2).fill(0xff)
         const buffer = Buffer.from(pixels)
         device.drawKey(6, buffer)
         const hex = 'ffff'.repeat(90 * 90)
-        expect(sender.mock.calls[0][0]).toBePixelBuffer({ displayID: 0x0041, x: 180, y: 90, width: 90, height: 90 })
-        expect(sender.mock.calls[0][0].slice(13).toString('hex')).toEqual(hex)
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x0041, x: 180, y: 90, width: 90, height: 90 })
+        assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), hex)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        expect(sender).toHaveBeenNthCalledWith(2, Buffer.from('050f020041', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f020041', 'hex'))
     })
     it('reports an error if the buffer is the wrong size', async() => {
         const pixels = Array(30).fill(0xff)
         const buffer = Buffer.from(pixels)
-        await expect(device.drawScreen('left', buffer)).rejects.toThrow(/expected buffer length of 32400, got 30/i)
+        await assert.rejects(() => device.drawScreen('left', buffer), /expected buffer length of 32400, got 30/i)
     })
 })
 
@@ -256,290 +257,307 @@ describe('Message Parsing', () => {
     })
     it('processes timestamp events', () => {
         const SAMPLE_MESSAGE = Buffer.from('040000ba', 'hex')
-        const fn = jest.fn()
+        const fn = mock.fn()
         device.on('up', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).not.toHaveBeenCalled()
+        assert.equal(fn.mock.calls.length, 0)
     })
     it('processes button presses', () => {
         const SAMPLE_MESSAGE = Buffer.from('0500000900', 'hex')
-        const fn = jest.fn()
+        const fn = mock.fn()
         device.on('down', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({ id: 2 })
+        assert.deepEqual(fn.mock.calls[0].arguments[0], { id: 2 })
     })
     it('processes button releases', () => {
         const SAMPLE_MESSAGE = Buffer.from('0500000701', 'hex')
-        const fn = jest.fn()
+        const fn = mock.fn()
         device.on('up', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({ id: 0 })
+        assert.deepEqual(fn.mock.calls[0].arguments[0], { id: 0 })
     })
     it('processes clockwise knob turns', () => {
         const SAMPLE_MESSAGE = Buffer.from('0501000101', 'hex')
-        const fn = jest.fn()
+        const fn = mock.fn()
         device.on('rotate', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({ id: 'knobTL', delta: 1 })
+        assert.deepEqual(fn.mock.calls[0].arguments[0], { id: 'knobTL', delta: 1 })
     })
     it('processes counter-clockwise knob turns', () => {
         const SAMPLE_MESSAGE = Buffer.from('05010000ff', 'hex')
-        const fn = jest.fn()
+        const fn = mock.fn()
         device.on('rotate', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({ id: 'knobCT', delta: -1 })
+        assert.deepEqual(fn.mock.calls[0].arguments[0], { id: 'knobCT', delta: -1 })
     })
     it('processes initial main screen touches', () => {
         const SAMPLE_MESSAGE = Buffer.from('094d0000007300e213', 'hex')
-        const fn = jest.fn()
+        const fn = mock.fn()
         device.on('touchstart', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
-            changedTouches: [expect.objectContaining({ x: 115, y: 226 })],
-        }))
+        assert.deepEqual(fn.mock.calls[0].arguments[0].changedTouches[0], {
+            id: 19,
+            target: {
+                key: 8,
+                screen: 'center'
+            },
+            x: 115,
+            y: 226,
+        })
     })
     it('processes initial knob screen touches', () => {
         const SAMPLE_MESSAGE = Buffer.from('095200000096008e00', 'hex')
-        const fn = jest.fn()
+        const fn = mock.fn()
         device.on('touchstart', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
-            changedTouches: [expect.objectContaining({ x: 150, y: 142, target: expect.objectContaining({ screen: 'knob' }) })],
-        }))
+        assert.deepEqual(fn.mock.calls[0].arguments[0].changedTouches[0], {
+            id: 0,
+            x: 150,
+            y: 142,
+            target: { screen: 'knob' },
+        })
     })
     it('processes ticks', () => {
         const SAMPLE_MESSAGE = Buffer.from('040000f9', 'hex')
-        expect(() => device.onReceive(SAMPLE_MESSAGE)).not.toThrow()
+        assert.doesNotThrow(() => device.onReceive(SAMPLE_MESSAGE))
     })
     it('processes touch moves', () => {
         const SAMPLE_MESSAGE = Buffer.from('094d0000007300e215', 'hex')
         const FOLLOW_MESSAGE = Buffer.from('094d0000007000e515', 'hex')
-        const fn = jest.fn()
+        const fn = mock.fn()
         device.on('touchmove', fn)
         device.onReceive(SAMPLE_MESSAGE)
         device.onReceive(FOLLOW_MESSAGE)
-        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
-            changedTouches: [expect.objectContaining({ x: 112, y: 229 })],
-        }))
+        assert.deepEqual(fn.mock.calls[0].arguments[0].changedTouches[0], {
+            id: 21,
+            x: 112,
+            y: 229,
+            target: {
+                key: 8,
+                screen: 'center'
+            }
+        })
     })
     it('processes main screen touchends', () => {
         const SAMPLE_MESSAGE = Buffer.from('096d000001bf004c12', 'hex')
-        const fn = jest.fn()
+        const fn = mock.fn()
         device.on('touchend', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({
-            touches: [],
-            changedTouches: [expect.objectContaining({ x: 447, y: 76 })],
+        assert.deepEqual(fn.mock.calls[0].arguments[0].changedTouches[0], {
+            id: 18,
+            target: { screen: 'right' },
+            x: 447,
+            y: 76,
         })
     })
     it('processes knob screen touchends', () => {
         const SAMPLE_MESSAGE = Buffer.from('097200000096008e00', 'hex')
-        const fn = jest.fn()
+        const fn = mock.fn()
         device.on('touchend', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        expect(fn).toHaveBeenCalledWith({
-            touches: [],
-            changedTouches: [expect.objectContaining({ x: 150, y: 142 })],
+        assert.deepEqual(fn.mock.calls[0].arguments[0].changedTouches[0], {
+            id: 0,
+            target: { screen: 'knob' },
+            x: 150,
+            y: 142,
         })
     })
     it('processes screen and key targets from touch events', () => {
-        const fn = jest.fn()
+        const fn = mock.fn()
         device.on('touchstart', fn)
         device.onReceive(Buffer.from('094d00000022008f13', 'hex'))
-        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
-            changedTouches: [expect.objectContaining({ target: { screen: 'left', key: undefined } })],
-        }))
+        assert.deepEqual(fn.mock.calls[0].arguments[0].changedTouches[0].target, {
+            screen: 'left',
+        })
         device.onReceive(Buffer.from('094d00000067004816', 'hex'))
-        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
-            changedTouches: [expect.objectContaining({ target: { screen: 'center', key: 0 } })],
-        }))
+        assert.deepEqual(fn.mock.calls[1].arguments[0].changedTouches[0].target, {
+            screen: 'center', key: 0,
+        })
         device.onReceive(Buffer.from('094d000000c8008011', 'hex'))
-        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
-            changedTouches: [expect.objectContaining({ target: { screen: 'center', key: 5 } })],
-        }))
+        assert.deepEqual(fn.mock.calls[2].arguments[0].changedTouches[0].target, {
+            screen: 'center', key: 5,
+        })
         device.onReceive(Buffer.from('094d0000017500d21a', 'hex'))
-        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
-            changedTouches: [expect.objectContaining({ target: { screen: 'center', key: 11 } })],
-        }))
+        assert.deepEqual(fn.mock.calls[3].arguments[0].changedTouches[0].target, {
+            screen: 'center', key: 11,
+        })
         device.onReceive(Buffer.from('094d000001c200b8ff', 'hex'))
-        expect(fn).toHaveBeenCalledWith(expect.objectContaining({
-            changedTouches: [expect.objectContaining({ target: { screen: 'right', key: undefined } })],
-        }))
+        assert.deepEqual(fn.mock.calls[4].arguments[0].changedTouches[0].target, {
+            screen: 'right',
+        })
     })
     it('processes multiple simultaneous touches', () => {
-        const touchstart = jest.fn()
-        const touchmove = jest.fn()
-        const touchend = jest.fn()
+        const touchstart = mock.fn()
+        const touchmove = mock.fn()
+        const touchend = mock.fn()
         device.on('touchstart', touchstart)
         device.on('touchmove', touchmove)
         device.on('touchend', touchend)
+        let ev
 
         // Multiple starts
         const TOUCH_1_START = Buffer.from('094d000001bf004c01', 'hex')
         const TOUCH_2_START = Buffer.from('094d00000002000102', 'hex')
         device.onReceive(TOUCH_1_START)
-        expect(touchstart).toHaveBeenCalledWith({
-            touches: [expect.objectContaining({ id: 1 })],
-            changedTouches: [expect.objectContaining({ id: 1 })],
-        })
+        ev = touchstart.mock.calls[0].arguments[0]
+        assert.equal(ev.touches.length, 1)
+        assert.equal(ev.changedTouches[0].id, 1)
+
         device.onReceive(TOUCH_2_START)
-        expect(touchstart).toHaveBeenCalledWith({
-            touches: [expect.objectContaining({ id: 1 }), expect.objectContaining({ id: 2 })],
-            changedTouches: [expect.objectContaining({ id: 2 })],
-        })
+        ev = touchstart.mock.calls[1].arguments[0]
+        assert.equal(ev.touches.length, 2)
+        assert.equal(ev.changedTouches[0].id, 2)
 
         // Independent moves
         const TOUCH_1_MOVE = Buffer.from('094d000001bf004f01', 'hex')
         const TOUCH_2_MOVE = Buffer.from('094d00000004000802', 'hex')
         device.onReceive(TOUCH_2_MOVE)
-        expect(touchmove).toHaveBeenCalledWith({
-            touches: [expect.objectContaining({ id: 1 }), expect.objectContaining({ id: 2 })],
-            changedTouches: [expect.objectContaining({ id: 2 })],
-        })
+        ev = touchmove.mock.calls[0].arguments[0]
+        assert.equal(ev.touches.length, 2)
+        assert.equal(ev.changedTouches[0].id, 2)
+
         device.onReceive(TOUCH_1_MOVE)
-        expect(touchmove).toHaveBeenCalledWith({
-            touches: [expect.objectContaining({ id: 1 }), expect.objectContaining({ id: 2 })],
-            changedTouches: [expect.objectContaining({ id: 1 })],
-        })
+        ev = touchmove.mock.calls[1].arguments[0]
+        assert.equal(ev.touches.length, 2)
+        assert.equal(ev.changedTouches[0].id, 1)
 
         // Remove one touch
         const TOUCH_1_REMOVE = Buffer.from('096d000001bf004f01', 'hex')
         device.onReceive(TOUCH_1_REMOVE)
-        expect(touchend).toHaveBeenCalledWith({
-            touches: [expect.objectContaining({ id: 2 })],
-            changedTouches: [expect.objectContaining({ id: 1 })],
-        })
+        ev = touchend.mock.calls[0].arguments[0]
+        assert.equal(ev.touches.length, 1)
+        assert.equal(ev.changedTouches[0].id, 1)
     })
     it('processes version information', () => {
         const VERSION_PACKET = Buffer.from('0c070201052000ff00000000', 'hex')
-        expect(device.onReceive(VERSION_PACKET)).toEqual('1.5.32')
+        assert.equal(device.onReceive(VERSION_PACKET), '1.5.32')
     })
     it('processes serial information', () => {
         const SERIAL_PACKET = Buffer.from('1f03014c444c31313031303133303030333936373030313338413030303120', 'hex')
-        expect(device.onReceive(SERIAL_PACKET)).toEqual('LDL1101013000396700138A0001')
+        assert.equal(device.onReceive(SERIAL_PACKET), 'LDL1101013000396700138A0001')
     })
     it('ignores unknown messages', () => {
         const SAMPLE_MESSAGE = Buffer.from('ffffffffffffff', 'hex')
-        expect(() => device.onReceive(SAMPLE_MESSAGE)).not.toThrow()
+        assert.doesNotThrow(() => device.onReceive(SAMPLE_MESSAGE))
     })
 })
 
 describe('Connection Management', () => {
     it('connects to serial first if both connection types are available', async() => {
-        const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [
+        const serialDiscovery = mock.method(SerialConnection, 'discover', () => [
             { connectionType: SerialConnection, path: '/dev/test1' }
         ])
-        const serialConnect = jest.spyOn(SerialConnection.prototype, 'connect').mockImplementation(function() {
+        const serialConnect = mock.method(SerialConnection.prototype, 'connect', function() {
             this.emit('connect', { address: this.path })
         })
-        const wsDiscovery = jest.spyOn(WSConnection, 'discover').mockImplementation(() => [
+        const wsDiscovery = mock.method(WSConnection, 'discover', () => [
             { connectionType: WSConnection, host: '128.0.0.1' }
         ])
         device = new LoupedeckCT()
-        const fn = jest.fn()
+        const fn = mock.fn()
         device.on('connect', fn)
         await device.connect()
-        expect(fn).toHaveBeenCalledWith({ address: '/dev/test1' })
-        serialDiscovery.mockRestore()
-        serialConnect.mockRestore()
-        wsDiscovery.mockRestore()
+        assert.deepEqual(fn.mock.calls[0].arguments[0], { address: '/dev/test1' })
+        serialDiscovery.mock.restore()
+        serialConnect.mock.restore()
+        wsDiscovery.mock.restore()
         device.close()
     })
     it('connects to serial if path explicitly set', () => {
         device = new LoupedeckCT({ path: '/dev/test2' })
-        expect(device.connection).toBeInstanceOf(SerialConnection)
+        assert(device.connection instanceof SerialConnection)
         device.close()
     })
     it('connects to websocket if host explicitly set', () => {
         device = new LoupedeckCT({ host: '255.255.255.255' })
-        expect(device.connection).toBeInstanceOf(WSConnection)
+        assert(device.connection instanceof WSConnection)
         device.close()
     })
     it('attempts reconnect if device not found', async() => {
-        const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [])
-        const wsDiscovery = jest.spyOn(WSConnection, 'discover').mockImplementation(() => [])
-        const fn = jest.fn()
+        const serialDiscovery = mock.method(SerialConnection, 'discover', () => [])
+        const wsDiscovery = mock.method(WSConnection, 'discover', () => [])
+        const fn = mock.fn()
         device = new LoupedeckCT({ autoConnect: false, reconnectInterval: 20 })
         device.on('disconnect', fn)
-        const connect = jest.spyOn(device, 'connect')
-        await expect(device.connect()).rejects.toMatch(/no devices found/i)
+        const connect = mock.method(device, 'connect')
+        await assert.rejects(() => device.connect(), /no devices found/i)
         await delay(40)
-        expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
-        expect(fn.mock.calls[0][0].message).toMatch(/no devices found/i)
-        serialDiscovery.mockRestore()
-        wsDiscovery.mockRestore()
+        assert(connect.mock.calls.length >= 2)
+        assert.match(fn.mock.calls[0].arguments[0].message, /no devices found/i)
+        serialDiscovery.mock.restore()
+        wsDiscovery.mock.restore()
         device.close()
     })
     it('attempts reconnect on error', async() => {
         device = new LoupedeckCT({ autoConnect: false, reconnectInterval: 20 })
-        const connect = jest.spyOn(device, 'connect').mockImplementation(() => Promise.reject('some error'))
+        const connect = mock.method(device, 'connect', () => Promise.reject('some error'))
         device.onDisconnect('some error')
         await delay(40)
-        expect(connect).toHaveBeenCalled()
+        assert(connect.mock.calls.length > 0)
         device.close()
     })
     it('does not attempt reconnect if closed before reconnect time', async() => {
         device = new LoupedeckCT({ autoConnect: false, reconnectInterval: 20 })
-        const connect = jest.spyOn(device, 'connect').mockImplementation(() => {})
+        const connect = mock.method(device, 'connect', () => {})
         device.onDisconnect('some error')
         device.onDisconnect()
         await delay(40)
-        expect(connect).not.toHaveBeenCalled()
+        assert.equal(connect.mock.calls.length, 0)
     })
     it('does not attempt reconnect if reconnect interval not set', async() => {
         device = new LoupedeckCT({ autoConnect: false, reconnectInterval: false })
-        const connect = jest.spyOn(device, 'connect').mockImplementation(() => {})
+        const connect = mock.method(device, 'connect', () => {})
         device.onDisconnect('some error')
         await delay(100)
-        expect(connect).not.toHaveBeenCalled()
+        assert.equal(connect.mock.calls.length, 0)
     })
     it('ignores commands if connection not open', () => {
         device = new LoupedeckCT({ path: '/dev/test3', autoConnect: false })
         device.connection = { send: () => {}, isReady: () => false, close: () => {} }
-        const sender = jest.spyOn(device.connection, 'send')
+        const sender = mock.method(device.connection, 'send')
         device.send('test', Buffer.from([0xff]))
-        expect(sender).not.toHaveBeenCalled()
+        assert.equal(sender.mock.calls.length, 0)
         device.close()
     })
     it('can list connection options', async() => {
-        jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [
+        mock.method(SerialConnection, 'discover', () => [
             { connectionType: SerialConnection, path: '/dev/test1' },
             { connectionType: SerialConnection, path: '/dev/test2' },
         ])
-        jest.spyOn(WSConnection, 'discover').mockImplementation(() => [
+        mock.method(WSConnection, 'discover', () => [
             { connectionType: WSConnection, host: '128.0.0.1' }
         ])
         const options = await LoupedeckCT.list()
-        expect(options.length).toBe(3)
+        assert.equal(options.length, 3)
     })
     it('can filter connection options', async() => {
-        jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [
+        mock.method(SerialConnection, 'discover', () => [
             { connectionType: SerialConnection, path: '/dev/test1' },
             { connectionType: SerialConnection, path: '/dev/test2' },
         ])
-        jest.spyOn(WSConnection, 'discover').mockImplementation(() => [
+        mock.method(WSConnection, 'discover', () => [
             { connectionType: WSConnection, host: '128.0.0.1' }
         ])
         const options = await LoupedeckCT.list({ ignoreWebsocket: true })
-        expect(options.length).toBe(2)
+        assert.equal(options.length, 2)
         const options2 = await LoupedeckCT.list({ ignoreSerial: true })
-        expect(options2.length).toBe(1)
+        assert.equal(options2.length, 1)
     })
     it('returns same connection if multiple connects are attempted', async() => {
-        const serialDiscovery = jest.spyOn(SerialConnection, 'discover').mockImplementation(() => [
+        const serialDiscovery = mock.method(SerialConnection, 'discover', () => [
             { connectionType: SerialConnection, path: '/dev/test1' }
         ])
         let slowSerialConnection
-        const serialConnect = jest.spyOn(SerialConnection.prototype, 'connect').mockImplementation(function() {
+        const serialConnect = mock.method(SerialConnection.prototype, 'connect', function() {
             slowSerialConnection = this
         })
         device = new LoupedeckCT({ autoConnect: false })
-        const fn = jest.fn()
+        const fn = mock.fn()
         device.on('connect', fn)
         // Try initial connect
         const connect1 = device.connect()
         await delay(40)
-        expect(fn).not.toHaveBeenCalled()
+        assert.equal(fn.mock.calls.length, 0)
 
         // Try another connect
         const connect2 = device.connect()
@@ -548,11 +566,11 @@ describe('Connection Management', () => {
         slowSerialConnection.emit('connect', { address: slowSerialConnection.path })
 
         // Both promises should resolve
-        await expect(connect1).resolves.toBe(undefined)
-        await expect(connect2).resolves.toBe(undefined)
+        assert.equal(await connect1, undefined)
+        assert.equal(await connect2, undefined)
 
-        serialDiscovery.mockRestore()
-        serialConnect.mockRestore()
+        serialDiscovery.mock.restore()
+        serialConnect.mock.restore()
         device.close()
     })
 })
@@ -565,6 +583,6 @@ describe('Edge Cases', () => {
     it('prevents transaction IDs of zero', () => {
         device.transactionID = 0xff
         device.send(0xffff, Buffer.alloc(0))
-        expect(device.transactionID).not.toBe(0)
+        assert(device.transactionID !== 0)
     })
 })

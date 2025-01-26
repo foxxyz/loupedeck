@@ -9,6 +9,6 @@ describe('Optional Dependencies', () => {
         device.connection = { send: () => {}, isReady: () => true }
     })
     it('informs the user if the canvas library is not installed', () => {
-        expect(() => device.drawKey(6, () => {})).toThrow(/using callbacks requires the `canvas` library/i)
+        assert.equal(() => device.drawKey(6, () => {})).toThrow(/using callbacks requires the `canvas` library/i)
     })
 })

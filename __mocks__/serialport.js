@@ -15,7 +15,7 @@ Sec-WebSocket-Accept: PLOTDYCXHOTMeouth==
 `
 
 // Stand-in for a Loupedeck serial device
-export class SerialPort extends EventEmitter {
+export class MockSerialPort extends EventEmitter {
     static list() {
         return [
             {
