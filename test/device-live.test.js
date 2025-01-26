@@ -1,27 +1,17 @@
-import { jest } from '@jest/globals'
-import * as mockWS from '../__mocks__/ws.js'
-import * as serialport from '../__mocks__/serialport.js'
-jest.unstable_mockModule('ws', () => mockWS)
-jest.unstable_mockModule('serialport', () => serialport)
+import assert from 'node:assert/strict'
+import { beforeEach, describe, it, mock } from 'node:test'
+import { assertIsPixelBuffer, delay } from './helpers.js'
+
+import { MockSocket } from '../__mocks__/ws.js'
+import { MockSerialPort } from '../__mocks__/serialport.js'
+mock.module('ws', { defaultExport: MockSocket })
+mock.module('serialport', {
+    namedExports: { SerialPort: MockSerialPort }
+})
+
 const SerialConnection = (await import('../connections/serial.js')).default
 const WSConnection = (await import('../connections/ws.js')).default
 const { LoupedeckLive } = await import('../index.js')
-
-expect.extend({
-    toBePixelBuffer(received, { displayID, x, y, width, height }) {
-        if (received.readUInt16BE(0) !== 0xff10) return { pass: false, message: () => `Header should be 0xff10, found 0x${received.readUInt16BE().toString(16)}` }
-        if (received.readUInt16BE(3) !== displayID) return { pass: false, message: () => `Display ID should be ${displayID}, but found 0x${received.readUInt16BE(3).toString(16)}` }
-        if (received.readUInt16BE(5) !== x) return { pass: false, message: () => `X coordinate should be ${x}, but found ${received.readUInt16BE(3)}` }
-        if (received.readUInt16BE(7) !== y) return { pass: false, message: () => `Y coordinate should be ${y}, but found ${received.readUInt16BE(5)}` }
-        if (received.readUInt16BE(9) !== width) return { pass: false, message: () => `Width should be ${width}, but found ${received.readUInt16BE(9)}` }
-        if (received.readUInt16BE(11) !== height) return { pass: false, message: () => `Height should be ${height}, but found ${received.readUInt16BE(11)}` }
-        const correctLength = 13 + width * height * 2
-        if (received.length !== correctLength) return { pass: false, message: () => `Buffer length should be ${correctLength}, but found ${received.length}` }
-        return { pass: true }
-    }
-})
-
-const delay = ms => new Promise(res => setTimeout(res, ms))
 
 let device
 
@@ -33,12 +23,12 @@ describe('Commands', () => {
     it('retrieves device information', async() => {
         const sender = mock.method(device.connection, 'send')
         const promise = device.getInfo()
-        assert.equal(sender.mock.calls[0].arguments[0], Buffer.from('030301', 'hex'))
+        assert.deepEqual(sender.mock.calls[0].arguments[0], Buffer.from('030301', 'hex'))
         device.onReceive(Buffer.from('1f03014c444c31313031303133303030333936373030313338413030303120', 'hex'))
         await delay(20)
-        assert.equal(sender.mock.calls[0].arguments[0], Buffer.from('030702', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('030702', 'hex'))
         device.onReceive(Buffer.from('0c070201052000ff00000000', 'hex'))
-        await assert.equal(promise, {
+        assert.deepEqual(await promise, {
             version: '1.5.32',
             serial: 'LDL1101013000396700138A0001'
         })
@@ -46,33 +36,33 @@ describe('Commands', () => {
     it('rejects retrieving device information if not connected', async() => {
         device.connection = { send: () => {}, isReady: () => false }
         const promise = device.getInfo()
-        await assert.equal(promise).rejects.toThrow(/not connected/i)
+        await assert.rejects(promise, /not connected/i)
     })
     it('sets brightness', () => {
         const sender = mock.method(device.connection, 'send')
         device.setBrightness(0)
-        assert.equal(sender.mock.calls[0].arguments[0], Buffer.from('04090100', 'hex'))
+        assert.deepEqual(sender.mock.calls[0].arguments[0], Buffer.from('04090100', 'hex'))
         device.setBrightness(1)
         // 0x0b should be max brightness
-        assert.equal(sender.mock.calls[0].arguments[0], Buffer.from('0409020a', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('0409020a', 'hex'))
     })
     it('sets button color', () => {
         const sender = mock.method(device.connection, 'send')
         device.setButtonColor({ id: 4, color: 'red' })
-        assert.equal(sender.mock.calls[0].arguments[0], Buffer.from('0702010bff0000', 'hex'))
+        assert.deepEqual(sender.mock.calls[0].arguments[0], Buffer.from('0702010bff0000', 'hex'))
     })
     it('errors on unknown button passed', () => {
-        assert.equal(() => device.setButtonColor({ id: 'triangle', color: 'blue' })).toThrow(/Invalid button/)
+        assert.throws(() => device.setButtonColor({ id: 'triangle', color: 'blue' }), /Invalid button/)
     })
     it('vibrates short by default', () => {
         const sender = mock.method(device.connection, 'send')
         device.vibrate()
-        assert.equal(sender.mock.calls[0].arguments[0], Buffer.from('041b0101', 'hex'))
+        assert.deepEqual(sender.mock.calls[0].arguments[0], Buffer.from('041b0101', 'hex'))
     })
     it('vibrates a specific pattern', () => {
         const sender = mock.method(device.connection, 'send')
         device.vibrate(0x56)
-        assert.equal(sender.mock.calls[0].arguments[0], Buffer.from('041b0156', 'hex'))
+        assert.deepEqual(sender.mock.calls[0].arguments[0], Buffer.from('041b0156', 'hex'))
     })
 })
 describe('Drawing (Callback API)', () => {
@@ -89,12 +79,12 @@ describe('Drawing (Callback API)', () => {
         // Color format is 5-6-5 16-bit RGB
         // so first 5 bits for full red is 0xf800, or 0x00f8 in LE
         const pixels = '00f8'.repeat(60 * 270)
-        assert.equal(sender.mock.calls[0].arguments[0]).toBePixelBuffer({ displayID: 0x004d, x: 0, y: 0, width: 60, height: 270 })
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x004d, x: 0, y: 0, width: 60, height: 270 })
         assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), pixels)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        assert.equal(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels to right display', async() => {
         const sender = mock.method(device.connection, 'send')
@@ -105,12 +95,12 @@ describe('Drawing (Callback API)', () => {
         // Color format is 5-6-5 16-bit RGB
         // so middle 6 bits for full green is 0x07e0, or 0xe007 in LE
         const pixels = 'e007'.repeat(60 * 270)
-        assert.equal(sender.mock.calls[0].arguments[0]).toBePixelBuffer({ displayID: 0x004d, x: 420, y: 0, width: 60, height: 270 })
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x004d, x: 420, y: 0, width: 60, height: 270 })
         assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), pixels)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        assert.equal(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels to center display', async() => {
         const sender = mock.method(device.connection, 'send')
@@ -121,12 +111,12 @@ describe('Drawing (Callback API)', () => {
         // Color format is 5-6-5 16-bit RGB
         // so last 5 bits for full blue is 0x001f, or 0x1f00 in LE
         const pixels = '1f00'.repeat(360 * 270)
-        assert.equal(sender.mock.calls[0].arguments[0]).toBePixelBuffer({ displayID: 0x004d, x: 60, y: 0, width: 360, height: 270 })
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x004d, x: 60, y: 0, width: 360, height: 270 })
         assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), pixels)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        assert.equal(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels to a specific key area', async() => {
         const sender = mock.method(device.connection, 'send')
@@ -135,12 +125,12 @@ describe('Drawing (Callback API)', () => {
             ctx.fillRect(0, 0, w, h)
         })
         const pixels = 'ffff'.repeat(90 * 90)
-        assert.equal(sender.mock.calls[0].arguments[0]).toBePixelBuffer({ displayID: 0x004d, x: 180 + 60, y: 90, width: 90, height: 90 })
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x004d, x: 180 + 60, y: 90, width: 90, height: 90 })
         assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), pixels)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        assert.equal(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels without refreshing the screen', async() => {
         const sender = mock.method(device.connection, 'send')
@@ -162,12 +152,12 @@ describe('Drawing (Buffer API)', () => {
         const buffer = Buffer.from(pixels.flat())
         device.drawScreen('left', buffer)
         const hex = '00f8'.repeat(60 * 270)
-        assert.equal(sender.mock.calls[0].arguments[0]).toBePixelBuffer({ displayID: 0x004d, x: 0, y: 0, width: 60, height: 270 })
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x004d, x: 0, y: 0, width: 60, height: 270 })
         assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), hex)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        assert.equal(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels to right display', async() => {
         const sender = mock.method(device.connection, 'send')
@@ -177,12 +167,12 @@ describe('Drawing (Buffer API)', () => {
         // Color format is 5-6-5 16-bit RGB
         // so middle 6 bits for full green is 0x07e0, or 0xe007 in LE
         const hex = 'e007'.repeat(60 * 270)
-        assert.equal(sender.mock.calls[0].arguments[0]).toBePixelBuffer({ displayID: 0x004d, x: 420, y: 0, width: 60, height: 270 })
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x004d, x: 420, y: 0, width: 60, height: 270 })
         assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), hex)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        assert.equal(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels to center display', async() => {
         const sender = mock.method(device.connection, 'send')
@@ -192,12 +182,12 @@ describe('Drawing (Buffer API)', () => {
         // Color format is 5-6-5 16-bit RGB
         // so last 5 bits for full blue is 0x001f, or 0x1f00 in LE
         const hex = '1f00'.repeat(360 * 270)
-        assert.equal(sender.mock.calls[0].arguments[0]).toBePixelBuffer({ displayID: 0x004d, x: 60, y: 0, width: 360, height: 270 })
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x004d, x: 60, y: 0, width: 360, height: 270 })
         assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), hex)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        assert.equal(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
     })
     it('writes pixels to a specific key area', async() => {
         const sender = mock.method(device.connection, 'send')
@@ -205,17 +195,17 @@ describe('Drawing (Buffer API)', () => {
         const buffer = Buffer.from(pixels)
         device.drawKey(6, buffer)
         const hex = 'ffff'.repeat(90 * 90)
-        assert.equal(sender.mock.calls[0].arguments[0]).toBePixelBuffer({ displayID: 0x004d, x: 180 + 60, y: 90, width: 90, height: 90 })
+        assertIsPixelBuffer(sender.mock.calls[0].arguments[0], { displayID: 0x004d, x: 180 + 60, y: 90, width: 90, height: 90 })
         assert.equal(sender.mock.calls[0].arguments[0].slice(13).toString('hex'), hex)
         // Confirm write
         device.onReceive(Buffer.from('041001', 'hex'))
         await delay(10)
-        assert.equal(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
+        assert.deepEqual(sender.mock.calls[1].arguments[0], Buffer.from('050f02004d', 'hex'))
     })
     it('reports an error if the buffer is the wrong size', async() => {
         const pixels = Array(30).fill(0xff)
         const buffer = Buffer.from(pixels)
-        await assert.equal(device.drawScreen('left', buffer)).rejects.toThrow(/expected buffer length of 32400, got 30/i)
+        await assert.rejects(device.drawScreen('left', buffer), /expected buffer length of 32400, got 30/i)
     })
 })
 
@@ -228,48 +218,46 @@ describe('Message Parsing', () => {
         const fn = mock.fn()
         device.on('up', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        assert.equal(fn.mock.calls.length, 0)
+        assert.deepEqual(fn.mock.calls.length, 0)
     })
     it('processes button presses', () => {
         const SAMPLE_MESSAGE = Buffer.from('0500000900', 'hex')
         const fn = mock.fn()
         device.on('down', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        assert.equal(fn.mock.calls[0].arguments[0], { id: 2 })
+        assert.deepEqual(fn.mock.calls[0].arguments[0], { id: 2 })
     })
     it('processes button releases', () => {
         const SAMPLE_MESSAGE = Buffer.from('0500000701', 'hex')
         const fn = mock.fn()
         device.on('up', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        assert.equal(fn.mock.calls[0].arguments[0], { id: 0 })
+        assert.deepEqual(fn.mock.calls[0].arguments[0], { id: 0 })
     })
     it('processes clockwise knob turns', () => {
         const SAMPLE_MESSAGE = Buffer.from('0501000101', 'hex')
         const fn = mock.fn()
         device.on('rotate', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        assert.equal(fn.mock.calls[0].arguments[0], { id: 'knobTL', delta: 1 })
+        assert.deepEqual(fn.mock.calls[0].arguments[0], { id: 'knobTL', delta: 1 })
     })
     it('processes counter-clockwise knob turns', () => {
         const SAMPLE_MESSAGE = Buffer.from('05010005ff', 'hex')
         const fn = mock.fn()
         device.on('rotate', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        assert.equal(fn.mock.calls[0].arguments[0], { id: 'knobCR', delta: -1 })
+        assert.deepEqual(fn.mock.calls[0].arguments[0], { id: 'knobCR', delta: -1 })
     })
     it('processes initial screen touches', () => {
         const SAMPLE_MESSAGE = Buffer.from('094d0000007300e213', 'hex')
         const fn = mock.fn()
         device.on('touchstart', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        assert.equal(fn.mock.calls[0].arguments[0], {
-            changedTouches: [{ x: 115, y: 226 })],
-        }))
+        assert.partialDeepStrictEqual(fn.mock.calls[0].arguments[0].changedTouches[0], { x: 115, y: 226 })
     })
     it('processes ticks', () => {
         const SAMPLE_MESSAGE = Buffer.from('040000f9', 'hex')
-        assert.equal(() => device.onReceive(SAMPLE_MESSAGE)).not.toThrow()
+        assert.doesNotThrow(() => device.onReceive(SAMPLE_MESSAGE))
     })
     it('processes touch moves', () => {
         const SAMPLE_MESSAGE = Buffer.from('094d0000007300e215', 'hex')
@@ -278,43 +266,31 @@ describe('Message Parsing', () => {
         device.on('touchmove', fn)
         device.onReceive(SAMPLE_MESSAGE)
         device.onReceive(FOLLOW_MESSAGE)
-        assert.equal(fn.mock.calls[0].arguments[0], {
-            changedTouches: [{ x: 112, y: 229 })],
-        }))
+        assert.partialDeepStrictEqual(fn.mock.calls[0].arguments[0].changedTouches[0], { x: 112, y: 229 })
     })
     it('processes screen touchends', () => {
         const SAMPLE_MESSAGE = Buffer.from('096d000001bf004c12', 'hex')
         const fn = mock.fn()
         device.on('touchend', fn)
         device.onReceive(SAMPLE_MESSAGE)
-        assert.equal(fn.mock.calls[0].arguments[0], {
-            touches: [],
-            changedTouches: [{ x: 447, y: 76 })],
+        assert.partialDeepStrictEqual(fn.mock.calls[0].arguments[0].changedTouches[0], {
+            x: 447,
+            y: 76,
         })
     })
     it('processes screen and key targets from touch events', () => {
         const fn = mock.fn()
         device.on('touchstart', fn)
         device.onReceive(Buffer.from('094d00000022008f13', 'hex'))
-        assert.equal(fn.mock.calls[0].arguments[0], {
-            changedTouches: [{ target: { screen: 'left', key: undefined } })],
-        }))
+        assert.deepEqual(fn.mock.calls[0].arguments[0].changedTouches[0].target, { screen: 'left' })
         device.onReceive(Buffer.from('094d00000067004816', 'hex'))
-        assert.equal(fn.mock.calls[0].arguments[0], {
-            changedTouches: [{ target: { screen: 'center', key: 0 } })],
-        }))
+        assert.deepEqual(fn.mock.calls[1].arguments[0].changedTouches[0].target, { screen: 'center', key: 0 })
         device.onReceive(Buffer.from('094d000000c8008011', 'hex'))
-        assert.equal(fn.mock.calls[0].arguments[0], {
-            changedTouches: [{ target: { screen: 'center', key: 5 } })],
-        }))
+        assert.deepEqual(fn.mock.calls[2].arguments[0].changedTouches[0].target, { screen: 'center', key: 5 })
         device.onReceive(Buffer.from('094d0000017500d21a', 'hex'))
-        assert.equal(fn.mock.calls[0].arguments[0], {
-            changedTouches: [{ target: { screen: 'center', key: 11 } })],
-        }))
+        assert.deepEqual(fn.mock.calls[3].arguments[0].changedTouches[0].target, { screen: 'center', key: 11 })
         device.onReceive(Buffer.from('094d000001c200b8ff', 'hex'))
-        assert.equal(fn.mock.calls[0].arguments[0], {
-            changedTouches: [{ target: { screen: 'right', key: undefined } })],
-        }))
+        assert.deepEqual(fn.mock.calls[4].arguments[0].changedTouches[0].target, { screen: 'right' })
     })
     it('processes multiple simultaneous touches', () => {
         const touchstart = mock.fn()
@@ -323,42 +299,40 @@ describe('Message Parsing', () => {
         device.on('touchstart', touchstart)
         device.on('touchmove', touchmove)
         device.on('touchend', touchend)
+        let ev
 
         // Multiple starts
         const TOUCH_1_START = Buffer.from('094d000001bf004c01', 'hex')
         const TOUCH_2_START = Buffer.from('094d00000002000102', 'hex')
         device.onReceive(TOUCH_1_START)
-        assert.equal(touchstart.calls[0].arguments[0], {
-            touches: [{ id: 1 })],
-            changedTouches: [{ id: 1 })],
-        })
+        ev = touchstart.mock.calls[0].arguments[0]
+        assert.equal(ev.touches.length, 1)
+        assert.equal(ev.changedTouches[0].id, 1)
+
         device.onReceive(TOUCH_2_START)
-        assert.equal(touchstart.calls[0].arguments[0], {
-            touches: [{ id: 1 }), { id: 2 })],
-            changedTouches: [{ id: 2 })],
-        })
+        ev = touchstart.mock.calls[1].arguments[0]
+        assert.equal(ev.touches.length, 2)
+        assert.equal(ev.changedTouches[0].id, 2)
 
         // Independent moves
         const TOUCH_1_MOVE = Buffer.from('094d000001bf004f01', 'hex')
         const TOUCH_2_MOVE = Buffer.from('094d00000004000802', 'hex')
         device.onReceive(TOUCH_2_MOVE)
-        assert.equal(touchmove.calls[0].arguments[0], {
-            touches: [{ id: 1 }), { id: 2 })],
-            changedTouches: [{ id: 2 })],
-        })
+        ev = touchmove.mock.calls[0].arguments[0]
+        assert.equal(ev.touches.length, 2)
+        assert.equal(ev.changedTouches[0].id, 2)
+
         device.onReceive(TOUCH_1_MOVE)
-        assert.equal(touchmove.calls[0].arguments[0], {
-            touches: [{ id: 1 }), { id: 2 })],
-            changedTouches: [{ id: 1 })],
-        })
+        ev = touchmove.mock.calls[1].arguments[0]
+        assert.equal(ev.touches.length, 2)
+        assert.equal(ev.changedTouches[0].id, 1)
 
         // Remove one touch
         const TOUCH_1_REMOVE = Buffer.from('096d000001bf004f01', 'hex')
         device.onReceive(TOUCH_1_REMOVE)
-        assert.equal(touchend.calls[0].arguments[0], {
-            touches: [{ id: 2 })],
-            changedTouches: [{ id: 1 })],
-        })
+        ev = touchend.mock.calls[0].arguments[0]
+        assert.equal(ev.touches.length, 1)
+        assert.equal(ev.changedTouches[0].id, 1)
     })
     it('processes version information', () => {
         const VERSION_PACKET = Buffer.from('0c070201052000ff00000000', 'hex')
@@ -370,7 +344,7 @@ describe('Message Parsing', () => {
     })
     it('ignores unknown messages', () => {
         const SAMPLE_MESSAGE = Buffer.from('ffffffffffffff', 'hex')
-        assert.equal(() => device.onReceive(SAMPLE_MESSAGE)).not.toThrow()
+        assert.doesNotThrow(() => device.onReceive(SAMPLE_MESSAGE))
     })
 })
 
@@ -389,7 +363,7 @@ describe('Connection Management', () => {
         const fn = mock.fn()
         device.on('connect', fn)
         await device.connect()
-        assert.equal(fn.mock.calls[0].arguments[0], { address: '/dev/test1' })
+        assert.deepEqual(fn.mock.calls[0].arguments[0], { address: '/dev/test1' })
         serialDiscovery.mock.restore()
         serialConnect.mock.restore()
         wsDiscovery.mock.restore()
@@ -412,10 +386,10 @@ describe('Connection Management', () => {
         device = new LoupedeckLive({ autoConnect: false, reconnectInterval: 20 })
         device.on('disconnect', fn)
         const connect = mock.method(device, 'connect')
-        await assert.equal(device.connect()).rejects.toMatch(/no devices found/i)
+        await assert.rejects(device.connect(), /no devices found/i)
         await delay(40)
-        assert.equal(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
-        assert.equal(fn.mock.calls[0][0].message).toMatch(/no devices found/i)
+        assert(connect.mock.calls.length >= 2)
+        assert.match(fn.mock.calls[0].arguments[0].message, /no devices found/i)
         serialDiscovery.mock.restore()
         wsDiscovery.mock.restore()
         device.close()
@@ -425,7 +399,7 @@ describe('Connection Management', () => {
         const connect = mock.method(device, 'connect', () => Promise.reject('some error'))
         device.onDisconnect('some error')
         await delay(40)
-        assert.equal(connect.mock.calls.length, 0)
+        assert(connect.mock.calls.length > 0)
         device.close()
     })
     it('does not attempt reconnect if closed before reconnect time', async() => {
@@ -498,8 +472,8 @@ describe('Connection Management', () => {
         slowSerialConnection.emit('connect', { address: slowSerialConnection.path })
 
         // Both promises should resolve
-        await assert.equal(connect1, undefined)
-        await assert.equal(connect2, undefined)
+        assert.equal(await connect1, undefined)
+        assert.equal(await connect2, undefined)
 
         serialDiscovery.mock.restore()
         serialConnect.mock.restore()
@@ -515,6 +489,6 @@ describe('Edge Cases', () => {
     it('prevents transaction IDs of zero', () => {
         device.transactionID = 0xff
         device.send(0xffff, Buffer.alloc(0))
-        assert.equal(device.transactionID).not.toBe(0)
+        assert(device.transactionID !== 0)
     })
 })

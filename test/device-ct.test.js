@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { beforeEach, describe, it, mock } from 'node:test'
+import { assertIsPixelBuffer, delay } from './helpers.js'
 
 import { MockSocket } from '../__mocks__/ws.js'
 import { MockSerialPort } from '../__mocks__/serialport.js'
@@ -10,19 +11,6 @@ mock.module('serialport', {
 const SerialConnection = (await import('../connections/serial.js')).default
 const WSConnection = (await import('../connections/ws.js')).default
 const { LoupedeckCT } = await import('../index.js')
-
-function assertIsPixelBuffer(received, { displayID, x, y, width, height }) {
-    assert(received.readUInt16BE(0) === 0xff10, `Header should be 0xff10, found 0x${received.readUInt16BE().toString(16)}`)
-    assert(received.readUInt16BE(3) === displayID, `Display ID should be ${displayID}, but found 0x${received.readUInt16BE(3).toString(16)}`)
-    assert(received.readUInt16BE(5) === x, `X coordinate should be ${x}, but found ${received.readUInt16BE(3)}`)
-    assert(received.readUInt16BE(7) === y, `Y coordinate should be ${y}, but found ${received.readUInt16BE(5)}`)
-    assert(received.readUInt16BE(9) === width, `Width should be ${width}, but found ${received.readUInt16BE(9)}`)
-    assert(received.readUInt16BE(11) === height, `Height should be ${height}, but found ${received.readUInt16BE(11)}`)
-    const correctLength = 13 + width * height * 2
-    assert(received.length === correctLength, `Buffer length should be ${correctLength}, but found ${received.length}`)
-}
-
-const delay = ms => new Promise(res => setTimeout(res, ms))
 
 let device
 
