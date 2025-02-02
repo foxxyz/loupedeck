@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "lint": "eslint",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "node --test  --experimental-test-coverage --experimental-test-module-mocks"
   },
   "files": [
     "index.js",
@@ -20,24 +20,17 @@
   "dependencies": {
     "color-rgba": "^3.0.0",
     "events": "^3.3.0",
-    "serialport": "^12.0.0",
+    "serialport": "^13.0.0",
     "strict-event-emitter": "^0.5.1",
-    "ws": "^8.17.0"
+    "ws": "^8.18.0"
   },
   "peerDependencies": {
-    "canvas": "^2.11.2"
+    "canvas": "^3.0.0-rc3"
   },
   "peerDependenciesMeta": {
     "canvas": {
       "optional": true
     }
-  },
-  "jest": {
-    "collectCoverage": true,
-    "coverageReporters": [
-      "text"
-    ],
-    "verbose": true
   },
   "keywords": [
     "loupedeck",
@@ -58,12 +51,10 @@
   "author": "Ivo Janssen <hello@ivo.la>",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "devDependencies": {
-    "@appliedminds/eslint-config": "^2.0.1",
-    "eslint": "^9.4.0",
-    "eslint-plugin-jest": "^28.6.0",
-    "jest": "^29.7.0"
+    "@appliedminds/eslint-config": "^2.0.2",
+    "eslint": "^9.19.0"
   }
 }

@@ -1,5 +1,6 @@
-import { jest } from '@jest/globals'
-jest.unstable_mockModule('canvas', () => ({}))
+import assert from 'node:assert/strict'
+import { beforeEach, describe, it, mock } from 'node:test'
+mock.module('canvas', {})
 const { LoupedeckLiveS } = await import('../index.js')
 
 let device
@@ -9,6 +10,6 @@ describe('Optional Dependencies', () => {
         device.connection = { send: () => {}, isReady: () => true }
     })
     it('informs the user if the canvas library is not installed', () => {
-        expect(() => device.drawKey(6, () => {})).toThrow(/using callbacks requires the `canvas` library/i)
+        assert.throws(() => device.drawKey(6, () => {}), /using callbacks requires the `canvas` library/i)
     })
 })

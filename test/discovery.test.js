@@ -1,10 +1,12 @@
+import assert from 'node:assert/strict'
+import { describe, it, mock } from 'node:test'
+
 import { discover, LoupedeckLive, LoupedeckLiveS } from '../index.js'
-import { jest } from '@jest/globals'
 import { SerialPort } from 'serialport'
 
 describe('Device Discovery', () => {
     it('reports if no devices found', async() => {
-        const spy = jest.spyOn(SerialPort, 'list').mockImplementation(() => [
+        const spy = mock.method(SerialPort, 'list', () => [
             {
                 path: '/dev/cu.usbmodem-222',
                 manufacturer: 'Apple',
@@ -14,11 +16,11 @@ describe('Device Discovery', () => {
                 productId: '52b5'
             }
         ])
-        await expect(discover()).rejects.toThrow(/no devices found/i)
-        spy.mockRestore()
+        assert.rejects(discover(), /no devices found/i)
+        spy.mock.restore()
     })
     it('can auto-discover a Loupedeck Live device', async() => {
-        const spy = jest.spyOn(SerialPort, 'list').mockImplementation(() => [
+        const spy = mock.method(SerialPort, 'list', () => [
             {
                 path: '/dev/cu.usbmodem-333',
                 manufacturer: 'Loupedeck',
@@ -29,11 +31,11 @@ describe('Device Discovery', () => {
             }
         ])
         const device = await discover({ autoConnect: false })
-        expect(device).toBeInstanceOf(LoupedeckLive)
-        spy.mockRestore()
+        assert(device instanceof LoupedeckLive)
+        spy.mock.restore()
     })
     it('can auto-discover a Loupedeck Live S device', async() => {
-        const spy = jest.spyOn(SerialPort, 'list').mockImplementation(() => [
+        const spy = mock.method(SerialPort, 'list', () => [
             {
                 path: '/dev/cu.usbmodem-444',
                 manufacturer: 'Loupedeck',
@@ -44,11 +46,11 @@ describe('Device Discovery', () => {
             }
         ])
         const device = await discover({ autoConnect: false })
-        expect(device).toBeInstanceOf(LoupedeckLiveS)
-        spy.mockRestore()
+        assert(device instanceof LoupedeckLiveS)
+        spy.mock.restore()
     })
     it('errors on unknown devices', async() => {
-        const spy = jest.spyOn(SerialPort, 'list').mockImplementation(() => [
+        const spy = mock.method(SerialPort, 'list', () => [
             {
                 path: '/dev/cu.usbmodem-444',
                 manufacturer: 'Loupedeck',
@@ -58,7 +60,7 @@ describe('Device Discovery', () => {
                 productId: '000d'
             }
         ])
-        await expect(discover()).rejects.toThrow(/not yet supported/i)
-        spy.mockRestore()
+        await assert.rejects(discover(), /not yet supported/i)
+        spy.mock.restore()
     })
 })
