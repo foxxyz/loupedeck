@@ -25,7 +25,7 @@
     "ws": "^8.18.0"
   },
   "peerDependencies": {
-    "canvas": "^3.0.0-rc3"
+    "canvas": "^3.1.0"
   },
   "peerDependenciesMeta": {
     "canvas": {
