@@ -65,11 +65,7 @@ export default class LoupedeckWebSerialConnection extends EventEmitter {
         const ports = await navigator.serial.getPorts()
         if (!ports.length) {
             // Request a new port
-            try {
-                ports.push(await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x2ec2 }, { usbVendorId: 0x1532 }] }))
-            } catch (e) {
-                console.warn('Unable to open port!')
-            }
+            ports.push(await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x2ec2 }, { usbVendorId: 0x1532 }] }))
         }
         const connections = []
         for (const port of ports) {
