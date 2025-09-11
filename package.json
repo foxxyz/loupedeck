@@ -1,6 +1,6 @@
 {
   "name": "loupedeck",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "Loupedeck Device Interface",
   "main": "index.js",
   "type": "module",
