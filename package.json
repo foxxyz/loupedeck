@@ -24,14 +24,6 @@
     "strict-event-emitter": "^0.5.1",
     "ws": "^8.18.0"
   },
-  "peerDependencies": {
-    "canvas": "^3.1.0"
-  },
-  "peerDependenciesMeta": {
-    "canvas": {
-      "optional": true
-    }
-  },
   "keywords": [
     "loupedeck",
     "device",

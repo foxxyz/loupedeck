@@ -23,7 +23,7 @@ jobs:
     - name: Install system dependencies
       run: sudo apt-get install libcairo2-dev libpango1.0-dev libgif-dev
     - run: npm ci
-    - run: npm install canvas@next
+    - run: npm install canvas --no-save
     - run: npm test
       env:
         CI: true
