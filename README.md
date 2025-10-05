@@ -43,11 +43,7 @@ Installation
 npm install loupedeck
 ```
 
-By default, `loupedeck` uses RGB565 (16-bit) buffers for drawing (with small exceptions, see below). To enable a more pleasant API that allows for drawing using [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) callbacks, also install `canvas`:
-
-```shell
-npm install canvas
-```
+By default, Loupdeck devices uses RGB565 (16-bit) buffers for drawing (with small exceptions, see below), so the [`canvas` module](https://www.npmjs.com/package/canvas) is used to enable a more pleasant API that allows for drawing using [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) callbacks.
 
 Usage Examples
 --------------
@@ -235,7 +231,7 @@ Returns a Promise which resolves once the command has been acknowledged by the d
 
 #### `device.drawCanvas({ id : String, width : Number, height : Number, x? : Number, y? : Number, autoRefresh? : Boolean }, callback : Function) : Promise`
 
-Draw graphics to a particular area using the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D). Requires [`canvas`](https://www.npmjs.com/package/canvas) to be installed.
+Draw graphics to a particular area using the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D).
 
 Lower-level method if [`drawKey()`](#devicedrawkeykey--number-buffercallback--bufferfunction--promise) or [`drawScreen()`](#devicedrawscreenscreenid--string-buffercallback--bufferfunction--promise) don't meet your needs.
 
