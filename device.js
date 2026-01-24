@@ -1,13 +1,19 @@
 import { Emitter as EventEmitter } from 'strict-event-emitter'
 import rgba from 'color-rgba'
 
-let SerialConnection, WSConnection
+let SerialConnection, WSConnection, HIDConnection
 // Only import when in a browser environment
 if (typeof navigator !== 'undefined' && navigator.serial || import.meta.env?.PROD) {
     SerialConnection = (await import('./connections/web-serial.js')).default
 } else {
     SerialConnection = (await import('./connections/serial.js')).default
     WSConnection = (await import('./connections/ws.js')).default
+    // Import HID connection on Node.js environments
+    try {
+        HIDConnection = (await import('./connections/hid.js')).default
+    } catch {
+        // HID not available on this platform
+    }
 }
 
 let canvasModule
@@ -29,11 +35,12 @@ import {
 import { rgba2rgb565 } from './util.js'
 
 export class LoupedeckDevice extends EventEmitter {
-    static async list({ ignoreSerial = false, ignoreWebsocket = false } = {}) {
+    static async list({ ignoreSerial = false, ignoreWebsocket = false, ignoreHID = false } = {}) {
         const ps = []
 
         if (!ignoreSerial) ps.push(SerialConnection.discover())
         if (!ignoreWebsocket && WSConnection) ps.push(WSConnection.discover())
+        if (!ignoreHID && HIDConnection) ps.push(HIDConnection.discover())
 
         // Run them in parallel
         const rawDevices = await Promise.all(ps)
@@ -80,7 +87,24 @@ export class LoupedeckDevice extends EventEmitter {
         else {
             const devices = await this.constructor.list()
             if (devices.length > 0) {
-                const { connectionType, ...args } = devices[0]
+                // On Linux, prioritize HID over serial for button input
+                let selectedDevice = devices[0]
+                if (process.platform === 'linux' && HIDConnection) {
+                    // First try to find a matching HID device (same product ID)
+                    const serialDevice = devices.find(d => d.connectionType === SerialConnection)
+                    if (serialDevice) {
+                        const matchingHID = devices.find(d =>
+                            d.connectionType === HIDConnection &&
+                            d.productId === serialDevice.productId
+                        )
+                        selectedDevice = matchingHID || devices.find(d => d.connectionType === HIDConnection) || devices[0]
+                    } else {
+                        // No serial device, just use first HID
+                        const hidDevice = devices.find(d => d.connectionType === HIDConnection)
+                        selectedDevice = hidDevice || devices[0]
+                    }
+                }
+                const { connectionType, ...args } = selectedDevice
                 this.connection = new connectionType(args)
             }
             if (!this.connection) {
