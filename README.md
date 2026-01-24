@@ -34,7 +34,8 @@ Requirements
 
 This library has been tested with firmware versions 0.1.3, 0.1.79, 0.2.5, 0.2.8 and 0.2.23. Other versions may work.
 
-**Note: Linux requires the setup-hid.sh script to be run (see #30 and HID_SETUP.md)**
+**Note: On Linux, run `sudo ./setup-hid.sh` once to configure HID device permissions.
+This enables button input on devices. See [HID_SETUP.md](HID_SETUP.md) for details.**
 
 Installation
 ------------
