@@ -67,6 +67,23 @@ describe('v0.1.X Connection', () => {
         assert.equal(connection.isReady(), true)
         connection.close()
     })
+    it('rejects connect and reports the cause when the connection fails', async() => {
+        connection = new WSConnection({ host: '127.0.0.1' })
+        const fn = mock.fn()
+        connection.on('disconnect', fn)
+        const connecting = connection.connect()
+        const err = new Error('connect EHOSTUNREACH 127.0.0.1:80')
+        connection.connection.emit('error', err)
+        connection.connection.terminate()
+        await assert.rejects(connecting, err)
+        assert.equal(fn.mock.calls[0].arguments[0], err)
+    })
+    it('can close while still connecting', async() => {
+        connection = new WSConnection({ host: '127.0.0.1' })
+        const connecting = connection.connect()
+        await connection.close()
+        await assert.rejects(connecting, /closed before the connection was established/)
+    })
     it('can close even when not connected', () => {
         connection = new WSConnection()
         connection.close()
