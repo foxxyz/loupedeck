@@ -110,7 +110,7 @@ Create a new Loupedeck Live device interface.
 Most use-cases should omit the `host`/`path` parameter, unless you're using multiple devices or know specifically which IP or device path you want to connect to. Either use `path` OR `host`, never both.
 
  - `path`: **(Firmware 0.2.X only)** Serial device path (example: `/dev/cu.ttymodem-1332` or `COM2`) (default: autodiscover)
- - `host`: **(Firmware 0.1.X only)** Host or IP address to connect to (example: `127.100.1.1`) (default: autodiscover)
+ - `host`: **(Firmware 0.1.X only)** Host or IP address to connect to (example: `100.127.1.1`) (default: autodiscover)
  - `autoConnect`: Automatically connect during construction. (default: `true`) _Set to `false` if you'd prefer to call [`connect()`](#deviceconnect--promise). yourself._
  - `reconnectInterval`: How many milliseconds to wait before attempting a reconnect after a failed connection (default: `3000`) _Set to `false` to turn off automatic reconnects._
 
@@ -309,6 +309,8 @@ If the device is not connected, the promise will reject.
 Set screen brightness.
 
  - `brightness`: Float between (0, 1) (`0` would turn the screen off, `1` for full brightness)
+
+_Note: On firmware 0.1.X (seen on a Loupedeck CT with 0.1.79), the screens stay dark after the device powers up until brightness is set, even though drawing succeeds. Call `setBrightness()` after connecting._
  
 Returns a Promise which resolves once the command has been acknowledged by the device.
 
