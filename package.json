@@ -18,11 +18,11 @@
     "connections"
   ],
   "dependencies": {
-    "canvas": "^3.2.0",
-    "color-rgba": "^3.0.0",
+    "canvas": "^3.2.3",
+    "color-rgba": "^3.1.1",
     "serialport": "^13.0.0",
     "strict-event-emitter": "^0.5.1",
-    "ws": "^8.18.3"
+    "ws": "^8.22.0"
   },
   "keywords": [
     "loupedeck",
@@ -46,7 +46,7 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "@appliedminds/eslint-config": "^2.0.3",
-    "eslint": "^9.37.0"
+    "@appliedminds/eslint-config": "^2.1.1",
+    "eslint": "^10.13.0"
   }
 }
