@@ -32,7 +32,7 @@ Requirements
    * Razer Stream Controller (_"RSC"_)
    * Razer Stream Controller X (_"RSCX"_)
 
-This library has been tested with firmware versions 0.1.3, 0.1.79, 0.2.5, 0.2.8 and 0.2.23. Other versions may work.
+This library has been tested with firmware versions 0.1.2, 0.1.3, 0.1.79, 0.2.5, 0.2.8 and 0.2.23. Other versions may work.
 
 **Note: Firmware version 0.2.26 does not seem to work on Linux. Recommendation is to downgrade to 0.2.23 (see #30)**
 
@@ -114,7 +114,11 @@ Most use-cases should omit the `host`/`path` parameter, unless you're using mult
  - `autoConnect`: Automatically connect during construction. (default: `true`) _Set to `false` if you'd prefer to call [`connect()`](#deviceconnect--promise). yourself._
  - `reconnectInterval`: How many milliseconds to wait before attempting a reconnect after a failed connection (default: `3000`) _Set to `false` to turn off automatic reconnects._
 
-### Class `LoupedeckCT`
+### Class `LoupedeckCT` ("V1.00 or V2.00 on rear")
+
+Same interface as [`LoupedeckLive`](#class-loupedecklive).
+
+### Class `LoupedeckCTv2` ("V3.00 on rear")
 
 Same interface as [`LoupedeckLive`](#class-loupedecklive).
 
