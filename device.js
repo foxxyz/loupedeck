@@ -295,6 +295,7 @@ export class LoupedeckLive extends LoupedeckDevice {
     }
 }
 
+// Rear of device says "V1.00" or "V2.00"
 export class LoupedeckCT extends LoupedeckLive {
     static productId = 0x0003
     buttons = [0, 1, 2, 3, 4, 5, 6, 7, 'home', 'enter', 'undo', 'save', 'keyboard', 'fnL', 'a', 'b', 'c', 'd', 'fnR', 'e']
@@ -309,6 +310,18 @@ export class LoupedeckCT extends LoupedeckLive {
     getTarget(x, y, id) {
         if (id === 0) return { screen: 'knob' }
         return super.getTarget(x, y)
+    }
+}
+
+// Rear of device says "V3.00"
+export class LoupedeckCTv2 extends LoupedeckCT {
+    static productId = 0x0007
+    // Basically the LoupedeckLive displays + knob
+    displays = {
+        center: { id: Buffer.from('\x00M'), width: 360, height: 270, offset: [60, 0] },
+        left: { id: Buffer.from('\x00M'), width: 60, height: 270 },
+        right: { id: Buffer.from('\x00M'), width: 60, height: 270, offset: [420, 0] },
+        knob: { id: Buffer.from('\x00W'), width: 240, height: 240, endianness: 'be' }, // "W"
     }
 }
 
