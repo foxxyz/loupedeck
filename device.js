@@ -49,7 +49,6 @@ export class LoupedeckDevice extends EventEmitter {
             [COMMANDS.BUTTON_PRESS]: this.onButton.bind(this),
             [COMMANDS.KNOB_ROTATE]: this.onRotate.bind(this),
             [COMMANDS.SERIAL]: buff => buff.toString().trim(),
-            [COMMANDS.TICK]: () => {},
             [COMMANDS.TOUCH]: this.onTouch.bind(this, 'touchmove'),
             [COMMANDS.TOUCH_END]: this.onTouch.bind(this, 'touchend'),
             [COMMANDS.VERSION]: buff => `${buff[0]}.${buff[1]}.${buff[2]}`,
@@ -176,6 +175,7 @@ export class LoupedeckDevice extends EventEmitter {
         }
     }
     onButton(buff) {
+        // Heartbeat ticks share this command but carry a single byte
         if (buff.length < 2) return
         const id = BUTTONS[buff[0]]
         const event = buff[1] === 0x00 ? 'down' : 'up'
