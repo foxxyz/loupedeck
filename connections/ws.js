@@ -48,9 +48,11 @@ export default class LoupedeckWSConnection extends EventEmitter {
         this.connection = new WebSocket(this.address)
         this.connection.on('open', this.onConnect.bind(this))
         this.connection.on('message', this.onReceive.bind(this))
+        this.connection.on('error', this.onError.bind(this))
         this.connection.on('close', this.onDisconnect.bind(this))
-        return new Promise(res => {
+        return new Promise((res, rej) => {
             this._connectionResolver = res
+            this._connectionRejecter = rej
         })
     }
     isReady() {
@@ -62,13 +64,19 @@ export default class LoupedeckWSConnection extends EventEmitter {
         this._connectionResolver()
     }
     onDisconnect(errCode) {
-        let error = null
+        let error = this.lastError || null
+        this.lastError = null
         switch (errCode) {
             case DISCONNECT_CODES.TIMEOUT:
-                error = new Error('Connection timeout - was the device disconnected?')
+                error = error || new Error('Connection timeout - was the device disconnected?')
         }
         clearTimeout(this._keepAliveTimer)
         this.emit('disconnect', error)
+    }
+    // `ws` always emits 'close' after 'error', so the disconnect is reported from there
+    onError(err) {
+        this.lastError = err
+        this._connectionRejecter(err)
     }
     onReceive(buff) {
         this.lastTick = Date.now()
