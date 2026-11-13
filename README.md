@@ -24,7 +24,7 @@ Supports:
 Requirements
 ------------
 
- * Node 20+
+ * Node 24+
  * Supported Devices:
    * Loupedeck Live
    * Loupedeck Live S
@@ -103,13 +103,14 @@ Returns an instance of `LoupedeckLive`, `LoupedeckLiveS`, `LoupedeckCT`, `RazerS
 
 Implements and supports all methods from the [`LoupedeckDevice` interface](#interface-loupedeckdevice).
 
-#### `new LoupedeckLive({ path : String?, host : String?, autoConnect : Boolean? })`
+#### `new LoupedeckLive({ path : String?, host : String?, port : SerialPort?, autoConnect : Boolean? })`
 
 Create a new Loupedeck Live device interface.
 
-Most use-cases should omit the `host`/`path` parameter, unless you're using multiple devices or know specifically which IP or device path you want to connect to. Either use `path` OR `host`, never both.
+Most use-cases should omit the `host`/`path`/`port` parameter, unless you're using multiple devices or know specifically which IP, device path, or serial port instance you want to connect to. Either use `path`, `host`, OR `port`, never multiple.
 
  - `path`: **(Firmware 0.2.X only)** Serial device path (example: `/dev/cu.ttymodem-1332` or `COM2`) (default: autodiscover)
+ - `port`: **(Firmware 0.2.X only)** Web Serial [SerialPort](https://developer.mozilla.org/en-US/docs/Web/API/SerialPort) instance (default: autodiscover)
  - `host`: **(Firmware 0.1.X only)** Host or IP address to connect to (example: `127.100.1.1`) (default: autodiscover)
  - `autoConnect`: Automatically connect during construction. (default: `true`) _Set to `false` if you'd prefer to call [`connect()`](#deviceconnect--promise). yourself._
  - `reconnectInterval`: How many milliseconds to wait before attempting a reconnect after a failed connection (default: `3000`) _Set to `false` to turn off automatic reconnects._

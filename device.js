@@ -41,7 +41,7 @@ export class LoupedeckDevice extends EventEmitter {
         return rawDevices.flat()
     }
     keySize = 90
-    constructor({ host, path, autoConnect = true, reconnectInterval = DEFAULT_RECONNECT_INTERVAL } = {}) {
+    constructor({ host, path, port, autoConnect = true, reconnectInterval = DEFAULT_RECONNECT_INTERVAL } = {}) {
         super()
         this.transactionID = 0
         this.touches = {}
@@ -62,8 +62,9 @@ export class LoupedeckDevice extends EventEmitter {
         this.reconnectInterval = reconnectInterval
         // Host for websocket connections
         this.host = host
-        // Path for serial connections
+        // Path or port for serial connections
         this.path = path
+        this.port = port
         // Automatically connect?
         if (autoConnect) this._connectBlind()
     }
@@ -73,7 +74,7 @@ export class LoupedeckDevice extends EventEmitter {
     }
     async connect() {
         // Explicitly asked for a serial connection (V0.2.X)
-        if (this.path) this.connection = new SerialConnection({ path: this.path })
+        if (this.path || this.port) this.connection = new SerialConnection({ path: this.path, port: this.port })
         // Explicitly asked for a websocket connection (V0.1.X)
         else if (this.host) this.connection = new WSConnection({ host: this.host })
         // Autodiscover
