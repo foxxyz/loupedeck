@@ -8,6 +8,9 @@
     "lint": "eslint",
     "test": "node --test  --experimental-test-coverage --experimental-test-module-mocks"
   },
+  "allowScripts": {
+    "canvas": true
+  },
   "files": [
     "index.js",
     "device.js",
