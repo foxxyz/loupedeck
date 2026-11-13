@@ -57,7 +57,7 @@ export default class LoupedeckWebSerialConnection extends EventEmitter {
     constructor({ port } = {}) {
         super()
         this.port = port
-        navigator.serial.addEventListener('disconnect', this.onDisconnect.bind(this))
+        port.addEventListener('disconnect', this.onDisconnect.bind(this))
     }
     // Automatically find Loupedeck Serial device by scanning ports
     static async discover() {
